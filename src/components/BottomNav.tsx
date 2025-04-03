@@ -1,67 +1,58 @@
-
-import React from 'react';
-import { Home, Search, MapPin, Heart, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Home, Search, MapPin, Heart, User } from 'lucide-react';
 
 interface NavItemProps {
-  icon: React.ReactNode;
+  icon: JSX.Element;
   label: string;
-  isActive?: boolean;
+  isActive: boolean;
   onClick: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick }) => {
+const NavItem = ({ icon, label, isActive, onClick }: NavItemProps) => {
   return (
-    <div 
-      className="flex flex-col items-center gap-1 cursor-pointer"
+    <button 
+      className={`flex flex-col items-center text-sm ${isActive ? 'text-blue-500' : 'text-gray-500'}`} 
       onClick={onClick}
     >
-      <div className={isActive ? "text-bodhi-orange" : "text-[#1D1B20]"}>
-        {icon}
-      </div>
-      <span className="text-[10px] font-medium leading-[15px] text-[#222]">
-        {label}
-      </span>
-    </div>
+      {icon}
+      <span className="mt-1">{label}</span>
+    </button>
   );
 };
 
-interface BottomNavProps {
-  activeTab: string;
-}
-
-const BottomNav: React.FC<BottomNavProps> = ({ activeTab }) => {
+const BottomNav = () => {
   const navigate = useNavigate();
+  const activeTab = window.location.pathname.split('/')[1]; // 현재 활성 탭 확인
 
   return (
-    <div className="fixed bottom-0 w-full max-w-[390px] bg-white border border-[#E6E6E6] z-10">
-      <div className="flex justify-around items-center py-[15px]">
+    <div className="fixed bottom-0 w-full max-w-full bg-white border border-[#E6E6E6] z-10">
+      <div className="flex justify-around items-center py-3 sm:py-4">
         <NavItem 
-          icon={<Home size={19} />} 
+          icon={<Home size={20} />} 
           label="홈" 
-          isActive={activeTab === 'home'}
+          isActive={activeTab === 'main'}
           onClick={() => navigate('/main')}
         />
         <NavItem 
-          icon={<Search size={21} />} 
+          icon={<Search size={20} />} 
           label="검색" 
           isActive={activeTab === 'search'}
           onClick={() => navigate('/search')}
         />
         <NavItem 
-          icon={<MapPin size={21} />} 
+          icon={<MapPin size={20} />} 
           label="주변" 
           isActive={activeTab === 'nearby'}
           onClick={() => navigate('/nearby')}
         />
         <NavItem 
-          icon={<Heart size={21} />} 
+          icon={<Heart size={20} />} 
           label="찜 목록" 
           isActive={activeTab === 'favorites'}
           onClick={() => navigate('/favorites')}
         />
         <NavItem 
-          icon={<User size={21} />} 
+          icon={<User size={20} />} 
           label="내 정보" 
           isActive={activeTab === 'profile'}
           onClick={() => navigate('/profile')}
