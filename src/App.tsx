@@ -9,6 +9,10 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Main from "./pages/Main";
 import NotFound from "./pages/NotFound";
+import Search from "./pages/Search";
+import Nearby from "./pages/Nearby";
+import Wishlist from "./pages/Wishlist";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +27,10 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/main" element={<Main />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/nearby" element={<Nearby />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/profile" element={<Profile />} />
           
           {/* Default route redirects to welcome page */}
           <Route path="/index" element={<Navigate to="/" replace />} />
