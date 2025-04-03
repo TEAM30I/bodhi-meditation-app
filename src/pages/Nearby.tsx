@@ -31,31 +31,6 @@ export default function Nearby(): JSX.Element {
   return (
     <div className="bg-white flex flex-row justify-center w-full min-h-screen pb-[80px]">
       <div className="bg-white overflow-hidden w-[390px] relative">
-        {/* Status Bar */}
-        <div className="w-[390px] h-[42px]">
-          <div className="flex w-[390px] items-center justify-between px-5 py-2.5 relative">
-            <div className="relative w-fit mt-[-1.00px] font-medium text-black text-[17px] text-center tracking-[0] leading-[22px] whitespace-nowrap">
-              9:41
-            </div>
-
-            <div className="inline-flex items-end gap-2 relative flex-[0_0_auto]">
-              {/* Signal icon placeholder */}
-              <div className="relative w-[19.2px] h-[12.23px] bg-black opacity-80"></div>
-
-              {/* WiFi icon placeholder */}
-              <div className="relative w-[17.14px] h-[12.33px] bg-black opacity-80"></div>
-
-              {/* Battery icon */}
-              <div className="relative w-[27.33px] h-[13px]">
-                <div className="absolute w-[25px] h-[13px] top-0 left-0 rounded-[4.3px] border border-solid border-[#00000059]">
-                  <div className="relative w-[21px] h-[9px] top-px left-px bg-black rounded-[2.5px]" />
-                </div>
-                <div className="absolute w-px h-1 top-[5px] left-[26px] bg-black opacity-50"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Search Bar Section */}
         <div className="w-[390px] h-[99px]">
           <div className="w-[390px] h-[73px]">
