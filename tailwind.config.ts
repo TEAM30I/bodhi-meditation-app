@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Bodhi custom colors
+				bodhi: {
+					background: '#FFF9EB',
+					orange: '#FF8433',
+					darkOrange: '#DE7834',
+					gray: '#D9D9D9',
+					darkGray: '#767676',
+					textDark: '#111',
+					textLight: '#8B8B8B',
+					news: '#FEDFDD',
 				}
 			},
 			borderRadius: {
@@ -89,6 +101,11 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			fontFamily: {
+				pretendard: ['Pretendard', 'sans-serif'],
+				rubik: ['"Rubik Mono One"', 'monospace'],
+				noto: ['"Noto Sans KR"', 'sans-serif'],
 			}
 		}
 	},
