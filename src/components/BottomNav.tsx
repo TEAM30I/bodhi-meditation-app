@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { Home, Search, MapPin, Heart, User } from 'lucide-react';
 
@@ -11,11 +12,11 @@ interface NavItemProps {
 const NavItem = ({ icon, label, isActive, onClick }: NavItemProps) => {
   return (
     <button 
-      className={`flex flex-col items-center text-sm ${isActive ? 'text-blue-500' : 'text-gray-500'}`} 
+      className={`flex flex-col items-center text-sm ${isActive ? 'text-[#dd7733]' : 'text-gray-500'}`} 
       onClick={onClick}
     >
       {icon}
-      <span className="mt-1">{label}</span>
+      <span className="mt-1 text-[10px] md:text-xs">{label}</span>
     </button>
   );
 };
@@ -26,11 +27,11 @@ const BottomNav = () => {
 
   return (
     <div className="fixed bottom-0 w-full max-w-full bg-white border border-[#E6E6E6] z-10">
-      <div className="flex justify-around items-center py-3 sm:py-4">
+      <div className="max-w-[1024px] mx-auto flex justify-around items-center py-3 sm:py-4">
         <NavItem 
           icon={<Home size={20} />} 
           label="홈" 
-          isActive={activeTab === 'main'}
+          isActive={activeTab === 'main' || activeTab === ''}
           onClick={() => navigate('/main')}
         />
         <NavItem 

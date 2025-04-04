@@ -7,13 +7,15 @@ interface BodhiButtonProps {
   variant?: 'primary' | 'secondary' | 'kakao' | 'naver';
   className?: string;
   onClick?: () => void;
+  disabled?: boolean;
 }
 
 const BodhiButton: React.FC<BodhiButtonProps> = ({ 
   children, 
   variant = 'primary',
   className,
-  onClick
+  onClick,
+  disabled = false
 }) => {
   const baseStyles = "w-full h-[60px] rounded-[18px] font-semibold text-lg flex items-center justify-center";
   
@@ -26,8 +28,12 @@ const BodhiButton: React.FC<BodhiButtonProps> = ({
 
   return (
     <button 
-      className={cn(baseStyles, variantStyles[variant], className)}
+      className={cn(baseStyles, variantStyles[variant], 
+        disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+        className
+      )}
       onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>
