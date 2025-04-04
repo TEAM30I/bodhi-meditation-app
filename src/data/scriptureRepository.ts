@@ -109,7 +109,7 @@ export const readingSchedule = [
   {
     id: "reading1",
     date: "4월 9일 화요일",
-    title: ""명인의 세계를 그린 간송 우종우"",
+    title: "명인의 세계를 그린 간송 우종우",
     category: "금강경",
     chapter: "제4장 3절에서 이어하기",
     color: "bg-black",
@@ -117,7 +117,7 @@ export const readingSchedule = [
   },
   {
     id: "reading2",
-    title: ""모든 고통에서 벗어나는 지혜의 말씀"",
+    title: "모든 고통에서 벗어나는 지혜의 말씀",
     category: "반야심",
     chapter: "제1장 4절에서 이어하기",
     color: "bg-red-500",
@@ -125,7 +125,7 @@ export const readingSchedule = [
   },
   {
     id: "reading3",
-    title: ""연민과 구원의 메시지를 전하는 부처의 정신"",
+    title: "연민과 구원의 메시지를 전하는 부처의 정신",
     category: "법화경",
     chapter: "제1장 1절에서 시작하기",
     color: "bg-blue-500",
@@ -133,7 +133,7 @@ export const readingSchedule = [
   },
   {
     id: "reading4",
-    title: ""모든 고통에서 벗어나는 지혜의 말씀"",
+    title: "모든 고통에서 벗어나는 지혜의 말씀",
     category: "반야심",
     chapter: "제1장 4절에서 이어하기",
     color: "bg-orange-500",
@@ -141,7 +141,7 @@ export const readingSchedule = [
   },
   {
     id: "reading5",
-    title: ""모든 고통에서 벗어나는 지혜의 말씀"",
+    title: "모든 고통에서 벗어나는 지혜의 말씀",
     category: "용수경",
     chapter: "제1장 4절에서 이어하기",
     color: "bg-green-500",
