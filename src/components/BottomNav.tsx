@@ -48,8 +48,8 @@ const BottomNav = () => {
         <NavItem 
           icon={<Heart size={20} />} 
           label="찜 목록" 
-          isActive={activeTab === 'favorites'}
-          onClick={() => navigate('/favorites')}
+          isActive={activeTab === 'wishlist'}
+          onClick={() => navigate('/wishlist')}
         />
         <NavItem 
           icon={<User size={20} />} 

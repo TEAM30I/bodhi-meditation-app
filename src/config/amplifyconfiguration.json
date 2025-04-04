@@ -1,0 +1,15 @@
+{
+    "aws_project_region": "ap-northeast-2",
+    "aws_cognito_region": "ap-northeast-2",
+    "aws_user_pools_id": "ap-northeast-2_w9Vdmj15X",
+    "aws_user_pools_web_client_id": "3bmg89p73cggqdhpc35v35g2fo",
+    "oauth": {},
+    "Auth": {
+      "region": "ap-northeast-2",
+      "userPoolId": "ap-northeast-2_w9Vdmj15X",
+      "userPoolWebClientId": "3bmg89p73cggqdhpc35v35g2fo",
+      "authenticationFlowType": "USER_SRP_AUTH",
+      "mandatorySignIn": false,
+      "signUpVerificationMethod": "email"
+    }
+  }
