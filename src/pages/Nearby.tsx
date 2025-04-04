@@ -27,31 +27,6 @@ export default function Nearby(): JSX.Element {
 
   return (
     <PageLayout title="주변">
-      {/* Status Bar */}
-      <div className="w-full h-[42px]">
-        <div className="flex w-full items-center justify-between px-5 py-2.5 relative">
-          <div className="relative w-fit mt-[-1.00px] font-medium text-black text-[17px] text-center tracking-[0] leading-[22px] whitespace-nowrap">
-            9:41
-          </div>
-
-          <div className="inline-flex items-end gap-2 relative flex-[0_0_auto]">
-            {/* Signal icon placeholder */}
-            <div className="relative w-[19.2px] h-[12.23px] bg-black opacity-80"></div>
-
-            {/* WiFi icon placeholder */}
-            <div className="relative w-[17.14px] h-[12.33px] bg-black opacity-80"></div>
-
-            {/* Battery icon */}
-            <div className="relative w-[27.33px] h-[13px]">
-              <div className="absolute w-[25px] h-[13px] top-0 left-0 rounded-[4.3px] border border-solid border-[#00000059]">
-                <div className="relative w-[21px] h-[9px] top-px left-px bg-black rounded-[2.5px]" />
-              </div>
-              <div className="absolute w-px h-1 top-[5px] left-[26px] bg-black opacity-50"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Search Bar */}
       <div className="w-full max-w-[313px] h-[46px] mx-auto bg-neutral-100 rounded-[50px] flex items-center px-5">
         <SearchIcon className="w-[21px] h-[21px] text-gray-500 mr-4" />
