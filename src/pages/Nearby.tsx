@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -98,72 +99,72 @@ export default function Nearby(): JSX.Element {
           </div>
         </div>
 
-          {/* Map and Temple List Section */}
-          <div className="w-full mt-10">
-            {/* Map Image */}
-            <div className="w-full h-[433px] bg-gray-200">
-              <img className="w-full h-full object-cover" alt="Map view" src="" />
-            </div>
-
-            {/* Temple List Card */}
-            <Card className="w-full h-[354px] mt-[-16px] rounded-t-[20px] border-0 shadow-none">
-              <CardContent className="p-0 relative h-full">
-                {/* Pull Indicator */}
-                <div className="absolute w-[42px] h-[5px] top-1.5 left-1/2 transform -translate-x-1/2 bg-gray-300 rounded-full"></div>
-
-                {/* Sort Options */}
-                <div className="inline-flex items-center gap-2.5 absolute top-[45px] left-[23px]">
-                  {sortOptions.map((option) => (
-                    <Badge
-                      key={option.id}
-                      variant={option.active ? "default" : "secondary"}
-                      className={`rounded-2xl px-[15px] py-1.5 text-xs font-semibold tracking-[0.24px] leading-5 ${
-                        option.active ? "bg-[#dd7733] hover:bg-[#c66a2e] text-white" : "bg-neutral-100 text-black"
-                      }`}
-                    >
-                      {option.label}
-                    </Badge>
-                  ))}
-                </div>
-
-                <Separator className="absolute w-full h-0.5 top-[91px] left-0" />
-
-                {/* Temple Count */}
-                <div className="absolute top-[111px] left-3 font-bold text-[#222222] text-lg tracking-[0] leading-normal whitespace-nowrap">
-                  33개의 사찰
-                </div>
-
-                {/* Temple Listing */}
-                <div className="absolute w-full h-[222px] top-[132px] left-0">
-                  {/* Temple Image */}
-                  <div className="absolute w-[124px] h-[116px] top-[18px] left-6 bg-gray-300 rounded-lg overflow-hidden">
-                    <img className="w-full h-full object-cover" alt="Temple image" src="" />
-                  </div>
-                  {/* Temple Info */}
-                  <div className="flex flex-col w-[233px] h-[42px] items-start absolute top-6 left-[157px]">
-                    <div className="font-bold text-[#222222] text-base tracking-[-0.40px] leading-[22.4px]">
-                      {templeData.name}
-                    </div>
-                    <div className="font-medium text-[#8b8b8b] text-sm tracking-[-0.35px] leading-[19.6px]">
-                      {templeData.location}
-                    </div>
-                  </div>
-                  {/* Rating */}
-                  <div className="absolute w-[124px] h-10 top-[85px] left-[157px] flex items-center">
-                    <Badge className="flex items-center gap-1 bg-[#ffc83b] text-black font-extrabold text-[11px] tracking-[-0.28px] leading-[15px] h-[21px] rounded-[20px] mr-2">
-                      <Star className="w-2.5 h-2.5 fill-current" />
-                      <span>{templeData.rating}</span>
-                    </Badge>
-                    <div className="font-semibold text-[#8b8b8b] text-sm tracking-[-0.35px] leading-[19.6px] whitespace-nowrap">
-                      {templeData.reviews}개의 평가
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Map and Temple List Section */}
+        <div className="w-full mt-10">
+          {/* Map Image */}
+          <div className="w-full h-[433px] bg-gray-200">
+            <img className="w-full h-full object-cover" alt="Map view" src="" />
           </div>
+
+          {/* Temple List Card */}
+          <Card className="w-full h-[354px] mt-[-16px] rounded-t-[20px] border-0 shadow-none">
+            <CardContent className="p-0 relative h-full">
+              {/* Pull Indicator */}
+              <div className="absolute w-[42px] h-[5px] top-1.5 left-1/2 transform -translate-x-1/2 bg-gray-300 rounded-full"></div>
+
+              {/* Sort Options */}
+              <div className="inline-flex items-center gap-2.5 absolute top-[45px] left-[23px]">
+                {sortOptions.map((option) => (
+                  <Badge
+                    key={option.id}
+                    variant={option.active ? "default" : "secondary"}
+                    className={`rounded-2xl px-[15px] py-1.5 text-xs font-semibold tracking-[0.24px] leading-5 ${
+                      option.active ? "bg-[#dd7733] hover:bg-[#c66a2e] text-white" : "bg-neutral-100 text-black"
+                    }`}
+                  >
+                    {option.label}
+                  </Badge>
+                ))}
+              </div>
+
+              <Separator className="absolute w-full h-0.5 top-[91px] left-0" />
+
+              {/* Temple Count */}
+              <div className="absolute top-[111px] left-3 font-bold text-[#222222] text-lg tracking-[0] leading-normal whitespace-nowrap">
+                33개의 사찰
+              </div>
+
+              {/* Temple Listing */}
+              <div className="absolute w-full h-[222px] top-[132px] left-0">
+                {/* Temple Image */}
+                <div className="absolute w-[124px] h-[116px] top-[18px] left-6 bg-gray-300 rounded-lg overflow-hidden">
+                  <img className="w-full h-full object-cover" alt="Temple image" src="" />
+                </div>
+                {/* Temple Info */}
+                <div className="flex flex-col w-[233px] h-[42px] items-start absolute top-6 left-[157px]">
+                  <div className="font-bold text-[#222222] text-base tracking-[-0.40px] leading-[22.4px]">
+                    {templeData.name}
+                  </div>
+                  <div className="font-medium text-[#8b8b8b] text-sm tracking-[-0.35px] leading-[19.6px]">
+                    {templeData.location}
+                  </div>
+                </div>
+                {/* Rating */}
+                <div className="absolute w-[124px] h-10 top-[85px] left-[157px] flex items-center">
+                  <Badge className="flex items-center gap-1 bg-[#ffc83b] text-black font-extrabold text-[11px] tracking-[-0.28px] leading-[15px] h-[21px] rounded-[20px] mr-2">
+                    <Star className="w-2.5 h-2.5 fill-current" />
+                    <span>{templeData.rating}</span>
+                  </Badge>
+                  <div className="font-semibold text-[#8b8b8b] text-sm tracking-[-0.35px] leading-[19.6px] whitespace-nowrap">
+                    {templeData.reviews}개의 평가
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
+      
       <BottomNav />
     </div>
   );
