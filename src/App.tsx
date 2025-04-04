@@ -13,6 +13,11 @@ import Search from "./pages/Search";
 import Nearby from "./pages/Nearby";
 import Wishlist from "./pages/Wishlist";
 import Profile from "./pages/Profile";
+import TempleStay from "./pages/TempleStay";
+import Fortune from "./pages/Fortune";
+import Scripture from "./pages/Scripture";
+import FindTemple from "./pages/FindTemple";
+import SearchResults from "./pages/SearchResults";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +36,11 @@ const App = () => (
           <Route path="/nearby" element={<Nearby />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/temple-stay" element={<TempleStay />} />
+          <Route path="/fortune" element={<Fortune />} />
+          <Route path="/scripture" element={<Scripture />} />
+          <Route path="/find-temple" element={<FindTemple />} />
+          <Route path="/search-results" element={<SearchResults />} />
           
           {/* Default route redirects to welcome page */}
           <Route path="/index" element={<Navigate to="/" replace />} />

@@ -1,28 +1,20 @@
 
 import React from 'react';
-import { cn } from '@/lib/utils';
 
 interface TempleCircleProps {
   name: string;
   imageUrl?: string;
-  className?: string;
 }
 
-const TempleCircle: React.FC<TempleCircleProps> = ({ name, imageUrl, className }) => {
+const TempleCircle: React.FC<TempleCircleProps> = ({ name, imageUrl }) => {
   return (
-    <div className={cn("flex flex-col items-center flex-shrink-0", className)}>
-      <div className="w-[68px] h-[68px] rounded-full overflow-hidden mb-[3px] bg-gray-200">
-        {imageUrl ? (
+    <div className="flex flex-col items-center flex-shrink-0">
+      <div className="w-[60px] h-[60px] rounded-full bg-gray-200 overflow-hidden mb-[5px]">
+        {imageUrl && (
           <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-500">
-            사진
-          </div>
         )}
       </div>
-      <div className="text-[#222] text-[12px] tracking-[-0.025em]">
-        {name}
-      </div>
+      <span className="text-[13px] font-medium text-center">{name}</span>
     </div>
   );
 };

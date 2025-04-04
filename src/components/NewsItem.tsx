@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface NewsItemProps {
@@ -8,12 +9,18 @@ interface NewsItemProps {
 
 const NewsItem: React.FC<NewsItemProps> = ({ temple, source, title }) => {
   return (
-    <div className="flex gap-4 sm:gap-6 items-center p-3 sm:p-4 bg-white rounded-lg shadow-sm">
-      <div className="text-[#222] text-[14px] sm:text-[16px] font-semibold leading-6 sm:leading-7 tracking-[-0.25px] w-[40px] sm:w-[50px] text-center">
-        {temple}
+    <div className="w-full mx-auto bg-white rounded-[10px] p-[15px] shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+      <div className="mb-[6px] flex items-center">
+        <span className="font-semibold text-bodhi-darkOrange text-[15px] leading-[22px] tracking-[-0.38px]">
+          {temple}
+        </span>
+        <span className="mx-[6px] text-bodhi-textLight">|</span>
+        <span className="font-medium text-bodhi-textLight text-[12px] leading-[22px] tracking-[-0.3px]">
+          {source}
+        </span>
       </div>
-      <div className="text-[#555] text-[13px] sm:text-[15px] font-medium leading-6 sm:leading-7">
-        {source} | <span className="font-semibold">"{title}"</span>
+      <div className="font-bold text-bodhi-textDark text-[14px] leading-[22px] tracking-[-0.35px]">
+        {title}
       </div>
     </div>
   );

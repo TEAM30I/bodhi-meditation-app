@@ -20,10 +20,10 @@ const BodhiButton: React.FC<BodhiButtonProps> = ({
   const baseStyles = "w-full h-[60px] rounded-[18px] font-semibold text-lg flex items-center justify-center";
   
   const variantStyles = {
-    primary: "bg-bodhi-orange text-white",
-    secondary: "bg-bodhi-gray text-white",
-    kakao: "bg-[#FDDC3F] text-[#341F1E] relative",
-    naver: "bg-[#00C73C] text-white relative"
+    primary: "bg-bodhi-orange text-white hover:bg-bodhi-orange/90",
+    secondary: "bg-bodhi-gray text-white hover:bg-bodhi-gray/90",
+    kakao: "bg-[#FDDC3F] text-[#341F1E] hover:bg-[#FDDC3F]/90 relative",
+    naver: "bg-[#00C73C] text-white hover:bg-[#00C73C]/90 relative"
   };
 
   return (

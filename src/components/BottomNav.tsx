@@ -26,7 +26,7 @@ const BottomNav = () => {
   const activeTab = window.location.pathname.split('/')[1]; // 현재 활성 탭 확인
 
   return (
-    <div className="fixed bottom-0 w-full max-w-full bg-white border border-[#E6E6E6] z-10">
+    <div className="fixed bottom-0 w-full bg-white border border-[#E6E6E6] z-10">
       <div className="max-w-[1024px] mx-auto flex justify-around items-center py-3 sm:py-4">
         <NavItem 
           icon={<Home size={20} />} 

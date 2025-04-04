@@ -28,10 +28,10 @@ export default function Nearby(): JSX.Element {
   return (
     <PageLayout title="주변">
       {/* Search Bar */}
-      <div className="w-full max-w-[313px] h-[46px] mx-auto bg-neutral-100 rounded-[50px] flex items-center px-5">
-        <SearchIcon className="w-[21px] h-[21px] text-gray-500 mr-4" />
+      <div className="w-full md:w-3/4 lg:w-2/3 mx-auto bg-neutral-100 rounded-[50px] flex items-center px-5 h-[46px]">
+        <SearchIcon className="w-[21px] h-[21px] text-gray-500 mr-4 flex-shrink-0" />
         <Input
-          className="border-0 bg-transparent h-full focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#999999] placeholder:font-semibold text-[15px] tracking-[0.45px]"
+          className="border-0 bg-transparent h-full focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#999999] placeholder:font-semibold text-[15px] tracking-[0.45px] w-full"
           placeholder="지역, 지하철역"
         />
       </div>
@@ -56,7 +56,11 @@ export default function Nearby(): JSX.Element {
       <div className="w-full mt-10">
         {/* Map Image */}
         <div className="w-full h-[433px] bg-gray-200">
-          <img className="w-full h-full object-cover" alt="Map view" src="" />
+          <img 
+            className="w-full h-full object-cover" 
+            alt="Map view" 
+            src="https://images.unsplash.com/photo-1526602367853-61a536f40855?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+          />
         </div>
 
         {/* Temple List Card */}
@@ -91,7 +95,11 @@ export default function Nearby(): JSX.Element {
             <div className="absolute w-full h-[222px] top-[132px] left-0">
               {/* Temple Image */}
               <div className="absolute w-[124px] h-[116px] top-[18px] left-6 bg-gray-300 rounded-lg overflow-hidden">
-                <img className="w-full h-full object-cover" alt="Temple image" src="" />
+                <img 
+                  className="w-full h-full object-cover" 
+                  alt="Temple image" 
+                  src="https://images.unsplash.com/photo-1527576539890-dfa815648363?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80"
+                />
               </div>
               {/* Temple Info */}
               <div className="flex flex-col w-[233px] h-[42px] items-start absolute top-6 left-[157px]">
