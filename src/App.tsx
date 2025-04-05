@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import TempleStay from "./pages/TempleStay";
 import Fortune from "./pages/Fortune";
 import Scripture from "./pages/Scripture";
+import ScriptureReading from "./pages/ScriptureReading";
 import FindTemple from "./pages/FindTemple";
 import SearchResults from "./pages/SearchResults";
 
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/temple-stay" element={<TempleStay />} />
           <Route path="/fortune" element={<Fortune />} />
           <Route path="/scripture" element={<Scripture />} />
+          <Route path="/scripture/:id" element={<ScriptureReading />} />
           <Route path="/find-temple" element={<FindTemple />} />
           <Route path="/search-results" element={<SearchResults />} />
           

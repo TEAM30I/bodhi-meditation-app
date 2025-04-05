@@ -1,6 +1,6 @@
 
 import { useNavigate } from 'react-router-dom';
-import { Home, Search, MapPin, Heart, User } from 'lucide-react';
+import { Home, Book, Search, Heart, User } from 'lucide-react';
 
 interface NavItemProps {
   icon: JSX.Element;
@@ -23,39 +23,39 @@ const NavItem = ({ icon, label, isActive, onClick }: NavItemProps) => {
 
 const BottomNav = () => {
   const navigate = useNavigate();
-  const activeTab = window.location.pathname.split('/')[1]; // 현재 활성 탭 확인
-
+  const pathname = window.location.pathname;
+  
   return (
     <div className="fixed bottom-0 w-full bg-white border border-[#E6E6E6] z-10">
       <div className="max-w-[1024px] mx-auto flex justify-around items-center py-3 sm:py-4">
         <NavItem 
           icon={<Home size={20} />} 
           label="홈" 
-          isActive={activeTab === 'main' || activeTab === ''}
+          isActive={pathname === '/main' || pathname === '/'}
           onClick={() => navigate('/main')}
+        />
+        <NavItem 
+          icon={<Book size={20} />} 
+          label="읽기" 
+          isActive={pathname === '/scripture'}
+          onClick={() => navigate('/scripture')}
         />
         <NavItem 
           icon={<Search size={20} />} 
           label="검색" 
-          isActive={activeTab === 'search'}
+          isActive={pathname.includes('/search')}
           onClick={() => navigate('/search')}
         />
         <NavItem 
-          icon={<MapPin size={20} />} 
-          label="주변" 
-          isActive={activeTab === 'nearby'}
-          onClick={() => navigate('/nearby')}
-        />
-        <NavItem 
           icon={<Heart size={20} />} 
-          label="찜 목록" 
-          isActive={activeTab === 'wishlist'}
+          label="찜" 
+          isActive={pathname === '/wishlist'}
           onClick={() => navigate('/wishlist')}
         />
         <NavItem 
           icon={<User size={20} />} 
           label="내 정보" 
-          isActive={activeTab === 'profile'}
+          isActive={pathname === '/profile'}
           onClick={() => navigate('/profile')}
         />
       </div>

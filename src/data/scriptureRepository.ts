@@ -5,6 +5,8 @@ export interface Scripture {
   categories: string[];
   content: string;
   origin: string;
+  lastReadPosition?: number;
+  hasStarted?: boolean;
 }
 
 export const scriptures = [
@@ -28,7 +30,9 @@ export const scriptures = [
 고설반야바라밀다주 즉설주왈
 아제 아제 바라아제 바라승아제 모지 사바하
 반야심경`,
-    origin: "반야바라밀다심경"
+    origin: "반야바라밀다심경",
+    lastReadPosition: 0,
+    hasStarted: false
   },
   {
     id: "scripture2",
@@ -50,7 +54,44 @@ export const scriptures = [
 고설반야바라밀다주 즉설주왈
 아제 아제 바라아제 바라승아제 모지 사바하
 반야심경`,
-    origin: "반야바라밀다심경"
+    origin: "반야바라밀다심경",
+    lastReadPosition: 150,
+    hasStarted: true
+  },
+  {
+    id: "scripture3",
+    title: "법화경 (法華經)",
+    categories: ["법화경"],
+    content: `여시아문(如是我聞) 일시 불재 왕사성 기사굴산 중 여대비구중 만이천인구 아라한 제누한진실 무복무미...
+
+세존 가섭보살 등을 보시고 무량 무변 백천만억 아승지겁에 수행한 불법이니라.
+
+여래의 신통력으로 삼천대천세계를 진동케 하여 하늘에서 꽃비를 내리시니라.
+
+불법의 진리를 드러내심이 마치 연꽃이 피어남과 같으니라.
+
+일체중생이 다 함께 불도를 이루리라.`,
+    origin: "묘법연화경",
+    lastReadPosition: 0,
+    hasStarted: false
+  },
+  {
+    id: "scripture4",
+    title: "용수경 (龍樹經)",
+    categories: ["용수경"],
+    content: `공성(空性)은 일체법의 근본이니, 
+모든 존재는 자성이 공하고, 
+연기로써 생하느니라. 
+
+고정된 실체는 없으나, 
+인연화합하여 나타남이 허망하지 않으니, 
+중도(中道)를 체득함이 지혜의 완성이니라.
+
+집착을 버리고, 연기의 이치를 깨달으면,
+모든 고통에서 벗어나 해탈을 얻으리라.`,
+    origin: "중론",
+    lastReadPosition: 50,
+    hasStarted: true
   }
 ];
 
@@ -146,5 +187,37 @@ export const readingSchedule = [
     chapter: "제1장 4절에서 이어하기",
     color: "bg-green-500",
     textColor: "text-white"
+  }
+];
+
+// 경전 읽기 진도 데이터
+export const scriptureProgress = [
+  {
+    scriptureId: "scripture2", // 반야심경
+    progress: 25.5,
+    color: "bg-red-500"
+  },
+  {
+    scriptureId: "scripture4", // 용수경
+    progress: 67.8,
+    color: "bg-orange-500"
+  }
+];
+
+// 북마크 데이터
+export const bookmarks = [
+  {
+    id: "bookmark1",
+    scriptureId: "scripture1",
+    title: "색즉시공 구절",
+    position: 50,
+    date: "2025-04-01"
+  },
+  {
+    id: "bookmark2",
+    scriptureId: "scripture2",
+    title: "무고집멸도 부분",
+    position: 200,
+    date: "2025-04-03"
   }
 ];
