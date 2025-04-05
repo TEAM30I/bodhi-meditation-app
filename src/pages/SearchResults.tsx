@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Heart, MapPin, Search } from 'lucide-react';
-import PageLayout from "@/components/PageLayout";
 import BottomNav from "@/components/BottomNav";
 import { useNavigate } from 'react-router-dom';
 

@@ -13,7 +13,7 @@ import SettingsPanel from '@/components/scripture/SettingsPanel';
 const ScriptureReading = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState<'calendar' | 'bookmark' | 'share' | 'settings' | null>(null);
+  const [activeTab, setActiveTab] = useState<'reading' | 'calendar' | 'bookmark' | 'share' | 'settings'>('reading');
   const [activeCategory, setActiveCategory] = useState('original');
   const [fontSize, setFontSize] = useState(16);
   
@@ -33,6 +33,17 @@ const ScriptureReading = () => {
     );
   }
 
+  // 경전 내용을 단락으로 분리
+  const paragraphs = scripture.content.split('\n').filter(p => p.trim());
+  
+  const handleTabChange = (tab: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings') => {
+    setActiveTab(tab);
+  };
+  
+  const handleBackClick = () => {
+    navigate('/scripture');
+  };
+
   // 사이드 패널 컴포넌트 매핑
   const sidePanelComponents = {
     calendar: <ScriptureCalendar />,
@@ -41,19 +52,12 @@ const ScriptureReading = () => {
     settings: <SettingsPanel />
   };
   
-  const handleTabChange = (tab: 'calendar' | 'bookmark' | 'share' | 'settings') => {
-    setActiveTab(activeTab === tab ? null : tab);
-  };
-  
-  // 경전 내용을 단락으로 분리
-  const paragraphs = scripture.content.split('\n').filter(p => p.trim());
-  
   return (
     <div className="bg-white min-h-screen pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white w-full px-6 py-4 flex items-center border-b">
         <button 
-          onClick={() => navigate('/scripture')}
+          onClick={handleBackClick}
           className="mr-4"
         >
           <ArrowLeft size={24} />
@@ -86,7 +90,7 @@ const ScriptureReading = () => {
       </div>
       
       {/* Scripture Content or Side Panel */}
-      {activeTab === null ? (
+      {activeTab === 'reading' ? (
         <div className="px-6 py-4" style={{ fontSize: `${fontSize}px` }}>
           <h2 className="font-bold text-lg mb-4">1. 개경 (開經)</h2>
           {paragraphs.map((paragraph, index) => (

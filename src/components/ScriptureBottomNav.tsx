@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CalendarDays, Bookmark, Share2, Settings } from 'lucide-react';
+import { Book, CalendarDays, Bookmark, Share2, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface NavItemProps {
@@ -21,8 +21,8 @@ const NavItem = ({ icon, text, isActive, onClick }: NavItemProps) => (
 );
 
 interface ScriptureBottomNavProps {
-  activeTab?: 'calendar' | 'bookmark' | 'share' | 'settings' | null;
-  onTabChange: (tab: 'calendar' | 'bookmark' | 'share' | 'settings') => void;
+  activeTab?: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings' | null;
+  onTabChange: (tab: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings') => void;
 }
 
 const ScriptureBottomNav: React.FC<ScriptureBottomNavProps> = ({ 
@@ -32,6 +32,12 @@ const ScriptureBottomNav: React.FC<ScriptureBottomNavProps> = ({
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white z-10">
       <div className="flex justify-around items-center h-16 max-w-screen-lg mx-auto">
+        <NavItem
+          icon={<Book size={24} />}
+          text="읽기"
+          isActive={activeTab === 'reading'}
+          onClick={() => onTabChange('reading')}
+        />
         <NavItem
           icon={<CalendarDays size={24} />}
           text="캘린더"
