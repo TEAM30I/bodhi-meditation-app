@@ -69,19 +69,6 @@ const Main = () => {
   // 홈 화면에 표시할 대표 경전 목록 (최대 3개)
   const featuredScriptures = readingSchedule.slice(0, 3);
 
-  const SectionTitle = ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
-    <div 
-      className="flex justify-between items-center mb-[10px] cursor-pointer" 
-      onClick={onClick}
-    >
-      <h2 className="text-[15px] font-bold">{children}</h2>
-      <div className="flex items-center text-gray-500">
-        <span className="text-xs mr-1">더보기</span>
-        <ChevronRight className="w-4 h-4" />
-      </div>
-    </div>
-  );
-
   return (
     <div className="w-full min-h-screen bg-white">
       <div className="flex flex-col items-center">
@@ -122,9 +109,13 @@ const Main = () => {
 
           {/* Temple Section */}
           <div className="px-[24px] mb-[25px]">
-            <SectionTitle onClick={() => navigate('/find-temple')}>
-              자연이 깃든 사찰, 찾아볼까요?
-            </SectionTitle>
+            <div 
+              className="flex justify-between items-center mb-[10px] cursor-pointer" 
+              onClick={() => navigate('/find-temple')}
+            >
+              <h2 className="text-[15px] font-bold">자연이 깃든 사찰, 찾아볼까요?</h2>
+              <ChevronRight className="w-4 h-4 text-gray-500" />
+            </div>
 
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-3">
               {temples.slice(0, 3).map((temple, index) => (
@@ -147,9 +138,13 @@ const Main = () => {
           
           {/* Temple Stay Section */}
           <div className="px-[24px] mb-[25px]">
-            <SectionTitle onClick={() => navigate('/temple-stay')}>
-              쉼이 필요한 당신께, 템플스테이
-            </SectionTitle>
+            <div 
+              className="flex justify-between items-center mb-[10px] cursor-pointer" 
+              onClick={() => navigate('/temple-stay')}
+            >
+              <h2 className="text-[15px] font-bold">쉼이 필요한 당신께, 템플스테이</h2>
+              <ChevronRight className="w-4 h-4 text-gray-500" />
+            </div>
 
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-3">
               {temples.slice(0, 3).map((temple, index) => (
@@ -172,9 +167,13 @@ const Main = () => {
 
           {/* Scripture Reading Section */}
           <div className="px-[24px] mb-[20px]">
-            <SectionTitle onClick={() => navigate('/scripture')}>
-              경전과 함께하는 하루
-            </SectionTitle>
+            <div 
+              className="flex justify-between items-center mb-[10px] cursor-pointer"
+              onClick={() => navigate('/scripture')}
+            >
+              <h2 className="text-[15px] font-bold">경전과 함께하는 하루</h2>
+              <ChevronRight className="w-4 h-4 text-gray-500" />
+            </div>
 
             <div className="flex flex-col gap-3">
               {featuredScriptures.map((reading) => {
