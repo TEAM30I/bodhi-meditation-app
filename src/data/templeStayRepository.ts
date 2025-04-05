@@ -48,6 +48,18 @@ export const templeStays: TempleStay[] = [
     description: "오대산의 품에 안긴 사찰 체험",
     duration: "1박",
     imageUrl: "https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80"
+  },
+  {
+    id: "ts4",
+    name: "봉선사 템플스테이",
+    temple: "봉선사",
+    location: "경기도 남양주",
+    price: 130000,
+    rating: 4.6,
+    reviews: 20,
+    description: "도심 속 힐링, 나를 찾는 여행",
+    duration: "1박",
+    imageUrl: "https://images.unsplash.com/photo-1526602367853-61a536f40855?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80"
   }
 ];
 

@@ -3,12 +3,12 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BodhiLogo from '@/components/BodhiLogo';
 import BottomNav from '@/components/BottomNav';
-import { Search, MapPin, Bell } from 'lucide-react';
+import { Search, MapPin, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { temples } from '@/data/templeRepository';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule } from '@/data/scriptureRepository';
+import { readingSchedule, scriptures } from '@/data/scriptureRepository';
 import { imageRepository } from '@/data/imageRepository';
 
 const Main = () => {
@@ -65,6 +65,9 @@ const Main = () => {
       </div>
     );
   }
+  
+  // 홈 화면에 표시할 대표 경전 목록 (최대 3개)
+  const featuredScriptures = readingSchedule.slice(0, 3);
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -87,9 +90,7 @@ const Main = () => {
           <div className="flex items-center px-[24px] mb-[15px]">
             <MapPin className="w-5 h-5 text-bodhi-orange mr-1" />
             <span className="text-sm font-medium text-gray-700">한남동/용산구</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
-              <path d="M12.6 12L8 7.4L9.4 6L15.4 12L9.4 18L8 16.6L12.6 12Z" fill="#8B8B8B"/>
-            </svg>
+            <ChevronRight className="w-4 h-4 text-gray-500" />
           </div>
 
           {/* Banner */}
@@ -114,9 +115,8 @@ const Main = () => {
                 className="flex items-center text-gray-500"
                 onClick={() => navigate('/find-temple')}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12.6 12L8 7.4L9.4 6L15.4 12L9.4 18L8 16.6L12.6 12Z" fill="#8B8B8B"/>
-                </svg>
+                <span className="text-xs mr-1">더보기</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
@@ -147,9 +147,8 @@ const Main = () => {
                 className="flex items-center text-gray-500"
                 onClick={() => navigate('/temple-stay')}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12.6 12L8 7.4L9.4 6L15.4 12L9.4 18L8 16.6L12.6 12Z" fill="#8B8B8B"/>
-                </svg>
+                <span className="text-xs mr-1">더보기</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
@@ -180,34 +179,38 @@ const Main = () => {
                 className="flex items-center text-gray-500"
                 onClick={() => navigate('/scripture')}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12.6 12L8 7.4L9.4 6L15.4 12L9.4 18L8 16.6L12.6 12Z" fill="#8B8B8B"/>
-                </svg>
+                <span className="text-xs mr-1">더보기</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
             <div className="flex flex-col gap-3">
-              {readingSchedule.map((reading) => (
-                <div 
-                  key={reading.id} 
-                  className="flex items-center p-3 rounded-lg cursor-pointer"
-                  onClick={() => navigate(`/scripture/${reading.id}`)}
-                >
-                  <div className={`w-[60px] h-[60px] rounded-md ${reading.color} flex items-center justify-center ${reading.textColor}`}>
-                    <span className="text-sm font-bold">{reading.category}</span>
+              {featuredScriptures.map((reading) => {
+                // 해당 카테고리에 맞는 경전 찾기
+                const matchingScripture = scriptures.find(s => s.categories.includes(reading.category));
+                
+                if (!matchingScripture) return null;
+                
+                return (
+                  <div 
+                    key={reading.id} 
+                    className="flex items-center p-3 rounded-lg cursor-pointer"
+                    onClick={() => navigate(`/scripture/${matchingScripture.id}`)}
+                  >
+                    <div className={`w-[60px] h-[60px] rounded-md ${reading.color} flex items-center justify-center ${reading.textColor}`}>
+                      <span className="text-sm font-bold">{reading.category}</span>
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h3 className="text-sm font-bold">{reading.title}</h3>
+                      <p className="text-xs text-gray-500">{reading.chapter}</p>
+                    </div>
+                    <div className="text-gray-500">
+                      <span className="text-xs">자세히</span>
+                      <ChevronRight className="w-4 h-4 inline-block" />
+                    </div>
                   </div>
-                  <div className="ml-3 flex-1">
-                    <h3 className="text-sm font-bold">{reading.title}</h3>
-                    <p className="text-xs text-gray-500">{reading.chapter}</p>
-                  </div>
-                  <div className="text-gray-500">
-                    <span className="text-xs">자세히</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline-block ml-1">
-                      <path d="M12.6 12L8 7.4L9.4 6L15.4 12L9.4 18L8 16.6L12.6 12Z" fill="#8B8B8B"/>
-                    </svg>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

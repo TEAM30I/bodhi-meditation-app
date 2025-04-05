@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { scriptures, readingSchedule } from '@/data/scriptureRepository';
-import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
 
@@ -20,7 +19,7 @@ const Scripture = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white w-full py-4 px-6 flex items-center border-b">
         <button 
@@ -29,10 +28,10 @@ const Scripture = () => {
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-xl font-bold text-center flex-1">경전 읽기 캘린더</h1>
+        <h1 className="text-xl font-bold text-center flex-1">경전 읽기</h1>
       </div>
 
-      <div className="px-6 py-4 mb-20">
+      <div className="px-6 py-4">
         <h2 className="text-lg font-medium mb-6">
           오늘의 경전 스케줄을 완료하세요
         </h2>

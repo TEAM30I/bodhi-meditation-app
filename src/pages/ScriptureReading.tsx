@@ -4,7 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
 import { scriptures, scriptureCategories } from '@/data/scriptureRepository';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import ScriptureCalendar from '@/components/scripture/ScriptureCalendar';
 import BookmarkList from '@/components/scripture/BookmarkList';
@@ -21,6 +20,11 @@ const ScriptureReading = () => {
   // 경전 데이터 찾기
   const scripture = scriptures.find(s => s.id === id);
   
+  useEffect(() => {
+    // 스크롤을 최상단으로 이동
+    window.scrollTo(0, 0);
+  }, []);
+
   if (!scripture) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -45,7 +49,7 @@ const ScriptureReading = () => {
   const paragraphs = scripture.content.split('\n').filter(p => p.trim());
   
   return (
-    <div className="bg-white min-h-screen pb-16">
+    <div className="bg-white min-h-screen pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white w-full px-6 py-4 flex items-center border-b">
         <button 
@@ -60,10 +64,6 @@ const ScriptureReading = () => {
             {scripture.title}
             <ChevronDown className="ml-1 h-5 w-5" />
           </h1>
-        </div>
-        
-        <div className="flex space-x-2">
-          {/* Header actions if needed */}
         </div>
       </div>
       
@@ -85,7 +85,7 @@ const ScriptureReading = () => {
         ))}
       </div>
       
-      {/* Scripture Content */}
+      {/* Scripture Content or Side Panel */}
       {activeTab === null ? (
         <div className="px-6 py-4" style={{ fontSize: `${fontSize}px` }}>
           <h2 className="font-bold text-lg mb-4">1. 개경 (開經)</h2>

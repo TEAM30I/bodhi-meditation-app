@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Heart, MapPin, Search } from 'lucide-react';
 import PageLayout from "@/components/PageLayout";
+import BottomNav from "@/components/BottomNav";
+import { useNavigate } from 'react-router-dom';
 
 interface SearchResultProps {
   imageUrl: string;
@@ -43,6 +45,8 @@ interface SearchResultsProps {
 }
 
 const SearchResults = ({ query = '서울' }: SearchResultsProps) => {
+  const navigate = useNavigate();
+  
   const results = [
     {
       imageUrl: "https://images.unsplash.com/photo-1526602367853-61a536f40855?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
@@ -61,38 +65,64 @@ const SearchResults = ({ query = '서울' }: SearchResultsProps) => {
   ];
 
   return (
-    <PageLayout title="사찰 찾기">
-      {/* Search Box */}
-      <div className="w-full max-w-md mx-auto mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <Input 
-            className="pl-10 bg-gray-100 border-0 focus-visible:ring-1 rounded-lg"
-            placeholder="지역, 지하철역"
-            defaultValue={query}
-          />
+    <div className="bg-white min-h-screen pb-20">
+      <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px] mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b">
+          <button 
+            onClick={() => navigate('/search')}
+            className="text-gray-800"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <h1 className="text-lg font-bold flex-1 text-center">사찰</h1>
+          <button 
+            onClick={() => navigate('/main')}
+            className="text-gray-800"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 9L12 2L21 9V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Search Box */}
+        <div className="px-6 py-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input 
+              className="pl-10 bg-gray-100 border-0 focus-visible:ring-1 rounded-lg"
+              placeholder="도시, 지역, 지하철역"
+              defaultValue={query}
+            />
+          </div>
+        </div>
+
+        {/* 추천순 Badge */}
+        <div className="flex px-6 mb-6">
+          <span className="text-sm text-gray-500">추천순</span>
+        </div>
+
+        {/* Results */}
+        <div className="px-6">
+          {results.map((result, index) => (
+            <SearchResult 
+              key={index}
+              imageUrl={result.imageUrl}
+              title={result.title}
+              location={result.location}
+              description={result.description}
+              isFavorite={result.isFavorite}
+            />
+          ))}
         </div>
       </div>
 
-      {/* 추천순 Badge */}
-      <div className="flex mb-6 mx-auto w-full max-w-md">
-        <span className="text-sm text-gray-500">추천순</span>
-      </div>
-
-      {/* Results */}
-      <div className="w-full max-w-md mx-auto">
-        {results.map((result, index) => (
-          <SearchResult 
-            key={index}
-            imageUrl={result.imageUrl}
-            title={result.title}
-            location={result.location}
-            description={result.description}
-            isFavorite={result.isFavorite}
-          />
-        ))}
-      </div>
-    </PageLayout>
+      {/* Bottom Navigation */}
+      <BottomNav />
+    </div>
   );
 };
 
