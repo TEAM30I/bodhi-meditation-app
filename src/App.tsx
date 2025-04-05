@@ -19,6 +19,7 @@ import Scripture from "./pages/Scripture";
 import ScriptureReading from "./pages/ScriptureReading";
 import FindTemple from "./pages/FindTemple";
 import SearchResults from "./pages/SearchResults";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/scripture/:id" element={<ScriptureReading />} />
           <Route path="/find-temple" element={<FindTemple />} />
           <Route path="/search-results" element={<SearchResults />} />
+          <Route path="/notifications" element={<Notifications />} />
           
           {/* Default route redirects to welcome page */}
           <Route path="/index" element={<Navigate to="/" replace />} />

@@ -1,122 +1,141 @@
 
-import React from 'react';
-import { Badge } from "@/components/ui/badge";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MapPin, Search } from 'lucide-react';
-import PageLayout from "@/components/PageLayout";
-import { useNavigate } from 'react-router-dom';
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Home, Search as SearchIcon, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { temples } from "@/data/templeRepository";
 
-interface TempleCardProps {
-  imageUrl: string;
-  title: string;
-  location: string;
-  description: string;
-  isFavorite?: boolean;
-}
+export default function FindTemple() {
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
-const TempleCard = ({ imageUrl, title, location, description, isFavorite = false }: TempleCardProps) => {
+  const locations = [
+    { name: "서울", active: true },
+    { name: "대구", active: false },
+    { name: "부산", active: false },
+    { name: "속초", active: false },
+    { name: "인천", active: false },
+    { name: "제주", active: false }
+  ];
+
   return (
-    <div className="relative w-full mb-6">
-      <div className="relative w-full h-[200px] rounded-lg overflow-hidden">
-        <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="absolute top-2 right-2 bg-white/80 rounded-full h-8 w-8 p-0 flex items-center justify-center"
-        >
-          <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
-        </Button>
-        <div className="absolute bottom-3 left-3 bg-white/80 rounded px-2 py-1 flex items-center">
-          <MapPin className="h-3 w-3 mr-1 text-gray-600" />
-          <span className="text-xs font-medium">{location}</span>
+    <div className="bg-white min-h-screen w-full">
+      <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px] mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-center relative h-[60px] border-b border-gray-100">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute left-4"
+            onClick={() => navigate('/main')}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-base font-bold">사찰</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4"
+            onClick={() => navigate('/main')}
+          >
+            <Home className="w-5 h-5" />
+          </Button>
         </div>
-      </div>
-      <div className="mt-2">
-        <h3 className="font-bold text-gray-900 text-lg">{title}</h3>
-        <p className="text-sm text-gray-700 mt-1">{description}</p>
+
+        {/* Search Input */}
+        <div className="p-4">
+          <div className="relative w-full">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              className="w-full pl-9 py-2 bg-gray-100 border-none text-sm"
+              placeholder="도시, 지역, 지하철역"
+              onFocus={() => navigate('/search-results')}
+            />
+          </div>
+        </div>
+        
+        {/* Popular Temples Section */}
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold">가까운 사찰</h2>
+            <Button
+              variant="ghost"
+              className="text-xs text-gray-500 p-0 h-auto"
+              onClick={() => {}}
+            >
+              더보기 &gt;
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {temples.slice(0, 2).map((temple) => (
+              <div key={temple.id} className="cursor-pointer" onClick={() => navigate(`/temple/${temple.id}`)}>
+                <div className="w-full aspect-square bg-gray-200 rounded-md mb-2 overflow-hidden">
+                  <img 
+                    src={temple.imageUrl} 
+                    alt={temple.name} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h3 className="text-sm font-bold">{temple.name}</h3>
+                <p className="text-xs text-gray-500">{temple.location} · 숙산더디비에서 도보 10분</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Temple by Region Section */}
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-bold">많이 찾는 사찰</h2>
+            <Button
+              variant="ghost"
+              className="text-xs text-gray-500 p-0 h-auto"
+              onClick={() => {}}
+            >
+              더보기 &gt;
+            </Button>
+          </div>
+
+          {/* Region Filter */}
+          <div className="flex flex-nowrap overflow-x-auto gap-2 mb-4 pb-2">
+            {locations.map((location, index) => (
+              <Badge
+                key={index}
+                variant={location.active ? "default" : "outline"}
+                className={`whitespace-nowrap ${location.active ? "bg-bodhi-orange hover:bg-bodhi-orange" : "text-gray-500"}`}
+              >
+                {location.name}
+              </Badge>
+            ))}
+          </div>
+
+          {/* Temple List */}
+          <div className="grid grid-cols-2 gap-4">
+            {temples.slice(0, 4).map((temple) => (
+              <div key={temple.id} className="cursor-pointer" onClick={() => navigate(`/temple/${temple.id}`)}>
+                <div className="w-full aspect-square bg-gray-200 rounded-md mb-2 overflow-hidden relative">
+                  <img 
+                    src={temple.imageUrl} 
+                    alt={temple.name} 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-1 left-1 bg-yellow-400 rounded-full px-2 py-0.5 flex items-center">
+                    <Star className="w-3 h-3 mr-0.5 text-black" />
+                    <span className="text-xs font-bold">{temple.rating}</span>
+                  </div>
+                </div>
+                <h3 className="text-sm font-bold">{temple.name}</h3>
+                <p className="text-xs text-gray-500">{temple.location}</p>
+                <p className="text-xs font-bold">봉정사 템플스테이<br />60,000원</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
-};
-
-const FindTemple = () => {
-  const navigate = useNavigate();
-  
-  const temples = [
-    {
-      imageUrl: "https://images.unsplash.com/photo-1526602367853-61a536f40855?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      title: "천년의 숨 살아있는 고목을 거닐다",
-      location: "Gyeongju",
-      description: "경주의 아름다운 사찰과 함께하는 여행",
-      isFavorite: true
-    },
-    {
-      imageUrl: "https://images.unsplash.com/photo-1548115184-bc6544d06a58?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      title: "마음까지 맑아지는 풍경 속으로",
-      location: "Hapcheon",
-      description: "합천의 전통 사찰에서 경험하는 힐링",
-      isFavorite: false
-    }
-  ];
-
-  const locations = [
-    { name: "전체", active: true },
-    { name: "서울", active: false },
-    { name: "경주", active: false },
-    { name: "부산", active: false },
-    { name: "전주", active: false },
-    { name: "강원", active: false },
-  ];
-
-  const handleSearch = () => {
-    navigate('/search-results?query=서울');
-  };
-
-  return (
-    <PageLayout title="사찰 찾기">
-      {/* Search Box */}
-      <div className="w-full max-w-md mx-auto mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <Input 
-            className="pl-10 bg-gray-100 border-0 focus-visible:ring-1 rounded-lg"
-            placeholder="지역, 지하철역"
-            onFocus={handleSearch}
-          />
-        </div>
-      </div>
-
-      {/* Location Filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 mx-auto w-full max-w-md">
-        {locations.map((location, index) => (
-          <Badge
-            key={index}
-            variant={location.active ? "default" : "outline"}
-            className={`px-3 py-1 rounded-full ${
-              location.active ? "bg-[#dd7733] hover:bg-[#c66a2e]" : "border-gray-300"
-            } whitespace-nowrap`}
-          >
-            {location.name}
-          </Badge>
-        ))}
-      </div>
-
-      {/* Temple Cards */}
-      <div className="w-full max-w-md mx-auto">
-        {temples.map((temple, index) => (
-          <TempleCard 
-            key={index}
-            imageUrl={temple.imageUrl}
-            title={temple.title}
-            location={temple.location}
-            description={temple.description}
-            isFavorite={temple.isFavorite}
-          />
-        ))}
-      </div>
-    </PageLayout>
-  );
-};
-
-export default FindTemple;
+}
