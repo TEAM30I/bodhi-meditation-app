@@ -12,7 +12,7 @@ const Onboarding2 = () => {
   return (
     <div className="flex flex-col items-center min-h-screen w-full bg-[#181A20]">
       <div className="w-full max-w-[390px] flex flex-col items-center">
-        <div className="flex flex-col items-center justify-center flex-grow px-5">
+        <div className="flex flex-col items-center justify-center flex-grow px-5 mt-[103px]">
           <img 
             src="/assets/location-pin-map.png" 
             alt="Location Pin Map Icon" 
@@ -29,14 +29,14 @@ const Onboarding2 = () => {
           </div>
         </div>
         
-        <div className="flex flex-col items-center gap-4 w-full px-5 mb-[34px]">
+        <div className="flex flex-col items-center gap-4 w-full px-5 mt-auto mb-[34px]">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[#776D62]"></div>
             <div className="w-8 h-2 rounded-full bg-bodhi-orange"></div>
           </div>
           <button 
             onClick={handleStart}
-            className="w-full max-w-[320px] h-[60px] rounded-[18px] bg-bodhi-orange text-white font-semibold text-lg flex items-center justify-center font-pretendard tracking-[-0.45px]"
+            className="w-full max-w-[320px] h-[60px] rounded-[18px] bg-bodhi-orange text-white font-medium text-lg flex items-center justify-center font-pretendard tracking-[-0.45px]"
           >
             시작하기
           </button>

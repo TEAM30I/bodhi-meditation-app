@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { signUp, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface VerificationTimer {
   minutes: number;
@@ -32,8 +31,8 @@ const Signup = () => {
   const [emailValid, setEmailValid] = useState(false);
   
   // Step validation
+  const [showVerificationInput, setShowVerificationInput] = useState(false);
   const [showPasswordFields, setShowPasswordFields] = useState(false);
-  const [showVerificationFields, setShowVerificationFields] = useState(false);
   
   useEffect(() => {
     setEmailValid(EMAIL_REGEX.test(email));
@@ -93,9 +92,14 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
-      // 실제로는 이메일 중복 확인 등의 과정이 필요
+      // 실제로는 이메일 중복 확인 등의 과정이 필요할 수 있음
+      console.log("이메일 인증 코드 발송:", email);
+      
+      // 이 부분은 실제 애플리케이션에서 서버로 인증 코드 발송 요청을 보내야 함
+      // 여기서는 테스트를 위해 성공한 것으로 처리
+      
       setVerificationSent(true);
-      setShowVerificationFields(true);
+      setShowVerificationInput(true);
       setTimerActive(true);
       setTimer({ minutes: 3, seconds: 0 });
       
@@ -125,7 +129,8 @@ const Signup = () => {
       return;
     }
     
-    // 실제로는 인증 코드 검증 로직
+    // 실제로는 인증 코드 검증 로직이 필요함
+    // 여기서는 테스트를 위해 성공한 것으로 처리
     setShowPasswordFields(true);
     setTimerActive(false);
     
@@ -173,7 +178,7 @@ const Signup = () => {
       return;
     }
     
-    if (!showVerificationFields || !showPasswordFields) {
+    if (!showVerificationInput || !showPasswordFields) {
       toast({
         title: "이메일 인증 필요",
         description: "이메일 인증을 완료해주세요.",
@@ -190,7 +195,8 @@ const Signup = () => {
         password,
         options: {
           userAttributes: {
-            email
+            email,
+            name
           },
           autoSignIn: true
         }
@@ -209,7 +215,8 @@ const Signup = () => {
           title: "회원가입 성공",
           description: "환영합니다!"
         });
-        navigate('/login');
+        // 회원가입 성공 시 로그인 페이지로 이동 (이메일 정보 전달)
+        navigate(`/login?email=${encodeURIComponent(email)}`);
       }
     } catch (error) {
       console.error('회원가입 에러:', error);
@@ -246,7 +253,8 @@ const Signup = () => {
           title: "인증 완료",
           description: "회원가입이 완료되었습니다. 로그인해주세요.",
         });
-        navigate('/login');
+        // 회원가입 인증 완료 시 로그인 페이지로 이동 (이메일 정보 전달)
+        navigate(`/login?email=${encodeURIComponent(email)}`);
       } else {
         toast({
           title: "인증 실패",
@@ -287,6 +295,10 @@ const Signup = () => {
         title: "인증 코드 재발송",
         description: "이메일로 인증 코드가 재발송되었습니다.",
       });
+      
+      // 타이머 리셋
+      setTimerActive(true);
+      setTimer({ minutes: 3, seconds: 0 });
     } catch (error) {
       console.error('코드 재발송 에러:', error);
       toast({
@@ -399,6 +411,7 @@ const Signup = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="이메일을 입력해 주세요"
               className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
+              disabled={verificationSent}
             />
             {emailValid && !verificationSent && (
               <button 
@@ -417,7 +430,7 @@ const Signup = () => {
           </div>
         </div>
         
-        {showVerificationFields && (
+        {showVerificationInput && (
           <div className="flex flex-col gap-2">
             <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
               인증 코드
@@ -490,7 +503,7 @@ const Signup = () => {
       <div className="flex flex-col gap-12 px-5 mt-8">
         <button
           onClick={handleSignup}
-          disabled={isLoading || !name || !emailValid || (showPasswordFields && (!passwordValid || !passwordMatch))}
+          disabled={isLoading || !name || !emailValid || (showPasswordFields && (!passwordValid || !passwordMatch)) || (!showVerificationInput || !showPasswordFields)}
           className="flex justify-center items-center w-full h-[60px] rounded-[16px] bg-bodhi-orange text-white text-[18px] font-pretendard font-medium tracking-[-0.45px] disabled:opacity-50"
         >
           회원가입
