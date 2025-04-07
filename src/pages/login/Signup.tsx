@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { signUp, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
+import { signUp } from 'aws-amplify/auth';
 
 interface VerificationTimer {
   minutes: number;
@@ -20,30 +20,33 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  
+  // Verification state
   const [verificationSent, setVerificationSent] = useState(false);
-  const [confirmationCode, setConfirmationCode] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationComplete, setVerificationComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState<VerificationTimer>({ minutes: 3, seconds: 0 });
   const [timerActive, setTimerActive] = useState(false);
+  const [timerExpired, setTimerExpired] = useState(false);
+  
+  // Validation state
+  const [emailValid, setEmailValid] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(false);
-  const [emailValid, setEmailValid] = useState(false);
   
-  // Step validation
-  const [showVerificationInput, setShowVerificationInput] = useState(false);
-  const [showPasswordFields, setShowPasswordFields] = useState(false);
-  
+  // Check email validity
   useEffect(() => {
     setEmailValid(EMAIL_REGEX.test(email));
   }, [email]);
   
+  // Check password validity
   useEffect(() => {
     setPasswordValid(PASSWORD_REGEX.test(password));
     setPasswordMatch(password === confirmPassword && password !== '');
   }, [password, confirmPassword]);
   
-  // Timer logic
+  // Timer logic for verification code
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
     
@@ -55,8 +58,8 @@ const Signup = () => {
           setTimer({ minutes: timer.minutes - 1, seconds: 59 });
         } else {
           setTimerActive(false);
+          setTimerExpired(true);
           clearInterval(interval!);
-          setVerificationSent(false);
           toast({
             title: "인증 시간 만료",
             description: "인증 코드가 만료되었습니다. 다시 인증해주세요.",
@@ -71,6 +74,7 @@ const Signup = () => {
     };
   }, [timer, timerActive]);
   
+  // Format time for display
   const formatTime = (time: number): string => {
     return time < 10 ? `0${time}` : `${time}`;
   };
@@ -79,7 +83,7 @@ const Signup = () => {
     navigate('/login/auth');
   };
   
-  const handleSendVerification = async () => {
+  const handleSendVerification = () => {
     if (!emailValid) {
       toast({
         title: "이메일 형식 오류",
@@ -91,36 +95,24 @@ const Signup = () => {
     
     setIsLoading(true);
     
-    try {
-      // 실제로는 이메일 중복 확인 등의 과정이 필요할 수 있음
-      console.log("이메일 인증 코드 발송:", email);
-      
-      // 이 부분은 실제 애플리케이션에서 서버로 인증 코드 발송 요청을 보내야 함
-      // 여기서는 테스트를 위해 성공한 것으로 처리
-      
+    // In a real implementation, this would send an actual email verification code
+    // For now, we'll simulate sending a verification code
+    setTimeout(() => {
       setVerificationSent(true);
-      setShowVerificationInput(true);
       setTimerActive(true);
+      setTimerExpired(false);
       setTimer({ minutes: 3, seconds: 0 });
       
       toast({
         title: "인증 코드 발송",
         description: "이메일로 인증 코드가 발송되었습니다.",
       });
-    } catch (error) {
-      console.error('인증 코드 발송 에러:', error);
-      toast({
-        title: "인증 코드 발송 실패",
-        description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-        variant: "destructive",
-      });
-    } finally {
       setIsLoading(false);
-    }
+    }, 1000);
   };
   
   const handleVerifyCode = () => {
-    if (!confirmationCode || confirmationCode.length < 6) {
+    if (!verificationCode || verificationCode.length < 6) {
       toast({
         title: "인증 코드 오류",
         description: "올바른 인증 코드를 입력해주세요.",
@@ -129,15 +121,31 @@ const Signup = () => {
       return;
     }
     
-    // 실제로는 인증 코드 검증 로직이 필요함
-    // 여기서는 테스트를 위해 성공한 것으로 처리
-    setShowPasswordFields(true);
-    setTimerActive(false);
+    if (timerExpired) {
+      toast({
+        title: "인증 코드 만료",
+        description: "인증 시간이 만료되었습니다. 다시 인증해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    toast({
-      title: "인증 완료",
-      description: "이메일 인증이 완료되었습니다.",
-    });
+    // For demo purposes, accept any 6-digit code when the timer is active
+    if (verificationCode.length === 6 && timerActive) {
+      setVerificationComplete(true);
+      setTimerActive(false);
+      
+      toast({
+        title: "인증 완료",
+        description: "이메일 인증이 완료되었습니다.",
+      });
+    } else {
+      toast({
+        title: "인증 코드 오류",
+        description: "올바른 인증 코드를 입력해주세요.",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleSignup = async () => {
@@ -178,7 +186,7 @@ const Signup = () => {
       return;
     }
     
-    if (!showVerificationInput || !showPasswordFields) {
+    if (!verificationComplete) {
       toast({
         title: "이메일 인증 필요",
         description: "이메일 인증을 완료해주세요.",
@@ -204,13 +212,7 @@ const Signup = () => {
 
       console.log('회원가입 응답:', { isSignUpComplete, userId, nextStep });
 
-      if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
-        setShowConfirmation(true);
-        toast({
-          title: "인증 코드 발송",
-          description: "이메일로 인증 코드가 발송되었습니다.",
-        });
-      } else if (isSignUpComplete) {
+      if (isSignUpComplete) {
         toast({
           title: "회원가입 성공",
           description: "환영합니다!"
@@ -230,151 +232,15 @@ const Signup = () => {
     }
   };
 
-  const handleConfirmSignUp = async () => {
-    if (!confirmationCode) {
-      toast({
-        title: "인증 코드 필요",
-        description: "인증 코드를 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { isSignUpComplete, nextStep } = await confirmSignUp({
-        username: email,
-        confirmationCode,
-      });
-
-      if (isSignUpComplete) {
-        toast({
-          title: "인증 완료",
-          description: "회원가입이 완료되었습니다. 로그인해주세요.",
-        });
-        // 회원가입 인증 완료 시 로그인 페이지로 이동 (이메일 정보 전달)
-        navigate(`/login?email=${encodeURIComponent(email)}`);
-      } else {
-        toast({
-          title: "인증 실패",
-          description: `다음 단계: ${nextStep.signUpStep}`,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('인증 에러:', error);
-      toast({
-        title: "인증 실패",
-        description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleResendVerification = () => {
+    setVerificationSent(false);
+    setVerificationCode('');
+    setVerificationComplete(false);
+    setTimerActive(false);
+    setTimerExpired(false);
+    handleSendVerification();
   };
 
-  const handleResendCode = async () => {
-    if (!email) {
-      toast({
-        title: "이메일 필요",
-        description: "이메일 주소를 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      await resendSignUpCode({
-        username: email,
-      });
-
-      toast({
-        title: "인증 코드 재발송",
-        description: "이메일로 인증 코드가 재발송되었습니다.",
-      });
-      
-      // 타이머 리셋
-      setTimerActive(true);
-      setTimer({ minutes: 3, seconds: 0 });
-    } catch (error) {
-      console.error('코드 재발송 에러:', error);
-      toast({
-        title: "재발송 실패",
-        description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLogin = () => {
-    navigate('/login');
-  };
-  
-  // AWS Cognito 인증 관련 화면
-  if (showConfirmation) {
-    return (
-      <div className="w-full min-h-screen bg-[#181A20] flex flex-col items-center">
-        <div className="w-full max-w-[390px] px-[25px] pt-[42px] flex flex-col items-center">
-          <div className="flex w-full items-center h-14">
-            <ArrowLeft 
-              className="text-white cursor-pointer" 
-              size={24} 
-              onClick={() => setShowConfirmation(false)}
-            />
-            <span className="text-white text-lg font-medium ml-4">이메일 인증</span>
-          </div>
-          
-          <div className="mt-[92px] w-full text-center">
-            <p className="mb-4 text-sm text-gray-400">
-              {email}로 전송된 인증 코드를 입력해주세요
-            </p>
-            <div className="w-full">
-              <div className="text-[rgba(57,57,57,0.8)] text-[15px] font-extrabold leading-[130%] tracking-[0.3px] mb-[9px] text-gray-400">
-                인증 코드
-              </div>
-              
-              <input
-                type="text"
-                value={confirmationCode}
-                onChange={(e) => setConfirmationCode(e.target.value)}
-                placeholder="인증 코드 6자리"
-                maxLength={6}
-                className="w-full bg-transparent text-[17px] font-medium leading-[130%] text-white placeholder:text-[rgba(255,255,255,0.2)] focus:outline-none"
-              />
-              
-              <div className="w-full h-[2px] bg-[rgba(255,255,255,0.1)] mt-[6px] rounded-full"></div>
-            </div>
-          </div>
-          
-          <div className="mt-[37px] w-full flex flex-col gap-[14px]">
-            <button
-              onClick={handleConfirmSignUp}
-              disabled={isLoading}
-              className="w-full h-[60px] rounded-[18px] bg-bodhi-orange text-white font-semibold text-lg flex items-center justify-center disabled:opacity-50"
-            >
-              인증 완료하기
-            </button>
-            
-            <div className="flex justify-center mt-2">
-              <button 
-                onClick={handleResendCode}
-                disabled={isLoading}
-                className="text-bodhi-orange underline text-sm"
-              >
-                인증 코드 재발송
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
   return (
     <div className="w-full min-h-screen bg-[#181A20] flex flex-col">
       <div className="flex w-full h-14 items-center px-5 pt-[14px] pb-[14px]">
@@ -413,7 +279,7 @@ const Signup = () => {
               className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
               disabled={verificationSent}
             />
-            {emailValid && !verificationSent && (
+            {emailValid && !verificationSent && !verificationComplete && (
               <button 
                 onClick={handleSendVerification}
                 disabled={isLoading}
@@ -422,15 +288,20 @@ const Signup = () => {
                 인증하기
               </button>
             )}
-            {verificationSent && (
+            {verificationSent && !verificationComplete && (
               <div className="absolute right-4 text-sm text-gray-400">
                 {formatTime(timer.minutes)}:{formatTime(timer.seconds)}
+              </div>
+            )}
+            {verificationComplete && (
+              <div className="absolute right-4 text-sm text-green-500">
+                인증완료
               </div>
             )}
           </div>
         </div>
         
-        {showVerificationInput && (
+        {verificationSent && !verificationComplete && (
           <div className="flex flex-col gap-2">
             <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
               인증 코드
@@ -438,24 +309,35 @@ const Signup = () => {
             <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px]">
               <input
                 type="text"
-                value={confirmationCode}
-                onChange={(e) => setConfirmationCode(e.target.value)}
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
                 placeholder="인증 코드 6자리"
                 maxLength={6}
                 className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
               />
             </div>
-            <button
-              onClick={handleVerifyCode}
-              disabled={isLoading || !confirmationCode}
-              className="w-full h-[50px] rounded-[18px] bg-blue-500 text-white font-semibold text-base flex items-center justify-center mt-2 disabled:opacity-50"
-            >
-              인증하기
-            </button>
+            <div className="flex flex-col gap-2 mt-2">
+              <button
+                onClick={handleVerifyCode}
+                disabled={isLoading || !verificationCode || verificationCode.length < 6}
+                className="w-full h-[50px] rounded-[18px] bg-blue-500 text-white font-semibold text-base flex items-center justify-center disabled:opacity-50"
+              >
+                인증하기
+              </button>
+              {timerExpired && (
+                <button
+                  onClick={handleResendVerification}
+                  disabled={isLoading}
+                  className="text-bodhi-orange underline text-sm mt-2 text-center"
+                >
+                  인증 코드 재발송
+                </button>
+              )}
+            </div>
           </div>
         )}
         
-        {showPasswordFields && (
+        {verificationComplete && (
           <>
             <div className="flex flex-col gap-2">
               <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
@@ -503,7 +385,7 @@ const Signup = () => {
       <div className="flex flex-col gap-12 px-5 mt-8">
         <button
           onClick={handleSignup}
-          disabled={isLoading || !name || !emailValid || (showPasswordFields && (!passwordValid || !passwordMatch)) || (!showVerificationInput || !showPasswordFields)}
+          disabled={isLoading || !name || !emailValid || !verificationComplete || !passwordValid || !passwordMatch}
           className="flex justify-center items-center w-full h-[60px] rounded-[16px] bg-bodhi-orange text-white text-[18px] font-pretendard font-medium tracking-[-0.45px] disabled:opacity-50"
         >
           회원가입
@@ -531,12 +413,12 @@ const Signup = () => {
         <span className="text-[#9EA3B2] font-pretendard text-[14px] font-normal tracking-[-0.35px]">
           이미 계정이 있으신가요?
         </span>
-        <span 
-          onClick={handleLogin}
+        <button 
+          onClick={() => navigate('/login')}
           className="text-bodhi-orange font-pretendard text-[14px] font-semibold tracking-[-0.35px] underline cursor-pointer"
         >
           로그인
-        </span>
+        </button>
       </div>
     </div>
   );

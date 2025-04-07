@@ -11,12 +11,12 @@ const Onboarding1 = () => {
   
   return (
     <div className="flex flex-col items-center min-h-screen w-full bg-[#181A20]">
-      <div className="w-full max-w-[390px] flex flex-col items-center">
-        <div className="flex flex-col items-center justify-center flex-grow px-5 mt-[103px]">
+      <div className="w-full max-w-[390px] flex flex-col items-center h-full">
+        <div className="flex flex-col items-center justify-center flex-grow px-5 mt-[60px]">
           <img 
-            src="/assets/books.png" 
+            src="/lovable-uploads/4250c085-a971-447f-a02e-e5dea198362f.png" 
             alt="Books Icon" 
-            className="w-[250px] h-[250px] mb-[22px]"
+            className="w-[250px] h-[250px] mb-[30px]"
           />
           
           <div className="flex flex-col items-center gap-3 max-w-[230px]">
@@ -29,7 +29,7 @@ const Onboarding1 = () => {
           </div>
         </div>
         
-        <div className="flex flex-col items-center gap-8 w-full px-5 mt-auto mb-[34px]">
+        <div className="flex flex-col items-center gap-8 w-full px-5 mt-auto mb-[60px]">
           <div className="flex items-center gap-2">
             <div className="w-8 h-2 rounded-full bg-bodhi-orange"></div>
             <div className="w-2 h-2 rounded-full bg-[#776D62]"></div>
@@ -40,10 +40,6 @@ const Onboarding1 = () => {
           >
             시작하기
           </button>
-        </div>
-        
-        <div className="flex justify-center items-center w-full h-[34px] pb-2">
-          <div className="w-[134px] h-[5px] rounded-full bg-[#626877]"></div>
         </div>
       </div>
     </div>
