@@ -31,7 +31,7 @@ const TempleDetail: React.FC = () => {
   useEffect(() => {
     if (!temple) {
       // If temple not found, navigate back to search
-      navigate('/search-results');
+      navigate('/search/temple/results');
     }
   }, [temple, navigate]);
 

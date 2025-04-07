@@ -10,6 +10,19 @@ import BottomNav from '@/components/BottomNav';
 const FindTemple = () => {
   const navigate = useNavigate();
   const [activeRegion, setActiveRegion] = useState("seoul");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/search/temple/results?query=${searchQuery}`);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
     <div className="bg-white min-h-screen pb-20">
@@ -38,6 +51,9 @@ const FindTemple = () => {
             <Input
               className="pl-9 bg-gray-100 border-none focus-visible:ring-0"
               placeholder="도시, 지역, 지하철역"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
             />
           </div>
         </div>
@@ -46,12 +62,17 @@ const FindTemple = () => {
         <div className="px-6 mb-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className="font-bold text-base">가까운 사찰</h2>
-            <button className="text-xs text-gray-500">더보기 &gt;</button>
+            <button 
+              className="text-xs text-gray-500"
+              onClick={() => navigate('/search/temple/results?query=nearby')}
+            >
+              더보기 &gt;
+            </button>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             {nearbyTemples.map(temple => (
-              <div key={temple.id} className="cursor-pointer" onClick={() => navigate(`/temple/${temple.id}`)}>
+              <div key={temple.id} className="cursor-pointer" onClick={() => navigate(`/search/temple/detail/${temple.id}`)}>
                 <div className="bg-gray-200 aspect-square rounded-lg overflow-hidden">
                   <img 
                     src={temple.imageUrl} 
@@ -74,7 +95,12 @@ const FindTemple = () => {
         <div className="px-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className="font-bold text-base">많이 찾는 사찰</h2>
-            <button className="text-xs text-gray-500">더보기 &gt;</button>
+            <button 
+              className="text-xs text-gray-500"
+              onClick={() => navigate('/search/temple/results')}
+            >
+              더보기 &gt;
+            </button>
           </div>
 
           {/* Region Tags */}
@@ -96,7 +122,7 @@ const FindTemple = () => {
           {/* Temple Grid */}
           <div className="grid grid-cols-2 gap-4">
             {popularTemples.map(temple => (
-              <div key={temple.id} className="cursor-pointer mb-4" onClick={() => navigate(`/temple/${temple.id}`)}>
+              <div key={temple.id} className="cursor-pointer mb-4" onClick={() => navigate(`/search/temple/detail/${temple.id}`)}>
                 <div className="bg-gray-200 aspect-square rounded-lg overflow-hidden relative">
                   <img 
                     src={temple.imageUrl} 
@@ -120,7 +146,6 @@ const FindTemple = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNav />
     </div>
   );

@@ -6,6 +6,7 @@ import BottomNav from '@/components/BottomNav';
 import { Search, MapPin, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { temples } from '@/data/templeRepository';
+import { templeStays } from '@/data/templeStayRepository';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { readingSchedule, scriptures } from '@/data/scriptureRepository';
@@ -38,12 +39,12 @@ const Main = () => {
     {
       label: "사찰 찾기",
       icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/a2f87545372fe9582fde4b5e3604644d1ec5ec5d",
-      onClick: () => navigate('/find-temple')
+      onClick: () => navigate('/search/temple')
     },
     {
       label: "템플 스테이",
       icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/ec3def58b7540a2b54f8f5fdcdea89b6f0e64824",
-      onClick: () => navigate('/temple-stay')
+      onClick: () => navigate('/search/temple-stay')
     },
     {
       label: "선명상",
@@ -111,7 +112,7 @@ const Main = () => {
           <div className="px-[24px] mb-[25px]">
             <div 
               className="flex justify-between items-center mb-[10px] cursor-pointer" 
-              onClick={() => navigate('/find-temple')}
+              onClick={() => navigate('/search/temple')}
             >
               <h2 className="text-[15px] font-bold">자연이 깃든 사찰, 찾아볼까요?</h2>
               <ChevronRight className="w-4 h-4 text-gray-500" />
@@ -122,7 +123,7 @@ const Main = () => {
                 <div 
                   key={temple.id} 
                   className="cursor-pointer"
-                  onClick={() => navigate(`/temple/${temple.id}`)}
+                  onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
                 >
                   <div className="aspect-square rounded-md overflow-hidden bg-gray-200">
                     <img 
@@ -140,23 +141,23 @@ const Main = () => {
           <div className="px-[24px] mb-[25px]">
             <div 
               className="flex justify-between items-center mb-[10px] cursor-pointer" 
-              onClick={() => navigate('/temple-stay')}
+              onClick={() => navigate('/search/temple-stay')}
             >
               <h2 className="text-[15px] font-bold">쉼이 필요한 당신께, 템플스테이</h2>
               <ChevronRight className="w-4 h-4 text-gray-500" />
             </div>
 
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-3">
-              {temples.slice(0, 3).map((temple, index) => (
+              {templeStays.slice(0, 3).map((templeStay, index) => (
                 <div 
-                  key={`stay-${temple.id}`} 
+                  key={`stay-${templeStay.id}`} 
                   className="cursor-pointer"
-                  onClick={() => navigate(`/temple-stay/${temple.id}`)}
+                  onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
                 >
                   <div className="aspect-square rounded-md overflow-hidden bg-gray-200">
                     <img 
-                      src={temple.imageUrl} 
-                      alt={temple.name}
+                      src={templeStay.imageUrl} 
+                      alt={templeStay.name}
                       className="w-full h-full object-cover"
                     />
                   </div>

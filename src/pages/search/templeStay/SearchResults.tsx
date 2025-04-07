@@ -5,31 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Search, ArrowLeft, Home } from 'lucide-react';
 import BottomNav from "@/components/BottomNav";
 import { useNavigate, useLocation } from 'react-router-dom';
-import { temples } from '@/data/templeRepository';
 import { templeStays } from '@/data/templeStayRepository';
-import TempleItem from '@/components/search/TempleItem';
 import TempleStayItem from '@/components/search/TempleStayItem';
 
 type SortOption = '추천순' | '최신순';
 
-const SearchResults = () => {
+const TempleStaySearchResults = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const initialQuery = queryParams.get('query') || '서울';
-  const initialType = (queryParams.get('type') as 'temple' | 'templeStay') || 'temple';
   
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [searchType, setSearchType] = useState<'temple' | 'templeStay'>(initialType);
   const [sortBy, setSortBy] = useState<SortOption>('추천순');
 
   // Filter results based on search query
-  const filteredTemples = temples.filter(temple => 
-    temple.name.includes(searchQuery) || 
-    temple.location.includes(searchQuery) ||
-    (temple.description && temple.description.includes(searchQuery))
-  );
-  
   const filteredTempleStays = templeStays.filter(templeStay => 
     templeStay.name.includes(searchQuery) || 
     templeStay.location.includes(searchQuery) ||
@@ -38,7 +28,7 @@ const SearchResults = () => {
   );
 
   const handleSearch = () => {
-    navigate(`/search-results?query=${searchQuery}&type=${searchType}`);
+    navigate(`/search/temple-stay/results?query=${searchQuery}`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -49,8 +39,7 @@ const SearchResults = () => {
 
   useEffect(() => {
     setSearchQuery(initialQuery);
-    setSearchType(initialType);
-  }, [initialQuery, initialType]);
+  }, [initialQuery]);
 
   return (
     <div className="bg-white min-h-screen pb-20">
@@ -63,7 +52,7 @@ const SearchResults = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-bold flex-1 text-center">{searchType === 'temple' ? '사찰' : '템플스테이'}</h1>
+          <h1 className="text-lg font-bold flex-1 text-center">템플스테이</h1>
           <button 
             onClick={() => navigate('/main')}
             className="text-gray-800"
@@ -105,22 +94,12 @@ const SearchResults = () => {
 
         {/* Results */}
         <div className="px-6">
-          {searchType === 'temple' ? (
-            filteredTemples.length > 0 ? (
-              filteredTemples.map((temple) => (
-                <TempleItem key={temple.id} temple={temple} />
-              ))
-            ) : (
-              <p className="text-center py-8 text-gray-500">검색 결과가 없습니다</p>
-            )
+          {filteredTempleStays.length > 0 ? (
+            filteredTempleStays.map((templeStay) => (
+              <TempleStayItem key={templeStay.id} templeStay={templeStay} />
+            ))
           ) : (
-            filteredTempleStays.length > 0 ? (
-              filteredTempleStays.map((templeStay) => (
-                <TempleStayItem key={templeStay.id} templeStay={templeStay} />
-              ))
-            ) : (
-              <p className="text-center py-8 text-gray-500">검색 결과가 없습니다</p>
-            )
+            <p className="text-center py-8 text-gray-500">검색 결과가 없습니다</p>
           )}
         </div>
       </div>
@@ -131,4 +110,4 @@ const SearchResults = () => {
   );
 };
 
-export default SearchResults;
+export default TempleStaySearchResults;

@@ -11,7 +11,7 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay }) => {
   const navigate = useNavigate();
   
   const handleClick = () => {
-    navigate(`/temple-stay/${templeStay.id}`);
+    navigate(`/search/temple-stay/detail/${templeStay.id}`);
   };
   
   const formatPrice = (price: number) => {

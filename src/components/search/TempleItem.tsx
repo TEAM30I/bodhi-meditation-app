@@ -11,7 +11,7 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/temple/${temple.id}`);
+    navigate(`/search/temple/detail/${temple.id}`);
   };
 
   return (

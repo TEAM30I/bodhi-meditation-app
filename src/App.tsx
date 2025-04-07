@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -16,10 +17,16 @@ import NotFound from "@/pages/NotFound";
 
 // Search Module
 import SearchHome from "@/pages/search/SearchHome";
-import SearchResults from "@/pages/search/SearchResults";
-import TempleDetail from "@/pages/temple/TempleDetail";
-import FindTemple from "@/pages/FindTemple";
-import TempleStay from "@/pages/TempleStay";
+
+// Temple Module
+import FindTemple from "@/pages/search/temple/FindTemple";
+import TempleSearchResults from "@/pages/search/temple/SearchResults";
+import TempleDetail from "@/pages/search/temple/TempleDetail";
+
+// Temple Stay Module
+import FindTempleStay from "@/pages/search/temple-stay/FindTempleStay";
+import TempleStaySearchResults from "@/pages/search/temple-stay/SearchResults";
+import TempleStayDetail from "@/pages/search/temple-stay/TempleStayDetail";
 
 // Login Module
 import Onboarding1 from "@/pages/login/Onboarding1";
@@ -46,10 +53,23 @@ function App() {
         
         {/* Search Module Routes */}
         <Route path="/search" element={<SearchHome />} />
-        <Route path="/search-results" element={<SearchResults />} />
-        <Route path="/temple/:id" element={<TempleDetail />} />
-        <Route path="/find-temple" element={<FindTemple />} />
-        <Route path="/temple-stay" element={<TempleStay />} />
+        
+        {/* Temple Search Routes */}
+        <Route path="/search/temple/results" element={<TempleSearchResults />} />
+        <Route path="/search/temple/detail/:id" element={<TempleDetail />} />
+        <Route path="/search/temple" element={<FindTemple />} />
+        
+        {/* Temple Stay Search Routes */}
+        <Route path="/search/temple-stay/results" element={<TempleStaySearchResults />} />
+        <Route path="/search/temple-stay/detail/:id" element={<TempleStayDetail />} />
+        <Route path="/search/temple-stay" element={<FindTempleStay />} />
+        
+        {/* Legacy routes with redirects */}
+        <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
+        <Route path="/temple/:id" element={<Navigate to={({params}) => `/search/temple/detail/${params.id}`} />} />
+        <Route path="/find-temple" element={<Navigate to="/search/temple" />} />
+        <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
+        <Route path="/temple-stay/:id" element={<Navigate to={({params}) => `/search/temple-stay/detail/${params.id}`} />} />
 
         {/* Signup and Login */}
         <Route path="/login/onboarding1" element={<Onboarding1 />} />
@@ -58,7 +78,7 @@ function App() {
         <Route path="/login/signup" element={<Signup />} />
         <Route path="/login/login" element={<Login />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/signup" element={<Navigate to="/login/signup" />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -67,4 +87,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

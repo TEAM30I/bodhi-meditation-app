@@ -15,15 +15,17 @@ export default function SearchHome() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleRegionClick = (query: string) => {
-    navigate(`/search-results?query=${query}&type=${activeTab}`);
+    const path = activeTab === 'temple' 
+      ? `/search/temple/results?query=${query}` 
+      : `/search/temple-stay/results?query=${query}`;
+    navigate(path);
   };
 
   const handleSearch = () => {
-    if (searchQuery.trim()) {
-      navigate(`/search-results?query=${searchQuery}&type=${activeTab}`);
-    } else {
-      navigate(`/search-results?type=${activeTab}`);
-    }
+    const path = activeTab === 'temple'
+      ? `/search/temple/results?query=${searchQuery || '서울'}`
+      : `/search/temple-stay/results?query=${searchQuery || '서울'}`;
+    navigate(path);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -91,7 +93,12 @@ export default function SearchHome() {
           <Button
             variant="outline"
             className="flex items-center gap-2 text-sm border-bodhi-orange text-bodhi-orange hover:text-bodhi-orange hover:bg-orange-50 py-1 px-3 h-auto"
-            onClick={() => navigate('/search-results?query=nearby&type=' + activeTab)}
+            onClick={() => {
+              const path = activeTab === 'temple'
+                ? `/search/temple/results?query=nearby`
+                : `/search/temple-stay/results?query=nearby`;
+              navigate(path);
+            }}
           >
             <MapPin className="w-4 h-4" />
             <span>내 주변에서 검색</span>
@@ -120,4 +127,4 @@ export default function SearchHome() {
       </div>
     </div>
   );
-};
+}
