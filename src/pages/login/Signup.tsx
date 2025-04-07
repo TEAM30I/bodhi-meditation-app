@@ -1,14 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { signUp } from 'aws-amplify/auth';
-
-interface VerificationTimer {
-  minutes: number;
-  seconds: number;
-}
+import { toast } from '@/components/ui/use-toast';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -26,7 +21,7 @@ const Signup = () => {
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationComplete, setVerificationComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [timer, setTimer] = useState<VerificationTimer>({ minutes: 3, seconds: 0 });
+  const [timer, setTimer] = useState<{minutes: number, seconds: number}>({ minutes: 3, seconds: 0 });
   const [timerActive, setTimerActive] = useState(false);
   const [timerExpired, setTimerExpired] = useState(false);
   
@@ -34,6 +29,9 @@ const Signup = () => {
   const [emailValid, setEmailValid] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(false);
+  
+  // Simulated verification code
+  const [actualVerificationCode, setActualVerificationCode] = useState("");
   
   // Check email validity
   useEffect(() => {
@@ -95,8 +93,11 @@ const Signup = () => {
     
     setIsLoading(true);
     
-    // In a real implementation, this would send an actual email verification code
-    // For now, we'll simulate sending a verification code
+    // Generate a random 6-digit verification code
+    const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    setActualVerificationCode(randomCode);
+    
+    // Simulating sending a verification code
     setTimeout(() => {
       setVerificationSent(true);
       setTimerActive(true);
@@ -105,7 +106,7 @@ const Signup = () => {
       
       toast({
         title: "인증 코드 발송",
-        description: "이메일로 인증 코드가 발송되었습니다.",
+        description: `이메일로 인증 코드가 발송되었습니다. (코드: ${randomCode})`,
       });
       setIsLoading(false);
     }, 1000);
@@ -130,8 +131,8 @@ const Signup = () => {
       return;
     }
     
-    // For demo purposes, accept any 6-digit code when the timer is active
-    if (verificationCode.length === 6 && timerActive) {
+    // Check if the entered code matches the actual code
+    if (verificationCode === actualVerificationCode) {
       setVerificationComplete(true);
       setTimerActive(false);
       
@@ -218,7 +219,7 @@ const Signup = () => {
           description: "환영합니다!"
         });
         // 회원가입 성공 시 로그인 페이지로 이동 (이메일 정보 전달)
-        navigate(`/login?email=${encodeURIComponent(email)}`);
+        navigate(`/login/login?email=${encodeURIComponent(email)}`);
       }
     } catch (error) {
       console.error('회원가입 에러:', error);
@@ -414,7 +415,7 @@ const Signup = () => {
           이미 계정이 있으신가요?
         </span>
         <button 
-          onClick={() => navigate('/login')}
+          onClick={() => navigate('/login/login')}
           className="text-bodhi-orange font-pretendard text-[14px] font-semibold tracking-[-0.35px] underline cursor-pointer"
         >
           로그인

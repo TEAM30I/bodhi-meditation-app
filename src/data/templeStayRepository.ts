@@ -10,6 +10,7 @@ export interface TempleStay {
   description: string;
   duration: string;
   imageUrl: string;
+  tags?: string[];
 }
 
 export const templeStays: TempleStay[] = [
@@ -23,7 +24,8 @@ export const templeStays: TempleStay[] = [
     reviews: 22,
     description: "천년의 숨을 살아있는 고목을 거닐다",
     duration: "1박",
-    imageUrl: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    tags: ["문화재", "전통체험", "휴식"]
   },
   {
     id: "ts2",
@@ -35,7 +37,8 @@ export const templeStays: TempleStay[] = [
     reviews: 18,
     description: "마음까지 맑아지는 풍경 속으로",
     duration: "1박",
-    imageUrl: "https://images.unsplash.com/photo-1518005020951-eccb494ad742?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1518005020951-eccb494ad742?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    tags: ["불교체험", "휴식", "명상"]
   },
   {
     id: "ts3",
@@ -47,7 +50,8 @@ export const templeStays: TempleStay[] = [
     reviews: 25,
     description: "오대산의 품에 안긴 사찰 체험",
     duration: "1박",
-    imageUrl: "https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    tags: ["산사", "명상", "휴식"]
   },
   {
     id: "ts4",
@@ -59,7 +63,34 @@ export const templeStays: TempleStay[] = [
     reviews: 20,
     description: "도심 속 힐링, 나를 찾는 여행",
     duration: "1박",
-    imageUrl: "https://images.unsplash.com/photo-1526602367853-61a536f40855?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1526602367853-61a536f40855?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    tags: ["도심근교", "명상", "문화체험"]
+  },
+  {
+    id: "ts5",
+    name: "석굴암 템플스테이",
+    temple: "석굴암",
+    location: "경상북도 경주",
+    price: 150000,
+    rating: 4.8,
+    reviews: 30,
+    description: "천년 불교 문화의 정수를 체험",
+    duration: "1박",
+    imageUrl: "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    tags: ["역사유적", "불교체험", "명상"]
+  },
+  {
+    id: "ts6",
+    name: "조계사 템플스테이",
+    temple: "조계사",
+    location: "서울 종로구",
+    price: 100000,
+    rating: 4.4,
+    reviews: 15,
+    description: "도심 속 하루, 자아를 돌아보는 시간",
+    duration: "1박",
+    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    tags: ["도심", "일일체험", "문화"]
   }
 ];
 

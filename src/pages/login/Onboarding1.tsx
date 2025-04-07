@@ -12,7 +12,7 @@ const Onboarding1 = () => {
   return (
     <div className="flex flex-col items-center min-h-screen w-full bg-[#181A20]">
       <div className="w-full max-w-[390px] flex flex-col items-center h-full">
-        <div className="flex flex-col items-center justify-center flex-grow px-5 mt-[60px]">
+        <div className="flex flex-col items-center justify-center flex-grow px-5 mt-8">
           <img 
             src="/lovable-uploads/4250c085-a971-447f-a02e-e5dea198362f.png" 
             alt="Books Icon" 
