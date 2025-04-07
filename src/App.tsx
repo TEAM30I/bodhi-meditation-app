@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, To } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 
 // Pages
@@ -66,10 +66,10 @@ function App() {
         
         {/* Legacy routes with redirects */}
         <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
-        <Route path="/temple/:id" element={<Navigate to={({params}) => `/search/temple/detail/${params.id}`} />} />
+        <Route path="/temple/:id" element={<Navigate to={`/search/temple/detail/${window.location.pathname.split('/').pop()}`} />} />
         <Route path="/find-temple" element={<Navigate to="/search/temple" />} />
         <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
-        <Route path="/temple-stay/:id" element={<Navigate to={({params}) => `/search/temple-stay/detail/${params.id}`} />} />
+        <Route path="/temple-stay/:id" element={<Navigate to={`/search/temple-stay/detail/${window.location.pathname.split('/').pop()}`} />} />
 
         {/* Signup and Login */}
         <Route path="/login/onboarding1" element={<Onboarding1 />} />
