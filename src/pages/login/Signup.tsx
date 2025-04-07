@@ -1,14 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { signUp, confirmSignUp, signIn } from 'aws-amplify/auth';
+import { signUp, confirmSignUp, signIn, signOut } from 'aws-amplify/auth';
 import { toast } from '@/components/ui/use-toast';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-// Cognito 가입 시 임시로 사용할 비밀번호 (UI에서 입력받지 않고 내부적으로만 사용)
 const TEMPORARY_PASSWORD = 'TempPassword123!';
 
 const Signup = () => {
