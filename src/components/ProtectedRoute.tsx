@@ -1,9 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { getCurrentUser } from 'aws-amplify/auth'; // Updated import
 
-// AWS Amplify getCurrentUser 반환 타입 정의
+// AWS Amplify getCurrentUser 반환 타입 정의 (v6 API에 맞게 업데이트)
 interface AmplifyUser {
   username: string;
   userId?: string;

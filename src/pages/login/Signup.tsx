@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { Auth } from 'aws-amplify'; // <-- aws-amplify/auth 대신 Auth 모듈 임포트
+import { signUp, confirmSignUp, signIn, completeNewPassword } from 'aws-amplify/auth'; // Updated import from aws-amplify/auth
 import { toast } from '@/components/ui/use-toast';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -144,14 +145,16 @@ const Signup = () => {
       }
 
       // 2) Cognito signUp 호출 (임시비밀번호 사용)
-      await Auth.signUp({
+      await signUp({
         username: email,
         password: TEMPORARY_PASSWORD, // 임시 비밀번호
-        attributes: {
-          email,
-          name,
+        options: {
+          userAttributes: {
+            email,
+            name,
+          },
+          autoSignIn: { enabled: false }, // 임시 가입이므로 자동 로그인은 off
         },
-        autoSignIn: { enabled: false }, // 임시 가입이므로 자동 로그인은 off
       });
 
       // Cognito가 이메일로 인증코드를 보내므로, 사용자에게 "코드 입력" 안내
@@ -202,7 +205,11 @@ const Signup = () => {
 
     try {
       // Cognito에 입력한 코드를 전달하여 가입 인증
-      await Auth.confirmSignUp(email, verificationCode);
+      await confirmSignUp({
+        username: email,
+        confirmationCode: verificationCode
+      });
+      
       setVerificationComplete(true);
       setTimerActive(false);
 
@@ -275,11 +282,18 @@ const Signup = () => {
 
     try {
       // 1) 임시비밀번호로 로그인
-      const user = await Auth.signIn(email, TEMPORARY_PASSWORD);
+      const { isSignedIn, nextStep } = await signIn({
+        username: email,
+        password: TEMPORARY_PASSWORD
+      });
 
       // 2) 실제 비밀번호 설정
-      const finalUser = await Auth.completeNewPassword(user, password);
-      console.log('completeNewPassword 응답:', finalUser);
+      if (nextStep.signInStep === 'CONFIRM_NEW_PASSWORD') {
+        await completeNewPassword({
+          username: email,
+          newPassword: password
+        });
+      }
 
       toast({
         title: '회원가입 성공',

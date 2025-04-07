@@ -1,8 +1,9 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getCurrentUser, signOut } from 'aws-amplify/auth';
+import { getCurrentUser, signOut } from 'aws-amplify/auth'; // Updated import
 import { toast } from '@/components/ui/use-toast';
 
-// AWS Amplify getCurrentUser 반환 타입 정의
+// AWS Amplify getCurrentUser 반환 타입 정의 (v6 API에 맞게 업데이트)
 interface AmplifyUser {
   username: string;
   userId?: string;
@@ -57,7 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData = await Promise.race([
         getCurrentUser(),
         timeoutPromise
-      ]) as AmplifyUser;  // 반환 타입을 명시적으로 지정
+      ]) as AmplifyUser;
       
       console.log('사용자 정보 가져오기 성공:', userData);
       
