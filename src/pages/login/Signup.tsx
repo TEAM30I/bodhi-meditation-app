@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { signUp } from 'aws-amplify/auth';
 import { toast } from '@/components/ui/use-toast';
 
@@ -30,7 +29,7 @@ const Signup = () => {
   const [passwordValid, setPasswordValid] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(false);
   
-  // Simulated verification code
+  // Actual verification code
   const [actualVerificationCode, setActualVerificationCode] = useState("");
   
   // Check email validity
@@ -81,7 +80,21 @@ const Signup = () => {
     navigate('/login/auth');
   };
   
-  const handleSendVerification = () => {
+  // Check if email already exists
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      // This is a mock implementation
+      // In a real scenario, you would have an API endpoint to check if the email exists
+      // For now, we'll simulate a check with a few test emails
+      const existingEmails = ['test@example.com', 'user@domain.com', 'admin@site.com'];
+      return existingEmails.includes(email.toLowerCase());
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    }
+  };
+  
+  const handleSendVerification = async () => {
     if (!emailValid) {
       toast({
         title: "이메일 형식 오류",
@@ -93,23 +106,48 @@ const Signup = () => {
     
     setIsLoading(true);
     
-    // Generate a random 6-digit verification code
-    const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
-    setActualVerificationCode(randomCode);
-    
-    // Simulating sending a verification code
-    setTimeout(() => {
-      setVerificationSent(true);
-      setTimerActive(true);
-      setTimerExpired(false);
-      setTimer({ minutes: 3, seconds: 0 });
+    try {
+      // Check if email already exists
+      const emailExists = await checkEmailExists(email);
+      if (emailExists) {
+        toast({
+          title: "가입 오류",
+          description: "이미 가입된 이메일 주소입니다.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
       
+      // Generate a random 6-digit verification code
+      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+      setActualVerificationCode(randomCode);
+      
+      // In a real application, you would send this code to the user's email
+      // For now, we'll just simulate the sending process
+      setTimeout(() => {
+        setVerificationSent(true);
+        setTimerActive(true);
+        setTimerExpired(false);
+        setTimer({ minutes: 3, seconds: 0 });
+        
+        toast({
+          title: "인증 코드 발송",
+          description: "이메일로 인증 코드가 발송되었습니다. 이메일을 확인해주세요.",
+        });
+        
+        console.log("Verification code (only visible in console for development):", randomCode);
+        setIsLoading(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Error during verification:", error);
       toast({
-        title: "인증 코드 발송",
-        description: `이메일로 인증 코드가 발송되었습니다. (코드: ${randomCode})`,
+        title: "인증 코드 발송 실패",
+        description: "인증 코드 발송 중 오류가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive",
       });
       setIsLoading(false);
-    }, 1000);
+    }
   };
   
   const handleVerifyCode = () => {
@@ -223,11 +261,21 @@ const Signup = () => {
       }
     } catch (error) {
       console.error('회원가입 에러:', error);
-      toast({
-        title: "회원가입 실패",
-        description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-        variant: "destructive",
-      });
+      
+      // Check if the error is because the user already exists
+      if (error instanceof Error && error.message.includes('already exists')) {
+        toast({
+          title: "회원가입 실패",
+          description: "이미 가입된 이메일 주소입니다.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "회원가입 실패",
+          description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -244,7 +292,7 @@ const Signup = () => {
 
   return (
     <div className="w-full min-h-screen bg-[#181A20] flex flex-col">
-      <div className="flex w-full h-14 items-center px-5 pt-[14px] pb-[14px]">
+      <div className="flex w-full h-14 items-center px-5">
         <button onClick={handleGoBack} className="flex items-center">
           <ArrowLeft className="text-white" size={24} />
         </button>
@@ -403,8 +451,8 @@ const Signup = () => {
           
           <div className="flex justify-center items-center w-[110px] h-[60px] rounded-[16px] border border-[#35383F] bg-[#1F222A]">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="12" fill="#676E81"/>
-              <path d="M14.1365 12.4225L9.68799 6H6V18H9.86299V11.578L14.312 18H18V6H14.1365V12.4225Z" fill="#381F1F"/>
+              <circle cx="12" cy="12" r="12" fill="#03C75A"/>
+              <path d="M14.1365 12.4225L9.68799 6H6V18H9.86299V11.578L14.312 18H18V6H14.1365V12.4225Z" fill="#FFFFFF"/>
             </svg>
           </div>
         </div>
