@@ -280,14 +280,29 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      // 1) 임시비밀번호로 로그인
-      const { nextStep } = await signIn({
+      // 우선 로그인하기 전에 기존 세션이 있다면 제거 (이전 에러의 잠재적 원인)
+      try {
+        await signOut();
+      } catch (e) {
+        // 로그인된 상태가 아니면 에러가 발생할 수 있으나 무시
+        console.log("로그아웃 과정에서 에러 발생 (이미 로그아웃 상태일 수 있음):", e);
+      }
+      
+      // 1) 임시비밀번호로 로그인 시도
+      const signInResponse = await signIn({
         username: email,
         password: TEMPORARY_PASSWORD
       });
-
-      // 2) 실제 비밀번호 설정
-      if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+      
+      console.log("로그인 응답:", signInResponse);
+      
+      // 2) 비밀번호 변경이 필요한 경우
+      if (signInResponse.nextStep && 
+          signInResponse.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+        
+        console.log("새 비밀번호 설정 필요");
+        
+        // 새 비밀번호로 로그인 완료
         await signIn({
           username: email,
           password: TEMPORARY_PASSWORD,
@@ -297,7 +312,12 @@ const Signup = () => {
             }
           }
         });
+        
+        console.log("새 비밀번호 설정 성공");
       }
+
+      // 최종 로그아웃 (회원가입 완료 후 별도 로그인 화면으로 이동)
+      await signOut();
 
       toast({
         title: '회원가입 성공',
@@ -309,17 +329,17 @@ const Signup = () => {
     } catch (error) {
       console.error('회원가입(최종) 에러:', error);
 
-      // 이미 가입된 경우 등 에러 처리
-      if (error instanceof Error && error.message.includes('already exists')) {
+      // 상세한 에러 정보 표시
+      if (error instanceof Error) {
         toast({
           title: '회원가입 실패',
-          description: '이미 가입된 이메일 주소입니다.',
+          description: error.message,
           variant: 'destructive',
         });
       } else {
         toast({
           title: '회원가입 실패',
-          description: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+          description: '알 수 없는 오류가 발생했습니다.',
           variant: 'destructive',
         });
       }
