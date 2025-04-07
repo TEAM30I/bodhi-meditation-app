@@ -5,8 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Welcome from "./pages/Welcome";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
 import Main from "./pages/Main";
 import NotFound from "./pages/NotFound";
 import Search from "./pages/Search";
@@ -21,6 +19,13 @@ import FindTemple from "./pages/FindTemple";
 import SearchResults from "./pages/SearchResults";
 import Notifications from "./pages/Notifications";
 
+// 로그인/회원가입 관련 페이지들
+import Login from "./pages/login/Login";
+import Signup from "./pages/login/Signup";
+import Onboarding1 from "./pages/login/Onboarding1";
+import Onboarding2 from "./pages/login/Onboarding2";
+import AuthSelection from "./pages/login/AuthSelection";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -30,9 +35,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Welcome />} />
+          <Route path="/" element={<Navigate to="/login/onboarding1" replace />} />
+          
+          {/* 로그인 플로우 */}
+          <Route path="/login/onboarding1" element={<Onboarding1 />} />
+          <Route path="/login/onboarding2" element={<Onboarding2 />} />
+          <Route path="/login/auth" element={<AuthSelection />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          
+          {/* 메인 앱 화면들 */}
           <Route path="/main" element={<Main />} />
           <Route path="/search" element={<Search />} />
           <Route path="/nearby" element={<Nearby />} />
@@ -46,7 +58,8 @@ const App = () => (
           <Route path="/search-results" element={<SearchResults />} />
           <Route path="/notifications" element={<Notifications />} />
           
-          {/* Default route redirects to welcome page */}
+          {/* 기존 페이지 리다이렉션 */}
+          <Route path="/welcome" element={<Welcome />} />
           <Route path="/index" element={<Navigate to="/" replace />} />
           
           {/* Catch-all route for 404s */}
