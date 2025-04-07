@@ -67,19 +67,19 @@ function App() {
         {/* Legacy routes with redirects */}
         <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
         
-        {/* Fixed TypeScript error: Using render prop pattern for dynamic navigation */}
+        {/* Fixed TypeScript error: Using component pattern for dynamic navigation */}
         <Route 
           path="/temple/:id" 
-          element={<Navigate to={`/search/temple/detail/:id`} replace state={{ preserveParams: true }} />} 
+          element={<Navigate to="/search/temple/detail/:id" replace state={{ preserveParams: true }} />} 
         />
         
         <Route path="/find-temple" element={<Navigate to="/search/temple" />} />
         <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
         
-        {/* Fixed TypeScript error: Using render prop pattern for dynamic navigation */}
+        {/* Fixed TypeScript error: Using component pattern for dynamic navigation */}
         <Route 
           path="/temple-stay/:id" 
-          element={<Navigate to={`/search/temple-stay/detail/:id`} replace state={{ preserveParams: true }} />} 
+          element={<Navigate to="/search/temple-stay/detail/:id" replace state={{ preserveParams: true }} />} 
         />
 
         {/* Signup and Login */}
