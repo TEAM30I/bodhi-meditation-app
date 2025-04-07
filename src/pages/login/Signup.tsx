@@ -1,14 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { signUp, confirmSignUp, signIn, signOut } from 'aws-amplify/auth';
 import { toast } from '@/components/ui/use-toast';
 
+// Import components
+import NameInputSection from '@/components/login/NameInputSection';
+import EmailVerificationSection from '@/components/login/EmailVerificationSection';
+import PhoneVerificationSection from '@/components/login/PhoneVerificationSection';
+import PasswordSetupSection from '@/components/login/PasswordSetupSection';
+
+// Constants
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 const PHONE_REGEX = /^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$/;
-
 const TEMPORARY_PASSWORD = 'TempPassword123!';
 
 const Signup = () => {
@@ -536,239 +542,64 @@ const Signup = () => {
       {/* 입력 필드들 */}
       <div className="flex flex-col px-5 gap-8 mt-[43px] overflow-y-auto">
         {/* 이름 */}
-        <div className="flex flex-col gap-2">
-          <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
-            이름
-          </label>
-          <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px]">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="이름을 입력해 주세요"
-              className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
-            />
-          </div>
-        </div>
+        <NameInputSection name={name} setName={setName} />
 
         {/* 이메일 */}
-        <div className="flex flex-col gap-2">
-          <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
-            이메일
-          </label>
-          <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px] relative">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="이메일을 입력해 주세요"
-              className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
-              disabled={verificationSent}
-            />
-            {/* '인증하기' 버튼 */}
-            {emailValid && !verificationSent && !verificationComplete && (
-              <button
-                onClick={handleSendVerification}
-                disabled={isLoading}
-                className="absolute right-4 px-3 py-1 bg-blue-500 text-white rounded-md text-sm"
-              >
-                인증하기
-              </button>
-            )}
-            {/* 타이머 표시 */}
-            {verificationSent && !verificationComplete && (
-              <div className="absolute right-4 text-sm text-gray-400">
-                {formatTime(timer.minutes)}:{formatTime(timer.seconds)}
-              </div>
-            )}
-            {/* 인증완료 표시 */}
-            {verificationComplete && (
-              <div className="absolute right-4 text-sm text-green-500">인증완료</div>
-            )}
-          </div>
-        </div>
-
-        {/* 인증 코드 입력 (이메일 인증 과정) */}
-        {verificationSent && !verificationComplete && (
-          <div className="flex flex-col gap-2">
-            <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
-              인증 코드
-            </label>
-            <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px]">
-              <input
-                type="text"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                placeholder="인증 코드 6자리"
-                maxLength={6}
-                className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
-              />
-            </div>
-            <div className="flex flex-col gap-2 mt-2">
-              <button
-                onClick={handleVerifyCode}
-                disabled={isLoading || !verificationCode || verificationCode.length < 6}
-                className="w-full h-[50px] rounded-[18px] bg-blue-500 text-white font-semibold text-base flex items-center justify-center disabled:opacity-50"
-              >
-                인증하기
-              </button>
-              {timerExpired && (
-                <button
-                  onClick={handleResendVerification}
-                  disabled={isLoading}
-                  className="text-bodhi-orange underline text-sm mt-2 text-center"
-                >
-                  인증 코드 재발송
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+        <EmailVerificationSection 
+          email={email}
+          setEmail={setEmail}
+          emailValid={emailValid}
+          verificationSent={verificationSent}
+          setVerificationSent={setVerificationSent}
+          verificationCode={verificationCode}
+          setVerificationCode={setVerificationCode}
+          verificationComplete={verificationComplete}
+          setVerificationComplete={setVerificationComplete}
+          timerExpired={timerExpired}
+          setTimerExpired={setTimerExpired}
+          timer={timer}
+          setTimer={setTimer}
+          timerActive={timerActive}
+          setTimerActive={setTimerActive}
+          isLoading={isLoading}
+          formatTime={formatTime}
+          handleSendVerification={handleSendVerification}
+          handleVerifyCode={handleVerifyCode}
+          handleResendVerification={handleResendVerification}
+        />
 
         {/* 전화번호 입력 */}
-        <div className="flex flex-col gap-2">
-          <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
-            휴대폰 번호
-          </label>
-          <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px] relative">
-            <Phone className="text-gray-500 mr-2" size={20} />
-            <input
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="010-0000-0000"
-              className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
-              disabled={phoneVerificationSent && phoneVerificationComplete}
-            />
-            {/* '인증하기' 버튼 */}
-            {phoneValid && !phoneVerificationSent && !phoneVerificationComplete && (
-              <button
-                onClick={handleSendPhoneVerification}
-                disabled={isLoading}
-                className="absolute right-4 px-3 py-1 bg-blue-500 text-white rounded-md text-sm"
-              >
-                인증하기
-              </button>
-            )}
-            {/* 타이머 표시 */}
-            {phoneVerificationSent && !phoneVerificationComplete && (
-              <div className="absolute right-4 text-sm text-gray-400">
-                {formatTime(phoneTimer.minutes)}:{formatTime(phoneTimer.seconds)}
-              </div>
-            )}
-            {/* 인증완료 표시 */}
-            {phoneVerificationComplete && (
-              <div className="absolute right-4 text-sm text-green-500">인증완료</div>
-            )}
-          </div>
-        </div>
-
-        {/* 전화번호 인증 코드 입력 */}
-        {phoneVerificationSent && !phoneVerificationComplete && (
-          <div className="flex flex-col gap-2">
-            <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
-              전화번호 인증 코드
-            </label>
-            <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px]">
-              <input
-                type="text"
-                value={phoneVerificationCode}
-                onChange={(e) => setPhoneVerificationCode(e.target.value)}
-                placeholder="인증 코드 6자리"
-                maxLength={6}
-                className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
-              />
-            </div>
-            <div className="flex flex-col gap-2 mt-2">
-              <button
-                onClick={handleVerifyPhoneCode}
-                disabled={isLoading || !phoneVerificationCode || phoneVerificationCode.length < 6}
-                className="w-full h-[50px] rounded-[18px] bg-blue-500 text-white font-semibold text-base flex items-center justify-center disabled:opacity-50"
-              >
-                인증하기
-              </button>
-              {phoneTimerExpired && (
-                <button
-                  onClick={handleResendPhoneVerification}
-                  disabled={isLoading}
-                  className="text-bodhi-orange underline text-sm mt-2 text-center"
-                >
-                  인증 코드 재발송
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+        <PhoneVerificationSection 
+          phoneNumber={phoneNumber}
+          setPhoneNumber={setPhoneNumber}
+          phoneValid={phoneValid}
+          phoneVerificationSent={phoneVerificationSent}
+          phoneVerificationComplete={phoneVerificationComplete}
+          phoneVerificationCode={phoneVerificationCode}
+          setPhoneVerificationCode={setPhoneVerificationCode}
+          phoneTimer={phoneTimer}
+          phoneTimerExpired={phoneTimerExpired}
+          isLoading={isLoading}
+          formatTime={formatTime}
+          handleSendPhoneVerification={handleSendPhoneVerification}
+          handleVerifyPhoneCode={handleVerifyPhoneCode}
+          handleResendPhoneVerification={handleResendPhoneVerification}
+        />
 
         {/* 비밀번호 / 비밀번호 확인 (이메일 인증완료 후에만 노출) */}
         {verificationComplete && (
-          <>
-            <div className="flex flex-col gap-2">
-              <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
-                비밀번호
-              </label>
-              <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px] relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="비밀번호를 입력해 주세요"
-                  className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none pr-10"
-                />
-                <button 
-                  onClick={() => setShowPassword(!showPassword)} 
-                  type="button"
-                  className="absolute right-5 top-1/2 transform -translate-y-1/2 focus:outline-none"
-                >
-                  {showPassword ? (
-                    <EyeOff className="text-gray-400" size={20} />
-                  ) : (
-                    <Eye className="text-gray-400" size={20} />
-                  )}
-                </button>
-              </div>
-              {password && !passwordValid && (
-                <p className="text-red-500 text-xs mt-1">
-                  비밀번호는 8자 이상, 대문자, 소문자, 숫자, 특수문자를 포함해야 합니다.
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
-                비밀번호 확인
-              </label>
-              <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px] relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="비밀번호를 다시 입력해 주세요"
-                  className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none pr-10"
-                />
-                <button 
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
-                  type="button"
-                  className="absolute right-5 top-1/2 transform -translate-y-1/2 focus:outline-none"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="text-gray-400" size={20} />
-                  ) : (
-                    <Eye className="text-gray-400" size={20} />
-                  )}
-                </button>
-              </div>
-              {confirmPassword && (
-                <p
-                  className={`text-xs mt-1 ${
-                    passwordMatch ? 'text-green-500' : 'text-red-500'
-                  }`}
-                >
-                  {passwordMatch ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.'}
-                </p>
-              )}
-            </div>
-          </>
+          <PasswordSetupSection
+            password={password}
+            setPassword={setPassword}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
+            passwordValid={passwordValid}
+            passwordMatch={passwordMatch}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            showConfirmPassword={showConfirmPassword}
+            setShowConfirmPassword={setShowConfirmPassword}
+          />
         )}
       </div>
 
