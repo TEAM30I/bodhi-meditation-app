@@ -12,7 +12,6 @@ import Nearby from "@/pages/Nearby";
 import Wishlist from "@/pages/Wishlist";
 import Profile from "@/pages/Profile";
 import Notifications from "@/pages/Notifications";
-import Welcome from "@/pages/Welcome";
 import NotFound from "@/pages/NotFound";
 
 // Search Module
@@ -49,7 +48,6 @@ function App() {
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={<Notifications />} />
-        <Route path="/welcome" element={<Welcome />} />
         
         {/* Search Module Routes */}
         <Route path="/search" element={<SearchHome />} />
@@ -67,7 +65,7 @@ function App() {
         {/* Legacy routes with redirects */}
         <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
         
-        {/* Fix TypeScript error using string with path paramaters */}
+        {/* Fix TypeScript error using string literal instead of path parameter function */}
         <Route 
           path="/temple/:id" 
           element={<Navigate to="/search/temple/detail/:id" replace />} 
@@ -76,7 +74,7 @@ function App() {
         <Route path="/find-temple" element={<Navigate to="/search/temple" />} />
         <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
         
-        {/* Fix TypeScript error using string with path paramaters */}
+        {/* Fix TypeScript error using string literal instead of path parameter function */}
         <Route 
           path="/temple-stay/:id" 
           element={<Navigate to="/search/temple-stay/detail/:id" replace />} 
