@@ -1,7 +1,6 @@
 
 import { Amplify } from 'aws-amplify';
 import { I18n } from '@aws-amplify/core';
-import { resourcesConfig } from 'aws-amplify/auth/utils';
 import awsconfig from './amplifyconfiguration.json';
 
 // 한글 에러 메시지 설정 (추가하고 싶은 메시지가 있다면 더 확장 가능)
@@ -26,9 +25,6 @@ I18n.setLanguage('ko');
 
 // Amplify v6 설정
 Amplify.configure(awsconfig);
-
-// 오류 메시지 번역 설정
-resourcesConfig.Auth.i18n = I18n;
 
 // 설정 파일 export
 export { awsconfig };

@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getCurrentUser, signOut } from 'aws-amplify/auth'; // Updated import
+import { getCurrentUser, signOut } from 'aws-amplify/auth';
 import { toast } from '@/components/ui/use-toast';
 
 // AWS Amplify getCurrentUser 반환 타입 정의 (v6 API에 맞게 업데이트)

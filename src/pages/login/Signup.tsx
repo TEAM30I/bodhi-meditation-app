@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { signUp, confirmSignUp, signIn, completeNewPassword } from 'aws-amplify/auth'; // Updated import from aws-amplify/auth
+import { signUp, confirmSignUp, signIn } from 'aws-amplify/auth';
 import { toast } from '@/components/ui/use-toast';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -230,7 +230,6 @@ const Signup = () => {
   // -----------------------
   // 버튼: 회원가입 (최종)
   // → 인증 완료 후, 사용자가 입력한 실제 비밀번호로 변경
-  // 1) Auth.signIn(임시비밀번호) → 2) Auth.completeNewPassword(실제비밀번호)
   // -----------------------
   const handleSignup = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -282,16 +281,21 @@ const Signup = () => {
 
     try {
       // 1) 임시비밀번호로 로그인
-      const { isSignedIn, nextStep } = await signIn({
+      const { nextStep } = await signIn({
         username: email,
         password: TEMPORARY_PASSWORD
       });
 
       // 2) 실제 비밀번호 설정
-      if (nextStep.signInStep === 'CONFIRM_NEW_PASSWORD') {
-        await completeNewPassword({
+      if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+        await signIn({
           username: email,
-          newPassword: password
+          password: TEMPORARY_PASSWORD,
+          options: {
+            userAttributes: {
+              password: password
+            }
+          }
         });
       }
 
