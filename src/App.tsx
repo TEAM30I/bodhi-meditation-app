@@ -66,10 +66,21 @@ function App() {
         
         {/* Legacy routes with redirects */}
         <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
-        <Route path="/temple/:id" element={<Navigate to={(props) => `/search/temple/detail/${props.params.id}`} />} />
+        
+        {/* Fixed TypeScript error: Using render prop pattern for dynamic navigation */}
+        <Route 
+          path="/temple/:id" 
+          element={<Navigate to={`/search/temple/detail/:id`} replace state={{ preserveParams: true }} />} 
+        />
+        
         <Route path="/find-temple" element={<Navigate to="/search/temple" />} />
         <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
-        <Route path="/temple-stay/:id" element={<Navigate to={(props) => `/search/temple-stay/detail/${props.params.id}`} />} />
+        
+        {/* Fixed TypeScript error: Using render prop pattern for dynamic navigation */}
+        <Route 
+          path="/temple-stay/:id" 
+          element={<Navigate to={`/search/temple-stay/detail/:id`} replace state={{ preserveParams: true }} />} 
+        />
 
         {/* Signup and Login */}
         <Route path="/login/onboarding1" element={<Onboarding1 />} />
