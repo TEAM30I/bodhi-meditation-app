@@ -162,6 +162,10 @@ const Login = () => {
   const handleFieldBlur = () => {
     setActiveField(null);
   };
+  
+  const handleFindAccount = () => {
+    navigate('/login/find-account');
+  };
 
   useEffect(() => {
     // Check for saved email
@@ -251,7 +255,10 @@ const Login = () => {
               </button>
               <span className="text-[#9EA3BE] font-pretendard text-[14px]">아이디 저장</span>
             </div>
-            <button className="text-[#9EA3BE] font-pretendard text-[14px]">
+            <button 
+              onClick={handleFindAccount}
+              className="text-[#9EA3BE] font-pretendard text-[14px]"
+            >
               아이디/비밀번호 찾기
             </button>
           </div>

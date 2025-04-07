@@ -33,6 +33,8 @@ import Onboarding2 from "@/pages/login/Onboarding2";
 import AuthSelection from "@/pages/login/AuthSelection";
 import Signup from "@/pages/login/Signup";
 import Login from "@/pages/login/Login";
+import FindAccount from "@/pages/login/FindAccount";
+import ResetPassword from "@/pages/login/ResetPassword";
 
 function App() {
   return (
@@ -88,6 +90,10 @@ function App() {
         <Route path="/login/login" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Navigate to="/login/signup" />} />
+        
+        {/* Account Recovery */}
+        <Route path="/login/find-account" element={<FindAccount />} />
+        <Route path="/login/reset-password" element={<ResetPassword />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>
