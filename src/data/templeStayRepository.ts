@@ -10,6 +10,7 @@ export interface TempleStay {
   description: string;
   duration: string;
   imageUrl: string;
+  distance?: string;
   tags?: string[];
 }
 
@@ -91,6 +92,37 @@ export const templeStays: TempleStay[] = [
     duration: "1박",
     imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
     tags: ["도심", "일일체험", "문화"]
+  }
+];
+
+export const nearbyTempleStays: TempleStay[] = [
+  {
+    id: "ts-nearby1",
+    name: "법주사 템플스테이",
+    temple: "법주사",
+    location: "충북 보은군",
+    price: 110000,
+    rating: 4.7,
+    reviews: 28,
+    description: "속리산의 아름다운 산사에서의 하루",
+    duration: "1박",
+    imageUrl: "https://images.unsplash.com/photo-1527576539890-dfa815648363?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    distance: "도보 10분",
+    tags: ["속리산", "휴식", "명상"]
+  },
+  {
+    id: "ts-nearby2",
+    name: "해인사 템플스테이",
+    temple: "해인사",
+    location: "경남 합천군",
+    price: 140000,
+    rating: 4.9,
+    reviews: 35,
+    description: "팔만대장경의 지혜를 품은 산사",
+    duration: "1박",
+    imageUrl: "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    distance: "도보 15분",
+    tags: ["팔만대장경", "장경판전", "명상"]
   }
 ];
 

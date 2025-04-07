@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, Search, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { locations, templeStays } from '@/data/templeStayRepository';
+import { locations, templeStays, nearbyTempleStays } from '@/data/templeStayRepository';
 import BottomNav from '@/components/BottomNav';
 
 const FindTempleStay = () => {
@@ -71,6 +71,37 @@ const FindTempleStay = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
             />
+          </div>
+        </div>
+
+        {/* Nearby Temple Stays Section */}
+        <div className="px-4 mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold">가까운 템플스테이</h2>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {nearbyTempleStays.map((stay) => (
+              <div 
+                key={stay.id} 
+                className="cursor-pointer" 
+                onClick={() => navigate(`/search/temple-stay/detail/${stay.id}`)}
+              >
+                <div className="w-full aspect-square bg-gray-200 rounded-md mb-2 overflow-hidden relative">
+                  <img 
+                    src={stay.imageUrl} 
+                    alt={stay.name} 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-1 left-1 bg-yellow-400 rounded-full px-2 py-0.5 flex items-center">
+                    <Star className="w-3 h-3 mr-0.5 text-black" />
+                    <span className="text-xs font-bold">{stay.rating}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">{stay.location} · {stay.distance}</p>
+                <h3 className="text-sm font-bold">{stay.name}</h3>
+              </div>
+            ))}
           </div>
         </div>
 

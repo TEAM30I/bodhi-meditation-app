@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route, Navigate, To } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 
 // Pages
@@ -67,19 +67,19 @@ function App() {
         {/* Legacy routes with redirects */}
         <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
         
-        {/* Fixed TypeScript error: Using component pattern for dynamic navigation */}
+        {/* Fix TypeScript error using string with path paramaters */}
         <Route 
           path="/temple/:id" 
-          element={<Navigate to="/search/temple/detail/:id" replace state={{ preserveParams: true }} />} 
+          element={<Navigate to="/search/temple/detail/:id" replace />} 
         />
         
         <Route path="/find-temple" element={<Navigate to="/search/temple" />} />
         <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
         
-        {/* Fixed TypeScript error: Using component pattern for dynamic navigation */}
+        {/* Fix TypeScript error using string with path paramaters */}
         <Route 
           path="/temple-stay/:id" 
-          element={<Navigate to="/search/temple-stay/detail/:id" replace state={{ preserveParams: true }} />} 
+          element={<Navigate to="/search/temple-stay/detail/:id" replace />} 
         />
 
         {/* Signup and Login */}
