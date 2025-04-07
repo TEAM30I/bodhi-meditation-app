@@ -1,16 +1,28 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home, Search, Star } from 'lucide-react';
+import { ArrowLeft, Home, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { nearbyTemples, popularTemples, regionTags } from '@/data/templeData';
+import { temples } from '@/data/templeRepository';
+import { regionTags } from '@/data/templeData';
 import BottomNav from '@/components/BottomNav';
+import { nearbyTemples } from '@/data/templeData';
 
 const FindTemple = () => {
   const navigate = useNavigate();
-  const [activeRegion, setActiveRegion] = useState("seoul");
+  const [activeRegion, setActiveRegion] = useState<string>(
+    regionTags.find(region => region.active)?.id || "seoul"
+  );
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter temples by region
+  const filteredTemples = temples.filter(temple => {
+    if (activeRegion === "all") return true;
+    return temple.location.toLowerCase().includes(
+      regionTags.find(r => r.id === activeRegion)?.name.toLowerCase() || ""
+    );
+  });
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -24,13 +36,22 @@ const FindTemple = () => {
     }
   };
 
+  const handleRegionChange = (regionId: string) => {
+    setActiveRegion(regionId);
+  };
+
+  useEffect(() => {
+    // Scroll to top when page loads
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="bg-white min-h-screen pb-20">
       <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px] mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <button 
-            onClick={() => navigate('/main')}
+            onClick={() => navigate('/search')}
             className="text-gray-800"
           >
             <ArrowLeft size={20} />
@@ -58,94 +79,91 @@ const FindTemple = () => {
           </div>
         </div>
 
-        {/* Nearby Temples */}
-        <div className="px-6 mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="font-bold text-base">가까운 사찰</h2>
-            <button 
-              className="text-xs text-gray-500"
-              onClick={() => navigate('/search/temple/results?query=nearby')}
-            >
-              더보기 &gt;
-            </button>
+        {/* Nearby Temples Section */}
+        <div className="px-4 mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold">가까운 사찰</h2>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
-            {nearbyTemples.map(temple => (
-              <div key={temple.id} className="cursor-pointer" onClick={() => navigate(`/search/temple/detail/${temple.id}`)}>
-                <div className="bg-gray-200 aspect-square rounded-lg overflow-hidden">
+            {nearbyTemples.map((temple) => (
+              <div 
+                key={temple.id} 
+                className="cursor-pointer" 
+                onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
+              >
+                <div className="w-full aspect-square bg-gray-200 rounded-md mb-2 overflow-hidden">
                   <img 
                     src={temple.imageUrl} 
                     alt={temple.name} 
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="mt-1">
-                  <p className="text-sm font-medium">{temple.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {temple.location} • {temple.distance}
-                  </p>
-                </div>
+                <p className="text-xs text-gray-500">{temple.location} · {temple.distance}</p>
+                <h3 className="text-sm font-bold">{temple.name}</h3>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Popular Temples */}
-        <div className="px-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="font-bold text-base">많이 찾는 사찰</h2>
-            <button 
-              className="text-xs text-gray-500"
+        {/* Popular Temples Section */}
+        <div className="px-4 pb-20">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold">많이 찾는 사찰</h2>
+            <button
+              className="text-xs text-gray-500 p-0 h-auto"
               onClick={() => navigate('/search/temple/results')}
             >
               더보기 &gt;
             </button>
           </div>
 
-          {/* Region Tags */}
+          {/* Region Filter */}
           <div className="flex flex-nowrap overflow-x-auto gap-2 mb-4 pb-2 scrollbar-hide">
-            {regionTags.map(tag => (
+            {regionTags.map((region) => (
               <Badge
-                key={tag.id}
-                variant={tag.id === activeRegion ? "default" : "outline"}
-                className={`whitespace-nowrap ${
-                  tag.id === activeRegion ? "bg-bodhi-orange hover:bg-bodhi-orange" : "text-gray-500"
+                key={region.id}
+                variant={activeRegion === region.id ? "default" : "outline"}
+                className={`whitespace-nowrap cursor-pointer ${
+                  activeRegion === region.id 
+                    ? "bg-bodhi-orange hover:bg-bodhi-orange" 
+                    : "text-gray-500"
                 }`}
-                onClick={() => setActiveRegion(tag.id)}
+                onClick={() => handleRegionChange(region.id)}
               >
-                {tag.name}
+                {region.name}
               </Badge>
             ))}
           </div>
 
-          {/* Temple Grid */}
+          {/* Temples List */}
           <div className="grid grid-cols-2 gap-4">
-            {popularTemples.map(temple => (
-              <div key={temple.id} className="cursor-pointer mb-4" onClick={() => navigate(`/search/temple/detail/${temple.id}`)}>
-                <div className="bg-gray-200 aspect-square rounded-lg overflow-hidden relative">
+            {filteredTemples.slice(0, 4).map((temple) => (
+              <div 
+                key={temple.id} 
+                className="cursor-pointer" 
+                onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
+              >
+                <div className="w-full aspect-square bg-gray-200 rounded-md mb-2 overflow-hidden">
                   <img 
                     src={temple.imageUrl} 
                     alt={temple.name} 
                     className="w-full h-full object-cover"
                   />
-                  {temple.rating && (
-                    <div className="absolute left-2 bottom-2 bg-yellow-400 rounded-full px-2 py-0.5 flex items-center">
-                      <Star className="w-3 h-3 mr-0.5 text-black" />
-                      <span className="text-xs font-bold">{temple.rating}</span>
-                    </div>
-                  )}
                 </div>
-                <div className="mt-1">
-                  <p className="text-sm font-medium">{temple.name}</p>
-                  <p className="text-xs text-gray-500">{temple.location}</p>
-                </div>
+                <p className="text-xs text-gray-500">{temple.location}</p>
+                <h3 className="text-sm font-bold">{temple.name}</h3>
+                {temple.tags && (
+                  <p className="text-xs text-gray-500">
+                    {temple.tags.slice(0, 2).map(tag => `#${tag}`).join(' ')}
+                  </p>
+                )}
               </div>
             ))}
           </div>
         </div>
       </div>
-
+      
       <BottomNav />
     </div>
   );

@@ -21,10 +21,10 @@ const TempleStaySearchResults = () => {
 
   // Filter results based on search query
   const filteredTempleStays = templeStays.filter(templeStay => 
-    templeStay.name.includes(searchQuery) || 
-    templeStay.location.includes(searchQuery) ||
-    (templeStay.description && templeStay.description.includes(searchQuery)) ||
-    templeStay.temple.includes(searchQuery)
+    templeStay.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    templeStay.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (templeStay.description && templeStay.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    templeStay.temple.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSearch = () => {
@@ -39,6 +39,8 @@ const TempleStaySearchResults = () => {
 
   useEffect(() => {
     setSearchQuery(initialQuery);
+    // Scroll to top when search results change
+    window.scrollTo(0, 0);
   }, [initialQuery]);
 
   return (
