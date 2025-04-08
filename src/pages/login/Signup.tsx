@@ -1,9 +1,13 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/hooks/use-toast';
+import { validateEmail, validatePassword, validatePhoneNumber } from '@/utils/validations';
+import { signUp, confirmSignUp } from '@/services/authService';
+import { useAuthContext } from '@/context/AuthContext';
 import SignupHeader from '@/components/login/SignupHeader';
 import AgreementSection from '@/components/login/AgreementSection';
 import EmailVerificationSection from '@/components/login/EmailVerificationSection';
@@ -11,228 +15,220 @@ import PhoneVerificationSection from '@/components/login/PhoneVerificationSectio
 import PasswordSetupSection from '@/components/login/PasswordSetupSection';
 import NameInputSection from '@/components/login/NameInputSection';
 import SignupButton from '@/components/login/SignupButton';
-import { signupUser } from '@/services/authService';
 
-export default function Signup() {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+type SignupStage = 'agreement' | 'email' | 'phone' | 'password' | 'name';
 
-  // Form states
-  const [allAgreed, setAllAgreed] = useState(false);
-  const [requiredAgreed, setRequiredAgreed] = useState(false);
-  const [marketingAgreed, setMarketingAgreed] = useState(false);
-  const [email, setEmail] = useState("");
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [phoneVerified, setPhoneVerified] = useState(false);
-  const [password, setPassword] = useState("");
-  const [passwordValid, setPasswordValid] = useState(false);
-  const [passwordConfirm, setPasswordConfirm] = useState("");
-  const [passwordMatch, setPasswordMatch] = useState(false);
-  const [name, setName] = useState("");
-  const [nameValid, setNameValid] = useState(false);
+const Signup: React.FC = () => {
+  const [stage, setStage] = useState<SignupStage>('agreement');
+  const [agreed, setAgreed] = useState<boolean>(false);
+  const [requiredAgreed, setRequiredAgreed] = useState<boolean>(false);
+  const [marketingAgreed, setMarketingAgreed] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>('');
+  const [emailValid, setEmailValid] = useState<boolean>(false);
+  const [emailVerified, setEmailVerified] = useState<boolean>(false);
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [phoneValid, setPhoneValid] = useState<boolean>(false);
+  const [phoneVerified, setPhoneVerified] = useState<boolean>(false);
+  const [password, setPassword] = useState<string>('');
+  const [passwordConfirm, setPasswordConfirm] = useState<string>('');
+  const [passwordValid, setPasswordValid] = useState<boolean>(false);
+  const [passwordMatch, setPasswordMatch] = useState<boolean>(false);
+  const [name, setName] = useState<string>('');
+  const [nameValid, setNameValid] = useState<boolean>(false);
   
-  // Form validations
-  const [isVerificationStep, setIsVerificationStep] = useState(false);
-  const [isPasswordStep, setIsPasswordStep] = useState(false);
-  const [isNameStep, setIsNameStep] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { setUser } = useAuthContext();
 
-  const validateEmail = () => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
-
-  const validatePhone = () => {
-    const re = /^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$/;
-    return re.test(phoneNumber);
-  };
-
-  const goToNextStep = () => {
-    if (!isVerificationStep && emailVerified) {
-      setIsVerificationStep(true);
-    } else if (isVerificationStep && !isPasswordStep && phoneVerified) {
-      setIsPasswordStep(true);
-    } else if (isPasswordStep && !isNameStep && passwordValid && passwordMatch) {
-      setIsNameStep(true);
-    }
-  };
-
-  // Handle email verification complete
-  const handleEmailVerified = () => {
-    setEmailVerified(true);
-    setIsVerificationStep(true); // Move to phone verification step
-  };
-
-  // Handle phone verification complete
-  const handlePhoneVerified = () => {
-    setPhoneVerified(true);
-    setIsPasswordStep(true); // Move to password setup step
-  };
-
-  // Handle password validation
   useEffect(() => {
-    // Password must be at least 8 characters
-    setPasswordValid(password.length >= 8);
-    // Passwords must match
-    setPasswordMatch(password === passwordConfirm);
+    setEmailValid(validateEmail(email));
+  }, [email]);
+
+  useEffect(() => {
+    setPhoneValid(validatePhoneNumber(phoneNumber));
+  }, [phoneNumber]);
+
+  useEffect(() => {
+    setPasswordValid(validatePassword(password));
+    setPasswordMatch(password === passwordConfirm && password.length > 0);
   }, [password, passwordConfirm]);
 
-  // Handle name validation
   useEffect(() => {
-    setNameValid(name.trim().length >= 2);
+    setNameValid(name.length >= 2);
   }, [name]);
 
-  // Handle signup
-  const handleSignup = async () => {
-    if (!requiredAgreed || !emailVerified || !phoneVerified || !passwordValid || !passwordMatch || !nameValid) {
-      toast({
-        title: "필수 정보를 모두 입력해주세요",
-        description: "모든 필수 항목을 완료해야 가입이 가능합니다.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleNextStage = () => {
+    switch (stage) {
+      case 'agreement':
+        if (requiredAgreed) {
+          setStage('email');
+        } else {
+          toast({
+            title: "필수 약관에 동의해주세요",
+            variant: "destructive",
+          });
+        }
+        break;
 
-    setIsLoading(true);
+      case 'email':
+        if (emailVerified) {
+          setStage('phone');
+        } else {
+          toast({
+            title: "이메일 인증을 완료해주세요",
+            variant: "destructive",
+          });
+        }
+        break;
 
-    try {
-      // Call signup service
-      const result = await signupUser({
-        email,
-        password,
-        name,
-        phoneNumber,
-        marketingAgreed
-      });
+      case 'phone':
+        if (phoneVerified) {
+          setStage('password');
+        } else {
+          toast({
+            title: "전화번호 인증을 완료해주세요",
+            variant: "destructive",
+          });
+        }
+        break;
 
-      if (result.success) {
-        toast({
-          title: "회원가입 성공!",
-          description: "이메일 인증을 완료한 후 로그인해주세요.",
-        });
-        navigate(`/login/login?email=${email}`);
-      } else {
-        toast({
-          title: "회원가입 실패",
-          description: result.message || "오류가 발생했습니다. 다시 시도해주세요.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "회원가입 오류",
-        description: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-        variant: "destructive",
-      });
-      console.error("Signup error:", error);
-    } finally {
-      setIsLoading(false);
+      case 'password':
+        if (passwordValid && passwordMatch) {
+          setStage('name');
+        } else {
+          toast({
+            title: "비밀번호를 다시 확인해주세요",
+            variant: "destructive",
+          });
+        }
+        break;
+
+      case 'name':
+        if (nameValid) {
+          handleSignup();
+        } else {
+          toast({
+            title: "이름을 입력해주세요",
+            variant: "destructive",
+          });
+        }
+        break;
     }
   };
 
-  // Check if user is already logged in
-  useEffect(() => {
-    if (user) {
-      navigate('/main');
-    }
-  }, [user, navigate]);
+  const handleSignup = async () => {
+    try {
+      await signUp({
+        username: email,
+        password: password,
+        email: email,
+        phone_number: phoneNumber,
+        name: name
+      });
+      
+      toast({
+        title: "회원가입이 완료되었습니다",
+        description: "로그인 페이지로 이동합니다",
+      });
 
-  // Handle back button
-  const handleGoBack = () => {
-    if (isNameStep) {
-      setIsNameStep(false);
-    } else if (isPasswordStep) {
-      setIsPasswordStep(false);
-    } else if (isVerificationStep) {
-      setIsVerificationStep(false);
-    } else {
-      navigate('/login/auth');
+      // 회원가입 성공 시 로그인 페이지로 이동하면서 이메일 값을 전달
+      navigate(`/login/login?email=${encodeURIComponent(email)}`);
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast({
+        title: "회원가입 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
     }
+  };
+
+  const handleEmailVerification = () => {
+    // Set email as verified
+    setEmailVerified(true);
+    toast({
+      title: "이메일 인증 완료",
+      description: "인증이 완료되었습니다.",
+    });
+  };
+
+  const handlePhoneVerification = () => {
+    // Set phone as verified
+    setPhoneVerified(true);
+    toast({
+      title: "전화번호 인증 완료",
+      description: "인증이 완료되었습니다.",
+    });
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <SignupHeader handleGoBack={handleGoBack} />
+    <div className="flex flex-col min-h-screen bg-white px-6 py-12">
+      <SignupHeader 
+        stage={stage} 
+        onBack={() => navigate(-1)} 
+      />
 
-      <div className="flex-1 px-6">
-        {/* Step 1: Agreements */}
-        {!isVerificationStep && (
+      <div className="flex-1 mt-12">
+        {stage === 'agreement' && (
           <AgreementSection 
-            allAgreed={allAgreed}
+            agreed={agreed}
             requiredAgreed={requiredAgreed}
             marketingAgreed={marketingAgreed}
-            setAllAgreed={setAllAgreed}
+            setAgreed={setAgreed}
             setRequiredAgreed={setRequiredAgreed}
             setMarketingAgreed={setMarketingAgreed}
           />
         )}
 
-        {/* Step 2: Email Verification */}
-        {!isVerificationStep && (
-          <EmailVerificationSection 
+        {stage === 'email' && (
+          <EmailVerificationSection
             email={email}
             setEmail={setEmail}
-            isEmailValid={validateEmail()}
-            onVerified={handleEmailVerified}
+            emailValid={emailValid}
+            onVerified={handleEmailVerification}
           />
         )}
 
-        {/* Step 3: Phone Verification */}
-        {isVerificationStep && !isPasswordStep && (
+        {stage === 'phone' && (
           <PhoneVerificationSection
             phoneNumber={phoneNumber}
             setPhoneNumber={setPhoneNumber}
-            isPhoneValid={validatePhone()}
-            onVerified={handlePhoneVerified}
+            phoneValid={phoneValid}
+            onVerified={handlePhoneVerification}
           />
         )}
 
-        {/* Step 4: Password Setup */}
-        {isPasswordStep && !isNameStep && (
+        {stage === 'password' && (
           <PasswordSetupSection
             password={password}
             setPassword={setPassword}
             passwordConfirm={passwordConfirm}
             setPasswordConfirm={setPasswordConfirm}
-            passwordValid={passwordValid}
+            passwordValid={passwordValid} 
             passwordMatch={passwordMatch}
           />
         )}
 
-        {/* Step 5: Name Input */}
-        {isNameStep && (
+        {stage === 'name' && (
           <NameInputSection
             name={name}
             setName={setName}
             nameValid={nameValid}
           />
         )}
-
-        {/* Next/Signup Button */}
-        <div className="mt-auto pb-8">
-          {!isNameStep ? (
-            <Button
-              onClick={goToNextStep}
-              disabled={
-                (!isVerificationStep && (!requiredAgreed || !emailVerified)) ||
-                (isVerificationStep && !isPasswordStep && !phoneVerified) ||
-                (isPasswordStep && !isNameStep && (!passwordValid || !passwordMatch))
-              }
-              className="w-full h-[60px] bg-[#DE7834] text-white rounded-[16px] text-[18px] font-semibold mt-6"
-            >
-              다음
-            </Button>
-          ) : (
-            <SignupButton 
-              handleSignup={handleSignup}
-              isDisabled={!nameValid || isLoading}
-              isLoading={isLoading}
-            />
-          )}
-        </div>
       </div>
+
+      <SignupButton 
+        onClick={handleNextStage} 
+        disabled={
+          (stage === 'agreement' && !requiredAgreed) ||
+          (stage === 'email' && (!emailValid || !emailVerified)) ||
+          (stage === 'phone' && (!phoneValid || !phoneVerified)) ||
+          (stage === 'password' && (!passwordValid || !passwordMatch)) ||
+          (stage === 'name' && !nameValid)
+        }
+        label={stage === 'name' ? '가입하기' : '다음'}
+      />
     </div>
   );
-}
+};
+
+export default Signup;

@@ -1,63 +1,87 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bookmarks, scriptures } from '@/data/scriptureRepository';
-import { format } from 'date-fns';
+import { ArrowLeft, BookOpen } from 'lucide-react';
+import { bookmarks } from '@/data/scriptureRepository';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-interface BookmarkListProps {
-  scriptureId?: string;
-}
-
-const BookmarkList: React.FC<BookmarkListProps> = ({ scriptureId }) => {
+const BookmarkList: React.FC = () => {
   const navigate = useNavigate();
-  
-  // Filter bookmarks for the current scripture if scriptureId is provided
-  const filteredBookmarks = scriptureId 
-    ? bookmarks.filter(bookmark => bookmark.scriptureId === scriptureId)
-    : bookmarks;
-  
-  // Find the scripture title
-  const scripture = scriptureId ? scriptures.find(s => s.id === scriptureId) : null;
+  const [activeTab, setActiveTab] = useState('all');
+
+  // Filter bookmarks by category
+  const handleCategoryChange = (value: string) => {
+    setActiveTab(value);
+  };
+
+  const filteredBookmarks = activeTab === 'all' 
+    ? bookmarks
+    : bookmarks.filter(bookmark => bookmark.scriptureId === activeTab);
 
   return (
-    <div className="w-full flex flex-col">
-      {scripture && (
-        <p className="text-sm text-gray-500 mb-4">
-          {scripture.title} 북마크 목록
-        </p>
-      )}
-      
-      {filteredBookmarks.length > 0 ? (
+    <div className="bg-white min-h-screen">
+      <div className="w-full px-4">
+        <h1 className="text-xl font-bold mb-6">북마크</h1>
+
+        <div className="mb-6">
+          <Tabs value={activeTab} onValueChange={handleCategoryChange}>
+            <TabsList className="flex">
+              <TabsTrigger 
+                value="all" 
+                className={`flex-1 px-4 py-2 ${activeTab === 'all' ? 'bg-gray-100' : ''}`}
+              >
+                전체
+              </TabsTrigger>
+              <TabsTrigger 
+                value="금강경" 
+                className={`flex-1 px-4 py-2 ${activeTab === '금강경' ? 'bg-gray-100' : ''}`}
+              >
+                금강경
+              </TabsTrigger>
+              <TabsTrigger 
+                value="반야심경" 
+                className={`flex-1 px-4 py-2 ${activeTab === '반야심경' ? 'bg-gray-100' : ''}`}
+              >
+                반야심경
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
         <div className="space-y-4">
-          {filteredBookmarks.map((bookmark) => (
-            <div 
-              key={bookmark.id} 
-              className="flex mb-4 pb-4 border-b border-gray-100 last:border-none cursor-pointer"
-              onClick={() => navigate(`/scripture/${bookmark.scriptureId}?position=${bookmark.position}`)}
-            >
-              <div className="flex-1">
-                <div className="flex items-center mb-1">
-                  <h3 className="text-sm font-medium">{bookmark.title || '북마크'}</h3>
+          {filteredBookmarks.length > 0 ? (
+            filteredBookmarks.map((bookmark) => (
+              <div 
+                key={bookmark.id}
+                className="p-4 border rounded-lg cursor-pointer"
+                onClick={() => navigate(`/scripture/${bookmark.scriptureId}?position=${bookmark.position}`)}
+              >
+                <div className="flex items-start">
+                  <BookOpen className="w-5 h-5 text-gray-500 mr-3 mt-1" />
+                  <div>
+                    <h3 className="text-base font-medium mb-1">{bookmark.title}</h3>
+                    <p className="text-sm text-gray-600">
+                      {/* Show position as page for display purposes */}
+                      페이지 {Math.floor(bookmark.position / 300) + 1}
+                    </p>
+                    {/* If there's an excerpt field, display it, otherwise show a placeholder */}
+                    <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                      {bookmark.excerpt || "이 부분에 마음이 와닿아 북마크했습니다..."}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">{bookmark.date}</p>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">{bookmark.date ? format(new Date(bookmark.date), 'd일 전') : '6일 전'}</p>
-                
-                <div className="flex items-center mb-2">
-                  <span className="w-3 h-3 bg-orange-400 rounded-full mr-2"></span>
-                  <span className="text-sm font-medium">{bookmark.page || '1'} 페이지</span>
-                </div>
-                
-                <p className="text-sm text-gray-500">
-                  {bookmark.excerpt || '북마크 내용이 없습니다.'}
-                </p>
               </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+              <BookOpen className="w-12 h-12 mb-4" />
+              <p>북마크를 찾을 수 없습니다.</p>
+              <p className="text-sm mt-1">관심있는 내용을 북마크해보세요.</p>
             </div>
-          ))}
+          )}
         </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-12">
-          <p className="text-gray-500">아직 북마크한 내용이 없습니다</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
