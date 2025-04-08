@@ -1,8 +1,9 @@
 
 // Central data repository that exports all data from various sources
-import { temples, nearbyTemples, regionTags } from './templeRepository';
+import { temples } from './templeRepository';
 import { templeStays, nearbyTempleStays, locations } from './templeStayRepository';
 import { scriptures, scriptureCategories, readingSchedule, bookmarks } from './scriptureRepository';
+import { nearbyTemples, regionTags } from './templeData';
 
 // All temples data
 export const allTemples = [...temples, ...nearbyTemples];

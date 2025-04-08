@@ -5,9 +5,8 @@ import { ArrowLeft, Home, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { temples } from '@/data/templeRepository';
-import { regionTags } from '@/data/templeData';
+import { regionTags, nearbyTemples } from '@/data/templeData';
 import BottomNav from '@/components/BottomNav';
-import { nearbyTemples } from '@/data/templeData';
 
 const FindTemple = () => {
   const navigate = useNavigate();
