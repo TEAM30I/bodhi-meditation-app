@@ -51,7 +51,7 @@ export function useVerification({
   };
 
   // Send verification
-  const handleSendVerification = async () => {
+  const handleSendVerification = async (): Promise<void> => {
     if (!isValid) {
       toast({
         title: "입력 오류",

@@ -44,7 +44,8 @@ export default function Signup() {
   }, [password, confirmPassword]);
   
   const handleGoBack = () => {
-    navigate(-1);
+    // Navigate back to login screen when the back button is pressed
+    navigate('/login');
   };
 
   // When email verification is complete, show phone verification
