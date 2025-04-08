@@ -7,6 +7,7 @@ import { ArrowLeft, MapPin, Search as SearchIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { regionSearchRankings } from "@/data/searchRankingRepository";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { allTemples, allTempleStays } from '@/data/dataRepository';
 
 export default function SearchHome() {
   const navigate = useNavigate();
@@ -123,6 +124,12 @@ export default function SearchHome() {
               </div>
             ))}
           </div>
+        </div>
+        
+        {/* Available locations info */}
+        <div className="px-4 mt-8 text-sm text-gray-500">
+          <p>검색 가능한 사찰: {allTemples.length}개</p>
+          <p>검색 가능한 템플스테이: {allTempleStays.length}개</p>
         </div>
       </div>
     </div>

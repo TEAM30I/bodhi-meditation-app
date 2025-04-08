@@ -5,14 +5,16 @@ import { Toaster } from "@/components/ui/toaster";
 // Pages
 import Index from "@/pages/Index";
 import Main from "@/pages/Main";
-import Scripture from "@/pages/Scripture";
-import ScriptureReading from "@/pages/ScriptureReading";
 import Fortune from "@/pages/Fortune";
 import Nearby from "@/pages/Nearby";
-import Wishlist from "@/pages/Wishlist";
-import Profile from "@/pages/Profile";
 import Notifications from "@/pages/Notifications";
 import NotFound from "@/pages/NotFound";
+
+// Module Pages (New Structure)
+import ScripturePage from "@/modules/scripture/ScripturePage";
+import ScriptureReadingPage from "@/modules/scripture/ScriptureReadingPage";
+import WishlistPage from "@/modules/wishlist/WishlistPage";
+import ProfilePage from "@/modules/profile/ProfilePage";
 
 // Search Module
 import SearchHome from "@/pages/search/SearchHome";
@@ -43,12 +45,15 @@ function App() {
         <Route path="/" element={<Navigate to="/login/onboarding1" />} />
         <Route path="/index" element={<Index />} />
         <Route path="/main" element={<Main />} />
-        <Route path="/scripture" element={<Scripture />} />
-        <Route path="/scripture/:id" element={<ScriptureReading />} />
+        
+        {/* Module routes */}
+        <Route path="/scripture" element={<ScripturePage />} />
+        <Route path="/scripture/:id" element={<ScriptureReadingPage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        
         <Route path="/fortune" element={<Fortune />} />
         <Route path="/nearby" element={<Nearby />} />
-        <Route path="/wishlist" element={<Wishlist />} />
-        <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={<Notifications />} />
         
         {/* Search Module Routes */}

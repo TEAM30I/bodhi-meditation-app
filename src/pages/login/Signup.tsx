@@ -1,642 +1,449 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { signUp, confirmSignUp, signIn, signOut } from 'aws-amplify/auth';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-
-// Import components
+import { signUp } from 'aws-amplify/auth';
+import { signOut } from 'aws-amplify/auth';
 import NameInputSection from '@/components/login/NameInputSection';
-import EmailVerificationSection from '@/components/login/EmailVerificationSection';
-import PhoneVerificationSection from '@/components/login/PhoneVerificationSection';
-import PasswordSetupSection from '@/components/login/PasswordSetupSection';
 
-// Constants
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-const PHONE_REGEX = /^01([0|1|6|7|8|9])-?([0-9]{3,4})-?([0-9]{4})$/;
-const TEMPORARY_PASSWORD = 'TempPassword123!';
+interface EmailVerificationSectionProps {
+  email: string;
+  setEmail: (email: string) => void;
+  onVerifyEmail: () => void;
+  isEmailVerified: boolean;
+}
 
-const Signup = () => {
-  const navigate = useNavigate();
-
-  // -----------------------
-  // State
-  // -----------------------
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [formattedPhoneNumber, setFormattedPhoneNumber] = useState('');
-
-  // 이메일 인증 관련 상태
-  const [verificationSent, setVerificationSent] = useState(false);
-  const [verificationCode, setVerificationCode] = useState(''); // 사용자가 입력하는 인증코드
-  const [verificationComplete, setVerificationComplete] = useState(false);
-
-  // 전화번호 인증 관련 상태
-  const [phoneVerificationSent, setPhoneVerificationSent] = useState(false);
-  const [phoneVerificationCode, setPhoneVerificationCode] = useState('');
-  const [phoneVerificationComplete, setPhoneVerificationComplete] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [timer, setTimer] = useState<{ minutes: number; seconds: number }>({ minutes: 3, seconds: 0 });
-  const [timerActive, setTimerActive] = useState(false);
-  const [timerExpired, setTimerExpired] = useState(false);
-  
-  const [phoneTimer, setPhoneTimer] = useState<{ minutes: number; seconds: number }>({ minutes: 3, seconds: 0 });
-  const [phoneTimerActive, setPhoneTimerActive] = useState(false);
-  const [phoneTimerExpired, setPhoneTimerExpired] = useState(false);
-  
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Validation
-  const [emailValid, setEmailValid] = useState(false);
-  const [passwordValid, setPasswordValid] = useState(false);
-  const [passwordMatch, setPasswordMatch] = useState(false);
-  const [phoneValid, setPhoneValid] = useState(false);
-
-  // 사용하지 않지만, 구조 유지를 위해 남겨둠 (기존 코드에서 실제 발송 코드로 사용되던 변수)
-  const [actualVerificationCode, setActualVerificationCode] = useState('');
-
-  // -----------------------
-  // Effect: 이메일 / 비밀번호 / 전화번호 검증
-  // -----------------------
-  useEffect(() => {
-    setEmailValid(EMAIL_REGEX.test(email));
-  }, [email]);
-
-  useEffect(() => {
-    setPasswordValid(PASSWORD_REGEX.test(password));
-    setPasswordMatch(password === confirmPassword && password !== '');
-  }, [password, confirmPassword]);
-  
-  useEffect(() => {
-    const isValid = PHONE_REGEX.test(phoneNumber);
-    setPhoneValid(isValid);
-    
-    if (isValid) {
-      // Format phone number as 010-1234-5678
-      const formatted = phoneNumber
-        .replace(/[^0-9]/g, '')
-        .replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1-$2-$3');
-      setFormattedPhoneNumber(formatted);
-    }
-  }, [phoneNumber]);
-
-  // -----------------------
-  // Effect: 이메일 인증 타이머
-  // -----------------------
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
-
-    if (timerActive) {
-      interval = setInterval(() => {
-        setTimer((prev) => {
-          const { minutes, seconds } = prev;
-          if (seconds > 0) {
-            return { minutes, seconds: seconds - 1 };
-          } else if (minutes > 0) {
-            return { minutes: minutes - 1, seconds: 59 };
-          } else {
-            // 시간 만료
-            setTimerActive(false);
-            setTimerExpired(true);
-            toast({
-              title: '인증 시간 만료',
-              description: '인증 코드가 만료되었습니다. 다시 인증해주세요.',
-              variant: 'destructive',
-            });
-            return prev;
-          }
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [timerActive]);
-
-  // -----------------------
-  // Effect: 전화번호 인증 타이머
-  // -----------------------
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
-
-    if (phoneTimerActive) {
-      interval = setInterval(() => {
-        setPhoneTimer((prev) => {
-          const { minutes, seconds } = prev;
-          if (seconds > 0) {
-            return { minutes, seconds: seconds - 1 };
-          } else if (minutes > 0) {
-            return { minutes: minutes - 1, seconds: 59 };
-          } else {
-            // 시간 만료
-            setPhoneTimerActive(false);
-            setPhoneTimerExpired(true);
-            toast({
-              title: '인증 시간 만료',
-              description: '전화번호 인증 코드가 만료되었습니다. 다시 인증해주세요.',
-              variant: 'destructive',
-            });
-            return prev;
-          }
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [phoneTimerActive]);
-
-  // -----------------------
-  // 함수: 시간 포맷
-  // -----------------------
-  const formatTime = (time: number): string => {
-    return time < 10 ? `0${time}` : `${time}`;
-  };
-
-  // -----------------------
-  // 함수: 뒤로가기
-  // -----------------------
-  const handleGoBack = () => {
-    navigate('/login/auth');
-  };
-
-  // -----------------------
-  // (Mock) 이메일 중복 체크
-  // -----------------------
-  const checkEmailExists = async (email: string): Promise<boolean> => {
-    try {
-      // 실제로는 백엔드 API 등을 통해 중복 체크를 해야 합니다.
-      // 여기서는 예시로 몇 개만 지정
-      const existingEmails = ['test@example.com', 'user@domain.com', 'admin@site.com'];
-      return existingEmails.includes(email.toLowerCase());
-    } catch (error) {
-      console.error('Error checking email:', error);
-      return false;
-    }
-  };
-
-  // -----------------------
-  // 버튼: 이메일 인증하기
-  // → Cognito signUp()을 통해 실제 인증코드 이메일 발송
-  // -----------------------
-  const handleSendVerification = async () => {
-    if (!emailValid) {
-      toast({
-        title: '이메일 형식 오류',
-        description: '올바른 이메일 주소를 입력해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // 1) 이메일 중복 체크
-      const emailExists = await checkEmailExists(email);
-      if (emailExists) {
-        toast({
-          title: '가입 오류',
-          description: '이미 가입된 이메일 주소입니다.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // 2) Cognito signUp 호출 (임시비밀번호 사용)
-      await signUp({
-        username: email,
-        password: TEMPORARY_PASSWORD, // 임시 비밀번호
-        options: {
-          userAttributes: {
-            email,
-            name,
-            phone_number: formattedPhoneNumber.startsWith('+') ? formattedPhoneNumber : `+82${formattedPhoneNumber.replace(/-/g, '').substring(1)}`
-          },
-          autoSignIn: { enabled: false }, // 임시 가입이므로 자동 로그인은 off
-        },
-      });
-
-      // Cognito가 이메일로 인증코드를 보내므로, 사용자에게 "코드 입력" 안내
-      setVerificationSent(true);
-      setTimerActive(true);
-      setTimerExpired(false);
-      setTimer({ minutes: 3, seconds: 0 });
-
-      toast({
-        title: '인증 코드 발송',
-        description: '이메일로 인증 코드가 발송되었습니다. 이메일을 확인해주세요.',
-      });
-    } catch (error) {
-      console.error('Cognito signUp 에러:', error);
-      toast({
-        title: '인증 코드 발송 실패',
-        description:
-          error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // -----------------------
-  // 버튼: 전화번호 인증하기 (모의 구현)
-  // -----------------------
-  const handleSendPhoneVerification = () => {
-    if (!phoneValid) {
-      toast({
-        title: '전화번호 형식 오류',
-        description: '올바른 전화번호를 입력해주세요. (예: 010-1234-5678)',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    // 모의 인증번호 발송 (실제로는 SMS 서비스 연동 필요)
-    setTimeout(() => {
-      setPhoneVerificationSent(true);
-      setPhoneTimerActive(true);
-      setPhoneTimerExpired(false);
-      setPhoneTimer({ minutes: 3, seconds: 0 });
-
-      // 모의 코드 - 실제로는 서버에서 생성하여 SMS로 전송됨
-      // 모의 테스트 용도로는 항상 "123456"을 코드로 사용
-      setActualVerificationCode("123456");
-      
-      toast({
-        title: '인증 코드 발송',
-        description: `${formattedPhoneNumber}로 인증 코드가 발송되었습니다.`,
-      });
-      
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  // -----------------------
-  // 버튼: 이메일 인증하기 (코드 확인)
-  // → Cognito confirmSignUp()을 통해 이메일 인증코드 검증
-  // -----------------------
-  const handleVerifyCode = async () => {
-    if (!verificationCode || verificationCode.length < 6) {
-      toast({
-        title: '인증 코드 오류',
-        description: '올바른 인증 코드를 입력해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (timerExpired) {
-      toast({
-        title: '인증 코드 만료',
-        description: '인증 시간이 만료되었습니다. 다시 인증해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      // Cognito에 입력한 코드를 전달하여 가입 인증
-      await confirmSignUp({
-        username: email,
-        confirmationCode: verificationCode
-      });
-      
-      setVerificationComplete(true);
-      setTimerActive(false);
-
-      toast({
-        title: '인증 완료',
-        description: '이메일 인증이 완료되었습니다.',
-      });
-    } catch (err) {
-      toast({
-        title: '인증 코드 오류',
-        description: '코드가 맞지 않거나 만료되었습니다. 다시 시도해주세요.',
-        variant: 'destructive',
-      });
-      console.error('confirmSignUp 에러:', err);
-    }
-  };
-
-  // -----------------------
-  // 버튼: 전화번호 인증하기 (코드 확인) - 모의 구현
-  // -----------------------
-  const handleVerifyPhoneCode = () => {
-    if (!phoneVerificationCode || phoneVerificationCode.length < 6) {
-      toast({
-        title: '인증 코드 오류',
-        description: '올바른 인증 코드를 입력해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (phoneTimerExpired) {
-      toast({
-        title: '인증 코드 만료',
-        description: '인증 시간이 만료되었습니다. 다시 인증해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // 모의 코드 검증 - 실제로는 서버에서 검증
-    // 테스트를 위해 "123456"을 유효한 코드로 간주
-    if (phoneVerificationCode === "123456") {
-      setPhoneVerificationComplete(true);
-      setPhoneTimerActive(false);
-
-      toast({
-        title: '인증 완료',
-        description: '전화번호 인증이 완료되었습니다.',
-      });
-    } else {
-      toast({
-        title: '인증 코드 오류',
-        description: '코드가 맞지 않습니다. 다시 시도해주세요.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // -----------------------
-  // 버튼: 회원가입 (최종)
-  // → 인증 완료 후, 사용자가 입력한 실제 비밀번호로 변경
-  // -----------------------
-  const handleSignup = async () => {
-    if (!name || !email || !password || !confirmPassword || !phoneNumber) {
-      toast({
-        title: '입력 오류',
-        description: '모든 필드를 입력해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!emailValid) {
-      toast({
-        title: '이메일 형식 오류',
-        description: '올바른 이메일 주소를 입력해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!passwordValid) {
-      toast({
-        title: '비밀번호 오류',
-        description: '비밀번호는 8자 이상, 대문자, 소문자, 숫자, 특수문자를 포함해야 합니다.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast({
-        title: '비밀번호 불일치',
-        description: '비밀번호가 일치하지 않습니다.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!verificationComplete) {
-      toast({
-        title: '이메일 인증 필요',
-        description: '이메일 인증을 완료해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!phoneVerificationComplete) {
-      toast({
-        title: '전화번호 인증 필요',
-        description: '전화번호 인증을 완료해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // 우선 로그인하기 전에 기존 세션이 있다면 제거 (이전 에러의 잠재적 원인)
-      try {
-        await signOut();
-      } catch (e) {
-        // 로그인된 상태가 아니면 에러가 발생할 수 있으나 무시
-        console.log("로그아웃 과정에서 에러 발생 (이미 로그아웃 상태일 수 있음):", e);
-      }
-      
-      // 1) 임시비밀번호로 로그인 시도
-      const signInResponse = await signIn({
-        username: email,
-        password: TEMPORARY_PASSWORD
-      });
-      
-      console.log("로그인 응답:", signInResponse);
-      
-      // 2) 비밀번호 변경이 필요한 경우
-      if (signInResponse.nextStep && 
-          signInResponse.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
-        
-        console.log("새 비밀번호 설정 필요");
-        
-        // 새 비밀번호로 로그인 완료
-        await signIn({
-          username: email,
-          password: TEMPORARY_PASSWORD,
-          options: {
-            userAttributes: {
-              password: password
-            }
-          }
-        });
-        
-        console.log("새 비밀번호 설정 성공");
-      }
-
-      // 최종 로그아웃 (회원가입 완료 후 별도 로그인 화면으로 이동)
-      await signOut();
-
-      toast({
-        title: '회원가입 성공',
-        description: '환영합니다!',
-      });
-
-      // 회원가입 성공 시 로그인 페이지로 이동 (이메일 정보를 전달)
-      navigate(`/login/login?email=${encodeURIComponent(email)}`);
-    } catch (error) {
-      console.error('회원가입(최종) 에러:', error);
-
-      // 상세한 에러 정보 표시
-      if (error instanceof Error) {
-        toast({
-          title: '회원가입 실패',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: '회원가입 실패',
-          description: '알 수 없는 오류가 발생했습니다.',
-          variant: 'destructive',
-        });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // -----------------------
-  // 버튼: 인증 코드 재발송
-  // -----------------------
-  const handleResendVerification = () => {
-    setVerificationSent(false);
-    setVerificationCode('');
-    setVerificationComplete(false);
-    setTimerActive(false);
-    setTimerExpired(false);
-    handleSendVerification();
-  };
-
-  // -----------------------
-  // 버튼: 전화번호 인증 코드 재발송
-  // -----------------------
-  const handleResendPhoneVerification = () => {
-    setPhoneVerificationSent(false);
-    setPhoneVerificationCode('');
-    setPhoneVerificationComplete(false);
-    setPhoneTimerActive(false);
-    setPhoneTimerExpired(false);
-    handleSendPhoneVerification();
-  };
-
-  // -----------------------
-  // Render
-  // -----------------------
+const EmailVerificationSection: React.FC<EmailVerificationSectionProps> = ({ 
+  email, 
+  setEmail, 
+  onVerifyEmail, 
+  isEmailVerified 
+}) => {
   return (
-    <div className="w-full min-h-screen bg-[#181A20] flex flex-col">
-      {/* 상단 헤더 */}
-      <div className="flex w-full h-14 items-center px-5">
-        <button onClick={handleGoBack} className="flex items-center">
-          <ArrowLeft className="text-white" size={24} />
-        </button>
-        <h1 className="text-white font-pretendard text-[20px] font-medium mx-auto">가입하기</h1>
-      </div>
-
-      {/* 입력 필드들 */}
-      <div className="flex flex-col px-5 gap-8 mt-[43px] overflow-y-auto">
-        {/* 이름 */}
-        <NameInputSection name={name} setName={setName} />
-
-        {/* 이메일 */}
-        <EmailVerificationSection 
-          email={email}
-          setEmail={setEmail}
-          emailValid={emailValid}
-          verificationSent={verificationSent}
-          setVerificationSent={setVerificationSent}
-          verificationCode={verificationCode}
-          setVerificationCode={setVerificationCode}
-          verificationComplete={verificationComplete}
-          setVerificationComplete={setVerificationComplete}
-          timerExpired={timerExpired}
-          setTimerExpired={setTimerExpired}
-          timer={timer}
-          setTimer={setTimer}
-          timerActive={timerActive}
-          setTimerActive={setTimerActive}
-          isLoading={isLoading}
-          formatTime={formatTime}
-          handleSendVerification={handleSendVerification}
-          handleVerifyCode={handleVerifyCode}
-          handleResendVerification={handleResendVerification}
+    <div className="flex flex-col gap-2">
+      <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
+        이메일
+      </label>
+      <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px]">
+        <input
+          type="text"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="이메일을 입력해 주세요"
+          className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
         />
-
-        {/* 전화번호 입력 */}
-        <PhoneVerificationSection 
-          phoneNumber={phoneNumber}
-          setPhoneNumber={setPhoneNumber}
-          phoneValid={phoneValid}
-          phoneVerificationSent={phoneVerificationSent}
-          phoneVerificationComplete={phoneVerificationComplete}
-          phoneVerificationCode={phoneVerificationCode}
-          setPhoneVerificationCode={setPhoneVerificationCode}
-          phoneTimer={phoneTimer}
-          phoneTimerExpired={phoneTimerExpired}
-          isLoading={isLoading}
-          formatTime={formatTime}
-          handleSendPhoneVerification={handleSendPhoneVerification}
-          handleVerifyPhoneCode={handleVerifyPhoneCode}
-          handleResendPhoneVerification={handleResendPhoneVerification}
-        />
-
-        {/* 비밀번호 / 비밀번호 확인 (이메일 인증완료 후에만 노출) */}
-        {verificationComplete && (
-          <PasswordSetupSection
-            password={password}
-            setPassword={setPassword}
-            confirmPassword={confirmPassword}
-            setConfirmPassword={setConfirmPassword}
-            passwordValid={passwordValid}
-            passwordMatch={passwordMatch}
-            showPassword={showPassword}
-            setShowPassword={setShowPassword}
-            showConfirmPassword={showConfirmPassword}
-            setShowConfirmPassword={setShowConfirmPassword}
-          />
-        )}
       </div>
-
-      {/* 회원가입 버튼 */}
-      <div className="flex flex-col gap-8 px-5 mt-8 mb-4">
-        <button
-          onClick={handleSignup}
-          disabled={
-            isLoading ||
-            !name ||
-            !emailValid ||
-            !verificationComplete ||
-            !phoneValid ||
-            !phoneVerificationComplete ||
-            !passwordValid ||
-            !passwordMatch
-          }
-          className="flex justify-center items-center w-full h-[60px] rounded-[16px] bg-bodhi-orange text-white text-[18px] font-pretendard font-medium tracking-[-0.45px] disabled:opacity-50"
+      <div className="flex justify-end">
+        <Button 
+          onClick={onVerifyEmail}
+          disabled={isEmailVerified || !email.includes('@')}
+          className={`h-[40px] px-4 py-2 rounded-[12px] text-[#fff] text-[14px] font-medium ${
+            isEmailVerified ? 'bg-green-500' : 'bg-[#DE7834]'
+          }`}
         >
-          회원가입
-        </button>
-      </div>
-
-      {/* 하단: 이미 계정이 있으신가요? */}
-      <div className="flex justify-center items-center gap-1.5 mt-auto mb-[20px]">
-        <span className="text-[#9EA3B2] font-pretendard text-[14px] font-normal tracking-[-0.35px]">
-          이미 계정이 있으신가요?
-        </span>
-        <button
-          onClick={() => navigate('/login/login')}
-          className="text-bodhi-orange font-pretendard text-[14px] font-semibold tracking-[-0.35px] underline cursor-pointer"
-        >
-          로그인
-        </button>
+          {isEmailVerified ? '인증 완료' : '인증하기'}
+        </Button>
       </div>
     </div>
   );
 };
 
-export default Signup;
+interface PhoneVerificationSectionProps {
+  phone: string;
+  setPhone: (phone: string) => void;
+  onVerifyPhone: () => void;
+  isPhoneVerified: boolean;
+  showPhoneVerification: boolean;
+}
+
+const PhoneVerificationSection: React.FC<PhoneVerificationSectionProps> = ({ 
+  phone, 
+  setPhone, 
+  onVerifyPhone, 
+  isPhoneVerified,
+  showPhoneVerification 
+}) => {
+  if (!showPhoneVerification) return null;
+  
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
+        전화번호
+      </label>
+      <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px]">
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="전화번호를 입력해 주세요 (- 없이)"
+          className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
+        />
+      </div>
+      <div className="flex justify-end">
+        <Button 
+          onClick={onVerifyPhone}
+          disabled={isPhoneVerified || !phone || phone.length < 10}
+          className={`h-[40px] px-4 py-2 rounded-[12px] text-[#fff] text-[14px] font-medium ${
+            isPhoneVerified ? 'bg-green-500' : 'bg-[#DE7834]'
+          }`}
+        >
+          {isPhoneVerified ? '인증 완료' : '인증하기'}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+interface PasswordSetupSectionProps {
+  password: string;
+  setPassword: (password: string) => void;
+  confirmPassword: string;
+  setConfirmPassword: (confirmPassword: string) => void;
+  showPasswordSection: boolean;
+}
+
+const PasswordSetupSection: React.FC<PasswordSetupSectionProps> = ({ 
+  password, 
+  setPassword, 
+  confirmPassword, 
+  setConfirmPassword,
+  showPasswordSection 
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  if (!showPasswordSection) return null;
+  
+  return (
+    <>
+      <div className="flex flex-col gap-2">
+        <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
+          비밀번호
+        </label>
+        <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px]">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="비밀번호를 입력해 주세요"
+            className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-[#777C89]"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <label className="text-[#9EA3BE] font-pretendard text-[14px] font-medium leading-[140%] tracking-[-0.35px]">
+          비밀번호 확인
+        </label>
+        <div className="flex items-center p-[18px_20px] rounded-[16px] bg-[#252932] w-full h-[60px]">
+          <input
+            type={showConfirmPassword ? "text" : "password"}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="비밀번호를 다시 입력해 주세요"
+            className="w-full bg-transparent text-white placeholder-[#777C89] focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="text-[#777C89]"
+          >
+            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default function Signup() {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  
+  // Verification states
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  
+  // For the verification code modal
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationType, setVerificationType] = useState<'email' | 'phone'>('email');
+  
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+  
+  const handleVerifyEmail = () => {
+    if (!email || !email.includes('@')) {
+      toast({
+        title: "이메일 오류",
+        description: "올바른 이메일 형식을 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setVerificationType('email');
+    setShowVerificationModal(true);
+    
+    // Simulate sending code via email
+    toast({
+      title: "인증 코드 발송",
+      description: `${email}로 인증 코드가 발송되었습니다.`,
+    });
+  };
+  
+  const handleVerifyPhone = () => {
+    if (!phone || phone.length < 10) {
+      toast({
+        title: "전화번호 오류",
+        description: "올바른 전화번호를 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setVerificationType('phone');
+    setShowVerificationModal(true);
+    
+    // Simulate sending code via SMS
+    toast({
+      title: "인증 코드 발송",
+      description: `${phone}로 인증 코드가 발송되었습니다.`,
+    });
+  };
+  
+  const handleVerifyCode = () => {
+    if (verificationCode.length !== 6) {
+      toast({
+        title: "인증 코드 오류",
+        description: "6자리 인증 코드를 정확히 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Simulate code verification success
+    if (verificationType === 'email') {
+      setIsEmailVerified(true);
+      setShowPhoneVerification(true);
+    } else {
+      setIsPhoneVerified(true);
+      setShowPasswordSection(true);
+    }
+    
+    setShowVerificationModal(false);
+    setVerificationCode("");
+    
+    toast({
+      title: "인증 완료",
+      description: `${verificationType === 'email' ? '이메일' : '전화번호'} 인증이 완료되었습니다.`,
+    });
+  };
+  
+  const handleSignup = async () => {
+    if (!name) {
+      toast({
+        title: "이름 오류",
+        description: "이름을 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isEmailVerified) {
+      toast({
+        title: "이메일 인증 필요",
+        description: "이메일 인증을 완료해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isPhoneVerified) {
+      toast({
+        title: "전화번호 인증 필요",
+        description: "전화번호 인증을 완료해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (password.length < 8) {
+      toast({
+        title: "비밀번호 오류",
+        description: "비밀번호는 최소 8자 이상이어야 합니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: "비밀번호 불일치",
+        description: "비밀번호가 일치하지 않습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!agreed) {
+      toast({
+        title: "약관 동의 필요",
+        description: "서비스 이용약관에 동의해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const result = await signUp({
+        username: email,
+        password,
+        options: {
+          userAttributes: {
+            name,
+            email,
+            phone_number: '+82' + phone,
+          },
+          autoSignIn: true,
+        },
+      });
+      
+      if (result.isSignUpComplete) {
+        // Sign out after successful sign up to prevent auto sign-in issues
+        await signOut();
+        
+        toast({
+          title: "회원가입 성공",
+          description: "가입이 완료되었습니다. 로그인 페이지로 이동합니다.",
+        });
+        
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      }
+    } catch (error: any) {
+      toast({
+        title: "회원가입 오류",
+        description: error.message || "회원가입 중 문제가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  return (
+    <div className="flex flex-col min-h-screen bg-[#181A20] text-white">
+      {/* Header */}
+      <div className="flex items-center h-16 px-6">
+        <button onClick={handleGoBack}>
+          <ArrowLeft className="mr-4" />
+        </button>
+        <h1 className="text-2xl font-medium">회원가입</h1>
+      </div>
+      
+      {/* Main content */}
+      <div className="flex-1 px-6 py-8 space-y-6">
+        <NameInputSection name={name} setName={setName} />
+        
+        <EmailVerificationSection 
+          email={email} 
+          setEmail={setEmail}
+          onVerifyEmail={handleVerifyEmail}
+          isEmailVerified={isEmailVerified}
+        />
+        
+        <PhoneVerificationSection 
+          phone={phone}
+          setPhone={setPhone}
+          onVerifyPhone={handleVerifyPhone}
+          isPhoneVerified={isPhoneVerified}
+          showPhoneVerification={showPhoneVerification}
+        />
+        
+        <PasswordSetupSection 
+          password={password}
+          setPassword={setPassword}
+          confirmPassword={confirmPassword}
+          setConfirmPassword={setConfirmPassword}
+          showPasswordSection={showPasswordSection}
+        />
+        
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="agreement"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mr-2 rounded"
+          />
+          <label htmlFor="agreement" className="text-[#9EA3BE] font-pretendard text-[14px] font-medium">
+            서비스 이용약관에 동의합니다.
+          </label>
+        </div>
+        
+        <Button
+          onClick={handleSignup}
+          disabled={!name || !isEmailVerified || !isPhoneVerified || !password || password !== confirmPassword || !agreed}
+          className="w-full h-[60px] bg-[#DE7834] text-white rounded-[16px] text-[18px] font-semibold mt-6"
+        >
+          가입하기
+        </Button>
+      </div>
+      
+      {/* Verification Code Modal */}
+      {showVerificationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#252932] p-6 rounded-[16px] w-[90%] max-w-[400px]">
+            <h2 className="text-xl font-bold mb-4">인증 코드 입력</h2>
+            <p className="text-[#9EA3BE] mb-4">
+              {verificationType === 'email' ? email : phone}로 발송된 6자리 인증코드를 입력하세요.
+            </p>
+            <div className="mb-4">
+              <Input
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                placeholder="6자리 인증 코드"
+                className="bg-[#181A20] border-none text-white"
+                maxLength={6}
+              />
+            </div>
+            <div className="flex space-x-4">
+              <Button
+                onClick={() => setShowVerificationModal(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                취소
+              </Button>
+              <Button 
+                onClick={handleVerifyCode}
+                className="flex-1 bg-[#DE7834]"
+                disabled={verificationCode.length !== 6}
+              >
+                확인
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

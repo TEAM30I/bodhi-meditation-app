@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Search, ArrowLeft, Home } from 'lucide-react';
 import BottomNav from "@/components/BottomNav";
 import { useNavigate, useLocation } from 'react-router-dom';
-import { temples } from '@/data/templeRepository';
 import TempleItem from '@/components/search/TempleItem';
+import { allTemples } from '@/data/dataRepository';
 
 type SortOption = '추천순' | '최신순';
 
@@ -20,7 +20,7 @@ const TempleSearchResults = () => {
   const [sortBy, setSortBy] = useState<SortOption>('추천순');
 
   // Filter results based on search query
-  const filteredTemples = temples.filter(temple => 
+  const filteredTemples = allTemples.filter(temple => 
     temple.name.includes(searchQuery) || 
     temple.location.includes(searchQuery) ||
     (temple.description && temple.description.includes(searchQuery))
