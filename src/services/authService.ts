@@ -1,5 +1,5 @@
 
-import { signUp, confirmSignUp } from 'aws-amplify/auth';
+import { signUp as amplifySignUp, confirmSignUp as amplifyConfirmSignUp } from 'aws-amplify/auth';
 import { formatPhoneNumber } from '@/utils/validations';
 
 export interface SignUpResult {
@@ -14,7 +14,7 @@ export async function initiateEmailVerification(
   tempPassword = "TemporaryPw1!"
 ): Promise<SignUpResult> {
   try {
-    const signUpResult = await signUp({
+    const signUpResult = await amplifySignUp({
       username: email,
       password: tempPassword,
       options: {
@@ -55,7 +55,7 @@ export async function verifyEmailCode(
   verificationCode: string
 ): Promise<SignUpResult> {
   try {
-    const confirmResult = await confirmSignUp({
+    const confirmResult = await amplifyConfirmSignUp({
       username: email,
       confirmationCode: verificationCode,
     });

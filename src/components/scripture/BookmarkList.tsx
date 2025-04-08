@@ -5,7 +5,7 @@ import { ArrowLeft, BookOpen } from 'lucide-react';
 import { bookmarks } from '@/data/scriptureRepository';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const BookmarkList: React.FC = () => {
+const BookmarkList: React.FC<{ scriptureId?: string }> = ({ scriptureId }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
 
@@ -14,39 +14,43 @@ const BookmarkList: React.FC = () => {
     setActiveTab(value);
   };
 
-  const filteredBookmarks = activeTab === 'all' 
-    ? bookmarks
-    : bookmarks.filter(bookmark => bookmark.scriptureId === activeTab);
+  const filteredBookmarks = scriptureId 
+    ? bookmarks.filter(bookmark => bookmark.scriptureId === scriptureId)
+    : activeTab === 'all' 
+      ? bookmarks
+      : bookmarks.filter(bookmark => bookmark.scriptureId === activeTab);
 
   return (
     <div className="bg-white min-h-screen">
       <div className="w-full px-4">
         <h1 className="text-xl font-bold mb-6">북마크</h1>
 
-        <div className="mb-6">
-          <Tabs value={activeTab} onValueChange={handleCategoryChange}>
-            <TabsList className="flex">
-              <TabsTrigger 
-                value="all" 
-                className={`flex-1 px-4 py-2 ${activeTab === 'all' ? 'bg-gray-100' : ''}`}
-              >
-                전체
-              </TabsTrigger>
-              <TabsTrigger 
-                value="금강경" 
-                className={`flex-1 px-4 py-2 ${activeTab === '금강경' ? 'bg-gray-100' : ''}`}
-              >
-                금강경
-              </TabsTrigger>
-              <TabsTrigger 
-                value="반야심경" 
-                className={`flex-1 px-4 py-2 ${activeTab === '반야심경' ? 'bg-gray-100' : ''}`}
-              >
-                반야심경
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        {!scriptureId && (
+          <div className="mb-6">
+            <Tabs value={activeTab} onValueChange={handleCategoryChange}>
+              <TabsList className="flex">
+                <TabsTrigger 
+                  value="all" 
+                  className={`flex-1 px-4 py-2 ${activeTab === 'all' ? 'bg-gray-100' : ''}`}
+                >
+                  전체
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="금강경" 
+                  className={`flex-1 px-4 py-2 ${activeTab === '금강경' ? 'bg-gray-100' : ''}`}
+                >
+                  금강경
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="반야심경" 
+                  className={`flex-1 px-4 py-2 ${activeTab === '반야심경' ? 'bg-gray-100' : ''}`}
+                >
+                  반야심경
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
 
         <div className="space-y-4">
           {filteredBookmarks.length > 0 ? (
@@ -64,9 +68,9 @@ const BookmarkList: React.FC = () => {
                       {/* Show position as page for display purposes */}
                       페이지 {Math.floor(bookmark.position / 300) + 1}
                     </p>
-                    {/* Use optional chaining for excerpt to avoid type error */}
+                    {/* Fixed error: excerpt property doesn't exist */}
                     <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                      {bookmark.excerpt ?? "이 부분에 마음이 와닿아 북마크했습니다..."}
+                      이 부분에 마음이 와닿아 북마크했습니다...
                     </p>
                     <p className="text-xs text-gray-400 mt-1">{bookmark.date}</p>
                   </div>

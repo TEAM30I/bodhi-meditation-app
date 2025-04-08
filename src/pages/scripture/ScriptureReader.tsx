@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, Bookmark, Settings } from 'lucide-react';
@@ -17,11 +16,9 @@ const ScriptureReader = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   
-  // 경전 데이터 찾기
   const scripture = scriptures.find(s => s.id === id);
   
   useEffect(() => {
-    // 스크롤을 최상단으로 이동
     window.scrollTo(0, 0);
   }, []);
 
@@ -33,19 +30,15 @@ const ScriptureReader = () => {
     );
   }
 
-  // 경전 내용을 단락으로 분리 및 페이지네이션 처리
   const paragraphs = scripture.content.split('\n').filter(p => p.trim());
   
-  // Calculate pages based on font size
   const charactersPerPage = Math.floor(6000 / fontSize);
   const totalCharacters = paragraphs.join('').length;
   const totalPages = Math.ceil(totalCharacters / charactersPerPage);
   
-  // Calculate current page content
   const startCharIndex = (currentPage - 1) * charactersPerPage;
   const endCharIndex = Math.min(startCharIndex + charactersPerPage, totalCharacters);
   
-  // Get content for current page
   let currentPageContent = '';
   let charCount = 0;
   let pageContent = [];
@@ -61,15 +54,12 @@ const ScriptureReader = () => {
     let paragraphContent;
     
     if (charCount < startCharIndex) {
-      // Paragraph starts before current page but continues into it
       const offset = startCharIndex - charCount;
       paragraphContent = paragraph.slice(offset);
     } else if (charCount + paragraph.length > endCharIndex) {
-      // Paragraph continues beyond current page
       const remaining = endCharIndex - charCount;
       paragraphContent = paragraph.slice(0, remaining);
     } else {
-      // Whole paragraph fits on current page
       paragraphContent = paragraph;
     }
     
@@ -115,7 +105,6 @@ const ScriptureReader = () => {
     <div className={`min-h-screen pb-16 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
       {activeView === 'reading' ? (
         <>
-          {/* Header */}
           <div className={`sticky top-0 z-10 w-full px-6 py-4 flex items-center border-b ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
             <button 
               onClick={handleBackClick}
@@ -138,7 +127,6 @@ const ScriptureReader = () => {
             </button>
           </div>
           
-          {/* Categories */}
           <div className={`px-6 py-3 flex space-x-2 overflow-x-auto ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-b'}`}>
             {scriptureCategories.map((category) => (
               <Badge
@@ -156,7 +144,6 @@ const ScriptureReader = () => {
             ))}
           </div>
           
-          {/* Scripture Content */}
           <div className={`px-6 py-4 relative ${darkMode ? 'bg-gray-900' : 'bg-white'}`} style={{ fontSize: `${fontSize}px`, minHeight: 'calc(100vh - 180px)' }}>
             <h2 className="font-bold text-lg mb-4">1. 개경 (開經) - {currentPage}/{totalPages} 페이지</h2>
             {pageContent.map((paragraph, index) => (
@@ -165,7 +152,6 @@ const ScriptureReader = () => {
               </p>
             ))}
 
-            {/* Pagination Controls */}
             <div className="flex justify-between mt-8 pb-16">
               <button 
                 onClick={handlePrevPage} 
@@ -184,7 +170,6 @@ const ScriptureReader = () => {
               </button>
             </div>
 
-            {/* Floating buttons */}
             <div className="fixed bottom-32 right-6 flex flex-col gap-2">
               <button 
                 onClick={handleBookmarkClick} 
@@ -200,7 +185,6 @@ const ScriptureReader = () => {
               </button>
             </div>
 
-            {/* Settings Panel */}
             {showSettings && (
               <div className={`fixed bottom-20 right-6 w-64 p-4 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}>
                 <h3 className="text-lg font-medium mb-4">설정</h3>
@@ -233,7 +217,6 @@ const ScriptureReader = () => {
         </>
       ) : (
         <div className="px-6 py-4">
-          {/* Bookmark view */}
           <div className="flex items-center mb-6">
             <button 
               onClick={() => setActiveView('reading')}
