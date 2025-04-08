@@ -10,11 +10,15 @@ import Nearby from "@/pages/Nearby";
 import Notifications from "@/pages/Notifications";
 import NotFound from "@/pages/NotFound";
 
-// Module Pages (New Structure)
-import ScripturePage from "@/modules/scripture/ScripturePage";
-import ScriptureReadingPage from "@/modules/scripture/ScriptureReadingPage";
-import WishlistPage from "@/modules/wishlist/WishlistPage";
-import ProfilePage from "@/modules/profile/ProfilePage";
+// Scripture Pages
+import Scripture from "@/pages/scripture/Scripture";
+import ScriptureReading from "@/pages/scripture/ScriptureReading";
+
+// Profile Pages
+import Profile from "@/pages/profile/Profile";
+
+// Wishlist Pages
+import Wishlist from "@/pages/wishlist/Wishlist";
 
 // Search Module
 import SearchHome from "@/pages/search/SearchHome";
@@ -46,11 +50,15 @@ function App() {
         <Route path="/index" element={<Index />} />
         <Route path="/main" element={<Main />} />
         
-        {/* Module routes */}
-        <Route path="/scripture" element={<ScripturePage />} />
-        <Route path="/scripture/:id" element={<ScriptureReadingPage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        {/* Scripture routes */}
+        <Route path="/scripture" element={<Scripture />} />
+        <Route path="/scripture/:id" element={<ScriptureReading />} />
+        
+        {/* Wishlist routes */}
+        <Route path="/wishlist" element={<Wishlist />} />
+        
+        {/* Profile routes */}
+        <Route path="/profile" element={<Profile />} />
         
         <Route path="/fortune" element={<Fortune />} />
         <Route path="/nearby" element={<Nearby />} />
