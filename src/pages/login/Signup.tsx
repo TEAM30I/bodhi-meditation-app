@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { signUp, confirmSignUp } from 'aws-amplify/auth';
 import NameInputSection from '@/components/login/NameInputSection';
 import EmailVerificationSection from '@/components/login/EmailVerificationSection';
 import PhoneVerificationSection from '@/components/login/PhoneVerificationSection';
 import PasswordSetupSection from '@/components/login/PasswordSetupSection';
+import { useTimer } from '@/hooks/useTimer';
+import { validateEmail, validatePhone, validatePassword } from '@/utils/validations';
+import { 
+  initiateEmailVerification, 
+  verifyEmailCode,
+  initiatePhoneVerification,
+  verifyPhoneCode
+} from '@/services/authService';
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -28,9 +36,6 @@ export default function Signup() {
   const [emailVerificationSent, setEmailVerificationSent] = useState(false);
   const [emailVerificationCode, setEmailVerificationCode] = useState("");
   const [emailVerificationComplete, setEmailVerificationComplete] = useState(false);
-  const [emailTimerExpired, setEmailTimerExpired] = useState(false);
-  const [emailTimer, setEmailTimer] = useState({ minutes: 3, seconds: 0 });
-  const [emailTimerActive, setEmailTimerActive] = useState(false);
   
   // Phone verification states
   const [phoneValid, setPhoneValid] = useState(false);
@@ -38,9 +43,6 @@ export default function Signup() {
   const [phoneVerificationSent, setPhoneVerificationSent] = useState(false);
   const [phoneVerificationCode, setPhoneVerificationCode] = useState("");
   const [phoneVerificationComplete, setPhoneVerificationComplete] = useState(false);
-  const [phoneTimerExpired, setPhoneTimerExpired] = useState(false);
-  const [phoneTimer, setPhoneTimer] = useState({ minutes: 3, seconds: 0 });
-  const [phoneTimerActive, setPhoneTimerActive] = useState(false);
   
   // Password section visibility
   const [showPasswordSection, setShowPasswordSection] = useState(false);
@@ -51,85 +53,40 @@ export default function Signup() {
   // Password validation
   const [passwordValid, setPasswordValid] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(false);
-
-  // Formatters and validators
-  const formatTime = (time: number) => (time < 10 ? `0${time}` : `${time}`);
   
-  React.useEffect(() => {
+  // Timer hooks
+  const { 
+    timer: emailTimer,
+    timerActive: emailTimerActive,
+    timerExpired: emailTimerExpired,
+    startTimer: startEmailTimer,
+    setTimerExpired: setEmailTimerExpired,
+    formatTime
+  } = useTimer(3, 0);
+  
+  const { 
+    timer: phoneTimer,
+    timerActive: phoneTimerActive,
+    timerExpired: phoneTimerExpired,
+    startTimer: startPhoneTimer,
+    setTimerExpired: setPhoneTimerExpired
+  } = useTimer(3, 0);
+  
+  useEffect(() => {
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setEmailValid(emailRegex.test(email));
+    setEmailValid(validateEmail(email));
     
-    // Phone validation (simple validation, adjust as needed)
-    const phoneRegex = /^[0-9]{10,11}$/;
-    setPhoneValid(phoneRegex.test(phone));
+    // Phone validation
+    setPhoneValid(validatePhone(phone));
   }, [email, phone]);
 
   // Password validation effect
-  React.useEffect(() => {
-    // Password validation regex (at least 8 chars, uppercase, lowercase, number, special char)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    setPasswordValid(passwordRegex.test(password));
+  useEffect(() => {
+    setPasswordValid(validatePassword(password));
     
     // Check if passwords match
     setPasswordMatch(password === confirmPassword && password !== '');
   }, [password, confirmPassword]);
-  
-  // Email timer effect
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (emailTimerActive && (emailTimer.minutes > 0 || emailTimer.seconds > 0)) {
-      interval = setInterval(() => {
-        if (emailTimer.seconds === 0) {
-          if (emailTimer.minutes === 0) {
-            clearInterval(interval);
-            setEmailTimerActive(false);
-            setEmailTimerExpired(true);
-            return;
-          }
-          setEmailTimer({ minutes: emailTimer.minutes - 1, seconds: 59 });
-        } else {
-          setEmailTimer({ ...emailTimer, seconds: emailTimer.seconds - 1 });
-        }
-      }, 1000);
-    } else if (emailTimer.minutes === 0 && emailTimer.seconds === 0) {
-      setEmailTimerExpired(true);
-      setEmailTimerActive(false);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [emailTimer, emailTimerActive]);
-  
-  // Phone timer effect
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (phoneTimerActive && (phoneTimer.minutes > 0 || phoneTimer.seconds > 0)) {
-      interval = setInterval(() => {
-        if (phoneTimer.seconds === 0) {
-          if (phoneTimer.minutes === 0) {
-            clearInterval(interval);
-            setPhoneTimerActive(false);
-            setPhoneTimerExpired(true);
-            return;
-          }
-          setPhoneTimer({ minutes: phoneTimer.minutes - 1, seconds: 59 });
-        } else {
-          setPhoneTimer({ ...phoneTimer, seconds: phoneTimer.seconds - 1 });
-        }
-      }, 1000);
-    } else if (phoneTimer.minutes === 0 && phoneTimer.seconds === 0) {
-      setPhoneTimerExpired(true);
-      setPhoneTimerActive(false);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [phoneTimer, phoneTimerActive]);
   
   const handleGoBack = () => {
     navigate(-1);
@@ -148,38 +105,18 @@ export default function Signup() {
     
     setIsLoading(true);
     
-    try {
-      // Initiate sign up with temporary password to trigger verification process
-      // We'll complete the signup later when all verifications are done
-      const signUpResult = await signUp({
-        username: email,
-        password: "TemporaryPw1!", // Temporary password for initial signup
-        options: {
-          userAttributes: {
-            name,
-            email,
-          },
-          // Don't auto sign in after signup, we need to verify first
-          autoSignIn: false,
-        },
-      });
-      
-      console.log("Email verification initiated:", signUpResult);
-      
-      // If the sign up was successful, start the email verification timer
+    const result = await initiateEmailVerification(email, name);
+    
+    if (result.success) {
       setEmailVerificationSent(true);
-      setEmailTimerActive(true);
-      setEmailTimer({ minutes: 3, seconds: 0 });
-      setEmailTimerExpired(false);
+      startEmailTimer();
       
       toast({
         title: "인증 코드 발송",
         description: `${email}로 인증 코드가 발송되었습니다.`,
       });
-    } catch (error: any) {
-      console.error("Email verification error:", error);
-      
-      if (error.message === "User already exists") {
+    } else {
+      if (result.message === "User already exists") {
         toast({
           title: "가입 오류",
           description: "이미 가입된 이메일입니다. 로그인 해주세요.",
@@ -188,13 +125,13 @@ export default function Signup() {
       } else {
         toast({
           title: "이메일 인증 오류",
-          description: error.message || "이메일 인증 과정에서 문제가 발생했습니다.",
+          description: result.message || "이메일 인증 과정에서 문제가 발생했습니다.",
           variant: "destructive",
         });
       }
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
   };
   
   // Handle email verification code confirmation
@@ -210,42 +147,31 @@ export default function Signup() {
     
     setIsLoading(true);
     
-    try {
-      // Confirm the sign-up using the verification code
-      const confirmResult = await confirmSignUp({
-        username: email,
-        confirmationCode: emailVerificationCode,
+    const result = await verifyEmailCode(email, emailVerificationCode);
+    
+    if (result.success) {
+      setEmailVerificationComplete(true);
+      setShowPhoneVerification(true);
+      
+      toast({
+        title: "인증 완료",
+        description: "이메일 인증이 완료되었습니다.",
       });
-      
-      console.log("Email verification confirmed:", confirmResult);
-      
-      if (confirmResult.isSignUpComplete) {
-        setEmailVerificationComplete(true);
-        setEmailTimerActive(false);
-        setShowPhoneVerification(true);
-        
-        toast({
-          title: "인증 완료",
-          description: "이메일 인증이 완료되었습니다.",
-        });
-      }
-    } catch (error: any) {
-      console.error("Email verification code error:", error);
+    } else {
       toast({
         title: "인증 코드 오류",
-        description: error.message || "인증 코드 확인 중 문제가 발생했습니다.",
+        description: result.message || "인증 코드 확인 중 문제가 발생했습니다.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
   };
   
   // Handle resending email verification code
   const handleResendEmailVerification = () => {
     // Reset timer and resend verification
-    setEmailTimer({ minutes: 3, seconds: 0 });
-    setEmailTimerActive(true);
+    startEmailTimer();
     setEmailTimerExpired(false);
     handleSendEmailVerification();
   };
@@ -263,65 +189,26 @@ export default function Signup() {
     
     setIsLoading(true);
     
-    try {
-      // Update user attributes to add phone number
-      // Note: This is a simplified version. In a real implementation,
-      // you might need to handle the case where the user is already created differently
-      const formattedPhone = `+82${phone.startsWith('0') ? phone.substring(1) : phone}`;
-      
-      // For simplicity, we're doing another signUp with the phone attribute
-      // In a production app, you would use updateUserAttributes instead
-      const signUpResult = await signUp({
-        username: email,
-        password: "TemporaryPw1!", // Same temporary password
-        options: {
-          userAttributes: {
-            name,
-            email,
-            phone_number: formattedPhone,
-          },
-          autoSignIn: false,
-        },
-      });
-      
-      console.log("Phone verification initiated:", signUpResult);
-      
+    const result = await initiatePhoneVerification(email, name, phone);
+    
+    if (result.success) {
       // Start the phone verification timer
       setPhoneVerificationSent(true);
-      setPhoneTimerActive(true);
-      setPhoneTimer({ minutes: 3, seconds: 0 });
-      setPhoneTimerExpired(false);
+      startPhoneTimer();
       
       toast({
         title: "인증 코드 발송",
         description: `${phone}로 인증 코드가 발송되었습니다.`,
       });
-    } catch (error: any) {
-      console.error("Phone verification error:", error);
-      
-      // Handle the case where the user exists but needs verification
-      if (error.message === "User already exists") {
-        // This is expected since we already created the user in email verification
-        // Just start the timer for phone verification
-        setPhoneVerificationSent(true);
-        setPhoneTimerActive(true);
-        setPhoneTimer({ minutes: 3, seconds: 0 });
-        setPhoneTimerExpired(false);
-        
-        toast({
-          title: "인증 코드 발송",
-          description: `${phone}로 인증 코드가 발송되었습니다.`,
-        });
-      } else {
-        toast({
-          title: "전화번호 인증 오류",
-          description: error.message || "전화번호 인증 과정에서 문제가 발생했습니다.",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsLoading(false);
+    } else {
+      toast({
+        title: "전화번호 인증 오류",
+        description: result.message || "전화번호 인증 과정에서 문제가 발생했습니다.",
+        variant: "destructive",
+      });
     }
+    
+    setIsLoading(false);
   };
   
   // Handle phone verification code confirmation
@@ -337,42 +224,31 @@ export default function Signup() {
     
     setIsLoading(true);
     
-    try {
-      // Confirm the sign-up using the verification code
-      const confirmResult = await confirmSignUp({
-        username: email,
-        confirmationCode: phoneVerificationCode,
+    const result = await verifyPhoneCode(email, phoneVerificationCode);
+    
+    if (result.success) {
+      setPhoneVerificationComplete(true);
+      setShowPasswordSection(true);
+      
+      toast({
+        title: "인증 완료",
+        description: "전화번호 인증이 완료되었습니다.",
       });
-      
-      console.log("Phone verification confirmed:", confirmResult);
-      
-      if (confirmResult.isSignUpComplete) {
-        setPhoneVerificationComplete(true);
-        setPhoneTimerActive(false);
-        setShowPasswordSection(true);
-        
-        toast({
-          title: "인증 완료",
-          description: "전화번호 인증이 완료되었습니다.",
-        });
-      }
-    } catch (error: any) {
-      console.error("Phone verification code error:", error);
+    } else {
       toast({
         title: "인증 코드 오류",
-        description: error.message || "인증 코드 확인 중 문제가 발생했습니다.",
+        description: result.message || "인증 코드 확인 중 문제가 발생했습니다.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
   };
   
   // Handle resending phone verification code
   const handleResendPhoneVerification = () => {
     // Reset timer and resend verification
-    setPhoneTimer({ minutes: 3, seconds: 0 });
-    setPhoneTimerActive(true);
+    startPhoneTimer();
     setPhoneTimerExpired(false);
     handleSendPhoneVerification();
   };
@@ -488,9 +364,9 @@ export default function Signup() {
           timerExpired={emailTimerExpired}
           setTimerExpired={setEmailTimerExpired}
           timer={emailTimer}
-          setTimer={setEmailTimer}
+          setTimer={() => {}} // This prop is no longer needed
           timerActive={emailTimerActive}
-          setTimerActive={setEmailTimerActive}
+          setTimerActive={() => {}} // This prop is no longer needed
           isLoading={isLoading}
           formatTime={formatTime}
           handleSendVerification={handleSendEmailVerification}
