@@ -64,9 +64,9 @@ const BookmarkList: React.FC = () => {
                       {/* Show position as page for display purposes */}
                       페이지 {Math.floor(bookmark.position / 300) + 1}
                     </p>
-                    {/* If there's an excerpt field, display it, otherwise show a placeholder */}
+                    {/* Use optional chaining for excerpt to avoid type error */}
                     <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                      {bookmark.excerpt || "이 부분에 마음이 와닿아 북마크했습니다..."}
+                      {bookmark.excerpt ?? "이 부분에 마음이 와닿아 북마크했습니다..."}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">{bookmark.date}</p>
                   </div>
