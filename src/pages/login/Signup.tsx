@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -19,6 +18,10 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
+  
+  // Password states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Email verification states
   const [emailValid, setEmailValid] = useState(false);
@@ -45,6 +48,10 @@ export default function Signup() {
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
 
+  // Password validation
+  const [passwordValid, setPasswordValid] = useState(false);
+  const [passwordMatch, setPasswordMatch] = useState(false);
+
   // Formatters and validators
   const formatTime = (time: number) => (time < 10 ? `0${time}` : `${time}`);
   
@@ -57,6 +64,16 @@ export default function Signup() {
     const phoneRegex = /^[0-9]{10,11}$/;
     setPhoneValid(phoneRegex.test(phone));
   }, [email, phone]);
+
+  // Password validation effect
+  React.useEffect(() => {
+    // Password validation regex (at least 8 chars, uppercase, lowercase, number, special char)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    setPasswordValid(passwordRegex.test(password));
+    
+    // Check if passwords match
+    setPasswordMatch(password === confirmPassword && password !== '');
+  }, [password, confirmPassword]);
   
   // Email timer effect
   React.useEffect(() => {
@@ -389,7 +406,7 @@ export default function Signup() {
       return;
     }
     
-    if (password.length < 8) {
+    if (!passwordValid) {
       toast({
         title: "비밀번호 오류",
         description: "비밀번호는 최소 8자 이상이어야 합니다.",
@@ -398,7 +415,7 @@ export default function Signup() {
       return;
     }
     
-    if (password !== confirmPassword) {
+    if (!passwordMatch) {
       toast({
         title: "비밀번호 불일치",
         description: "비밀번호가 일치하지 않습니다.",
@@ -506,6 +523,12 @@ export default function Signup() {
             setPassword={setPassword}
             confirmPassword={confirmPassword}
             setConfirmPassword={setConfirmPassword}
+            passwordValid={passwordValid}
+            passwordMatch={passwordMatch}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            showConfirmPassword={showConfirmPassword}
+            setShowConfirmPassword={setShowConfirmPassword}
           />
         )}
         
