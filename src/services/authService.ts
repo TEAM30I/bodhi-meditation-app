@@ -8,6 +8,10 @@ export interface SignUpResult {
   isSignUpComplete?: boolean;
 }
 
+// Export these functions that were previously only declared internally
+export const signUp = amplifySignUp;
+export const confirmSignUp = amplifyConfirmSignUp;
+
 export async function initiateEmailVerification(
   email: string,
   name: string,

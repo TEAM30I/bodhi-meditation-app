@@ -2,26 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-// Fix: use validatePhone instead of validatePhoneNumber
 import { validateEmail, validatePassword, validatePhone } from '@/utils/validations';
-// Fix: import from auth service correctly
 import { initiateEmailVerification, verifyEmailCode, initiatePhoneVerification, verifyPhoneCode } from '@/services/authService';
+import { useAuth } from '@/context/AuthContext';
+
+// Import the correct components
+import SignupHeader from '@/components/login/SignupHeader';
+import AgreementSection from '@/components/login/AgreementSection';
+import EmailVerificationSection from '@/components/login/EmailVerificationSection';
+import PhoneVerificationSection from '@/components/login/PhoneVerificationSection';
+import PasswordSetupSection from '@/components/login/PasswordSetupSection';
+import NameInputSection from '@/components/login/NameInputSection';
+import SignupButton from '@/components/login/SignupButton';
 
 type SignupStage = 'agreement' | 'email' | 'phone' | 'password' | 'name';
-
-// Update SignupHeader props to match component requirements
-interface UpdatedSignupHeaderProps {
-  handleGoBack: () => void;
-}
-
-// Update AgreementSection props to match component requirements
-interface UpdatedAgreementSectionProps {
-  agreed: boolean;
-  setAgreed: (agreed: boolean) => void;
-}
 
 const Signup: React.FC = () => {
   const [stage, setStage] = useState<SignupStage>('agreement');
@@ -40,6 +35,7 @@ const Signup: React.FC = () => {
   const [passwordMatch, setPasswordMatch] = useState<boolean>(false);
   const [name, setName] = useState<string>('');
   const [nameValid, setNameValid] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
   const navigate = useNavigate();
 
@@ -48,7 +44,6 @@ const Signup: React.FC = () => {
   }, [email]);
 
   useEffect(() => {
-    // Fix: use validatePhone instead of validatePhoneNumber
     setPhoneValid(validatePhone(phoneNumber));
   }, [phoneNumber]);
 
@@ -60,6 +55,20 @@ const Signup: React.FC = () => {
   useEffect(() => {
     setNameValid(name.length >= 2);
   }, [name]);
+
+  const handleGoBack = () => {
+    if (stage === 'agreement') {
+      navigate('/login/auth');
+    } else if (stage === 'email') {
+      setStage('agreement');
+    } else if (stage === 'phone') {
+      setStage('email');
+    } else if (stage === 'password') {
+      setStage('phone');
+    } else if (stage === 'name') {
+      setStage('password');
+    }
+  };
 
   const handleNextStage = () => {
     switch (stage) {
@@ -121,9 +130,8 @@ const Signup: React.FC = () => {
   };
 
   const handleSignup = async () => {
+    setIsLoading(true);
     try {
-      // We're not calling the signUp function directly anymore
-      // Instead we'll use our own service functions
       const result = await initiateEmailVerification(email, name);
       if (result.success) {
         toast({
@@ -146,11 +154,12 @@ const Signup: React.FC = () => {
         title: "회원가입 중 오류가 발생했습니다",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleEmailVerification = async () => {
-    // Simulating email verification for now
+  const handleEmailVerification = () => {
     setEmailVerified(true);
     toast({
       title: "이메일 인증 완료",
@@ -158,8 +167,7 @@ const Signup: React.FC = () => {
     });
   };
 
-  const handlePhoneVerification = async () => {
-    // Simulating phone verification for now
+  const handlePhoneVerification = () => {
     setPhoneVerified(true);
     toast({
       title: "전화번호 인증 완료",
@@ -169,27 +177,14 @@ const Signup: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-white px-6 py-12">
-      <div className="flex items-center h-16">
-        <button onClick={() => navigate(-1)}>
-          <i className="mr-4">←</i> {/* Simple arrow as placeholder */}
-        </button>
-        <h1 className="text-2xl font-medium">회원가입</h1>
-      </div>
+      <SignupHeader handleGoBack={handleGoBack} />
 
       <div className="flex-1 mt-12">
         {stage === 'agreement' && (
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="agreement"
-              checked={requiredAgreed}
-              onChange={(e) => setRequiredAgreed(e.target.checked)}
-              className="mr-2 rounded"
-            />
-            <label htmlFor="agreement" className="text-gray-500 text-sm">
-              서비스 이용약관에 동의합니다.
-            </label>
-          </div>
+          <AgreementSection 
+            agreed={agreed} 
+            setAgreed={setAgreed}
+          />
         )}
 
         {stage === 'email' && (
@@ -315,11 +310,12 @@ const Signup: React.FC = () => {
           (stage === 'email' && (!emailValid || !emailVerified)) ||
           (stage === 'phone' && (!phoneValid || !phoneVerified)) ||
           (stage === 'password' && (!passwordValid || !passwordMatch)) ||
-          (stage === 'name' && !nameValid)
+          (stage === 'name' && !nameValid) ||
+          isLoading
         }
         className="w-full h-[60px] bg-[#DE7834] hover:bg-[#C26929] text-white rounded-[16px] text-[18px] font-semibold mt-6"
       >
-        {stage === 'name' ? '가입하기' : '다음'}
+        {isLoading ? '처리 중...' : stage === 'name' ? '가입하기' : '다음'}
       </Button>
     </div>
   );
