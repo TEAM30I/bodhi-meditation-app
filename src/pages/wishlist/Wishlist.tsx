@@ -72,7 +72,9 @@ export default function Wishlist(): JSX.Element {
         </TabsContent>
 
         <TabsContent value="templestay" className="mt-6">
-          {/* 템플 스테이 탭 콘텐츠 */}
+          <div className="flex items-center justify-center h-40">
+            <p className="text-gray-500">템플 스테이 찜한 내역이 없습니다.</p>
+          </div>
         </TabsContent>
       </Tabs>
 

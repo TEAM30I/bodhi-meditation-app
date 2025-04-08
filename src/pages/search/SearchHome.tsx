@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { regionSearchRankings } from "@/data/searchRankingRepository";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { allTemples, allTempleStays } from '@/data/dataRepository';
+import BottomNav from '@/components/BottomNav';
 
 export default function SearchHome() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export default function SearchHome() {
   };
 
   return (
-    <div className="bg-white flex flex-col items-center min-h-screen w-full">
+    <div className="bg-white flex flex-col items-center min-h-screen w-full pb-20">
       <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px]">
         {/* Header */}
         <div className="w-full h-[60px] flex items-center justify-center relative border-b border-gray-100">
@@ -132,6 +133,8 @@ export default function SearchHome() {
           <p>검색 가능한 템플스테이: {allTempleStays.length}개</p>
         </div>
       </div>
+      
+      <BottomNav />
     </div>
   );
 }

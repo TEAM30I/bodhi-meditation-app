@@ -11,14 +11,14 @@ import Notifications from "@/pages/Notifications";
 import NotFound from "@/pages/NotFound";
 
 // Scripture Pages
-import Scripture from "@/pages/scripture/Scripture";
-import ScriptureReading from "@/pages/scripture/ScriptureReading";
+import Scripture from "@/pages/scripture";
+import ScriptureReader from "@/pages/scripture/ScriptureReader";
 
 // Profile Pages
-import Profile from "@/pages/profile/Profile";
+import Profile from "@/pages/profile";
 
 // Wishlist Pages
-import Wishlist from "@/pages/wishlist/Wishlist";
+import Wishlist from "@/pages/wishlist";
 
 // Search Module
 import SearchHome from "@/pages/search/SearchHome";
@@ -31,7 +31,7 @@ import TempleDetail from "@/pages/search/temple/TempleDetail";
 // Temple Stay Module
 import FindTempleStay from "@/pages/search/temple-stay/FindTempleStay";
 import TempleStaySearchResults from "@/pages/search/temple-stay/SearchResults";
-import TempleStayDetail from "@/pages/search/temple-stay/TempleStayDetail";
+import TempleStayDetail from "@/pages/search/temple-stay/TempleDetail";
 
 // Login Module
 import Onboarding1 from "@/pages/login/Onboarding1";
@@ -52,7 +52,7 @@ function App() {
         
         {/* Scripture routes */}
         <Route path="/scripture" element={<Scripture />} />
-        <Route path="/scripture/:id" element={<ScriptureReading />} />
+        <Route path="/scripture/:id" element={<ScriptureReader />} />
         
         {/* Wishlist routes */}
         <Route path="/wishlist" element={<Wishlist />} />
@@ -79,21 +79,10 @@ function App() {
         
         {/* Legacy routes with redirects */}
         <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
-        
-        {/* Fix TypeScript error using string literal instead of path parameter function */}
-        <Route 
-          path="/temple/:id" 
-          element={<Navigate to="/search/temple/detail/:id" replace />} 
-        />
-        
+        <Route path="/temple/:id" element={<Navigate to="/search/temple/detail/:id" replace />} />
         <Route path="/find-temple" element={<Navigate to="/search/temple" />} />
         <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
-        
-        {/* Fix TypeScript error using string literal instead of path parameter function */}
-        <Route 
-          path="/temple-stay/:id" 
-          element={<Navigate to="/search/temple-stay/detail/:id" replace />} 
-        />
+        <Route path="/temple-stay/:id" element={<Navigate to="/search/temple-stay/detail/:id" replace />} />
 
         {/* Signup and Login */}
         <Route path="/login/onboarding1" element={<Onboarding1 />} />

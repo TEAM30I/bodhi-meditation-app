@@ -1,26 +1,28 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home, Search, Star } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { locations, templeStays, nearbyTempleStays } from '@/data/templeStayRepository';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Search, ArrowLeft, Home } from 'lucide-react';
+import { templeStays, nearbyTempleStays, locations } from '@/data/templeStayRepository';
 import BottomNav from '@/components/BottomNav';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
-  const [activeRegion, setActiveRegion] = useState<string>(
-    locations.find(location => location.active)?.name || "서울"
-  );
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
 
-  // Filter temple stays by active region
-  const filteredTempleStays = templeStays.filter(stay => 
-    stay.location.includes(activeRegion)
-  );
+  const handleLocationClick = (locationId: string) => {
+    if (selectedLocations.includes(locationId)) {
+      setSelectedLocations(selectedLocations.filter(id => id !== locationId));
+    } else {
+      setSelectedLocations([...selectedLocations, locationId]);
+    }
+  };
 
   const handleSearch = () => {
-    if (searchQuery.trim()) {
+    if (searchQuery.trim() !== '') {
       navigate(`/search/temple-stay/results?query=${searchQuery}`);
     }
   };
@@ -31,139 +33,118 @@ const FindTempleStay = () => {
     }
   };
 
-  const handleRegionChange = (regionName: string) => {
-    setActiveRegion(regionName);
+  const handleTempleStayClick = (templeStayId: string) => {
+    navigate(`/search/temple-stay/detail/${templeStayId}`);
   };
-
-  useEffect(() => {
-    // Scroll to top when page loads
-    window.scrollTo(0, 0);
-  }, []);
 
   return (
     <div className="bg-white min-h-screen pb-20">
-      <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px] mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <button 
-            onClick={() => navigate('/search')}
-            className="text-gray-800"
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b">
+        <button 
+          onClick={() => navigate('/search')}
+          className="text-gray-800"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="text-lg font-bold flex-1 text-center">템플스테이 찾기</h1>
+        <button 
+          onClick={() => navigate('/main')}
+          className="text-gray-800"
+        >
+          <Home className="w-5 h-5" />
+        </button>
+      </div>
+      
+      {/* Search Input */}
+      <div className="px-6 py-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Input 
+            className="pl-10 bg-gray-100 border-0 focus-visible:ring-1"
+            placeholder="템플스테이 이름, 지역명으로 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <Button 
+            className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-[#DE7834] h-8 text-white"
+            onClick={handleSearch}
           >
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-lg font-bold flex-1 text-center">템플스테이</h1>
-          <button 
-            onClick={() => navigate('/main')}
-            className="text-gray-800"
-          >
-            <Home size={20} />
-          </button>
-        </div>
-
-        {/* Search */}
-        <div className="px-6 py-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              className="pl-9 bg-gray-100 border-none focus-visible:ring-0"
-              placeholder="도시, 지역, 지하철역"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-          </div>
-        </div>
-
-        {/* Nearby Temple Stays Section */}
-        <div className="px-4 mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold">가까운 템플스테이</h2>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {nearbyTempleStays.map((stay) => (
-              <div 
-                key={stay.id} 
-                className="cursor-pointer" 
-                onClick={() => navigate(`/search/temple-stay/detail/${stay.id}`)}
-              >
-                <div className="w-full aspect-square bg-gray-200 rounded-md mb-2 overflow-hidden relative">
-                  <img 
-                    src={stay.imageUrl} 
-                    alt={stay.name} 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute bottom-1 left-1 bg-yellow-400 rounded-full px-2 py-0.5 flex items-center">
-                    <Star className="w-3 h-3 mr-0.5 text-black" />
-                    <span className="text-xs font-bold">{stay.rating}</span>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500">{stay.location} · {stay.distance}</p>
-                <h3 className="text-sm font-bold">{stay.name}</h3>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Popular Temple Stays Section */}
-        <div className="px-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold">많이 찾는 템플스테이</h2>
-            <button
-              className="text-xs text-gray-500 p-0 h-auto"
-              onClick={() => navigate('/search/temple-stay/results')}
-            >
-              더보기 &gt;
-            </button>
-          </div>
-
-          {/* Region Filter */}
-          <div className="flex flex-nowrap overflow-x-auto gap-2 mb-4 pb-2 scrollbar-hide">
-            {locations.map((location, index) => (
-              <Badge
-                key={index}
-                variant={activeRegion === location.name ? "default" : "outline"}
-                className={`whitespace-nowrap cursor-pointer ${
-                  activeRegion === location.name 
-                    ? "bg-bodhi-orange hover:bg-bodhi-orange" 
-                    : "text-gray-500"
-                }`}
-                onClick={() => handleRegionChange(location.name)}
-              >
-                {location.name}
-              </Badge>
-            ))}
-          </div>
-
-          {/* Temple Stay List */}
-          <div className="grid grid-cols-2 gap-4">
-            {filteredTempleStays.slice(0, 4).map((stay) => (
-              <div 
-                key={stay.id} 
-                className="cursor-pointer" 
-                onClick={() => navigate(`/search/temple-stay/detail/${stay.id}`)}
-              >
-                <div className="w-full aspect-square bg-gray-200 rounded-md mb-2 overflow-hidden relative">
-                  <img 
-                    src={stay.imageUrl} 
-                    alt={stay.name} 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute bottom-1 left-1 bg-yellow-400 rounded-full px-2 py-0.5 flex items-center">
-                    <Star className="w-3 h-3 mr-0.5 text-black" />
-                    <span className="text-xs font-bold">{stay.rating}</span>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500">{stay.location}</p>
-                <h3 className="text-sm font-bold">{stay.name}</h3>
-                <p className="text-sm font-bold">{stay.price.toLocaleString()}원</p>
-                <p className="text-xs text-gray-500">총 {stay.duration} (세금 포함)</p>
-              </div>
-            ))}
-          </div>
+            검색
+          </Button>
         </div>
       </div>
       
+      {/* Location Tags */}
+      <div className="px-6 mb-6 overflow-x-auto">
+        <div className="flex gap-2 flex-wrap">
+          {locations.map(location => (
+            <Badge
+              key={location.id}
+              variant={selectedLocations.includes(location.id) ? "default" : "outline"}
+              className={`rounded-full px-4 py-1 cursor-pointer mb-2 ${
+                selectedLocations.includes(location.id)
+                  ? 'bg-[#DE7834] hover:bg-[#DE7834] text-white border-[#DE7834]'
+                  : 'bg-white text-black border-gray-300 hover:bg-gray-100 hover:text-black'
+              }`}
+              onClick={() => handleLocationClick(location.id)}
+            >
+              {location.name}
+            </Badge>
+          ))}
+        </div>
+      </div>
+      
+      {/* Nearby Temple Stays */}
+      <div className="px-6 mb-8">
+        <h2 className="text-lg font-bold mb-4">가까운 템플스테이</h2>
+        <div className="grid grid-cols-2 gap-4">
+          {nearbyTempleStays.map(templeStay => (
+            <div 
+              key={templeStay.id} 
+              className="cursor-pointer"
+              onClick={() => handleTempleStayClick(templeStay.id)}
+            >
+              <div className="aspect-square rounded-lg overflow-hidden">
+                <img
+                  src={templeStay.imageUrl}
+                  alt={templeStay.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h3 className="font-medium text-sm mt-2">{templeStay.name}</h3>
+              <p className="text-xs text-gray-500">{templeStay.location}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Popular Temple Stays */}
+      <div className="px-6">
+        <h2 className="text-lg font-bold mb-4">인기 템플스테이</h2>
+        <div className="grid grid-cols-2 gap-4">
+          {templeStays.slice(0, 4).map(templeStay => (
+            <div 
+              key={templeStay.id} 
+              className="cursor-pointer"
+              onClick={() => handleTempleStayClick(templeStay.id)}
+            >
+              <div className="aspect-square rounded-lg overflow-hidden">
+                <img
+                  src={templeStay.imageUrl}
+                  alt={templeStay.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h3 className="font-medium text-sm mt-2">{templeStay.name}</h3>
+              <p className="text-xs text-gray-500">{templeStay.location}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Bottom Navigation */}
       <BottomNav />
     </div>
   );
