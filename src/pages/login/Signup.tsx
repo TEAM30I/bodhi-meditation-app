@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -132,7 +131,7 @@ export default function Signup() {
       });
       
       setTimeout(() => {
-        navigate('/login');
+        navigate('/login?email=' + emailVerification.value);
       }, 2000);
       
     } catch (error: any) {

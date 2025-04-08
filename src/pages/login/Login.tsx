@@ -54,7 +54,7 @@ const Login = () => {
       });
       
       setTimeout(() => {
-        window.location.replace('/main');
+        navigate('/main');
       }, 100);
     } catch (error) {
       console.log('로그인되지 않은 상태:', error);
@@ -92,7 +92,7 @@ const Login = () => {
             description: "이미 로그인되어 있습니다. 메인 페이지로 이동합니다.",
           });
           
-          window.location.replace('/main');
+          navigate('/main');
           setIsLoading(false);
           return;
         }
@@ -109,6 +109,8 @@ const Login = () => {
       console.log('로그인 결과:', { isSignedIn, nextStep });
 
       if (isSignedIn) {
+        await refreshUser();  // 사용자 정보 갱신
+
         toast({
           title: "로그인 성공",
           description: "환영합니다!",
@@ -122,22 +124,42 @@ const Login = () => {
         }
         
         console.log('메인 페이지로 이동 중...');
-        window.location.replace('/main');
+        navigate('/main');
+      } else if (nextStep && nextStep.signInStep === 'CONFIRM_SIGN_UP') {
+        console.log('사용자 확인 필요:', nextStep);
+        toast({
+          title: "이메일 인증 필요",
+          description: "이메일 인증을 완료하지 않았습니다. 회원가입 페이지로 이동합니다.",
+        });
+        navigate('/signup?email=' + email);
       } else {
         console.log('추가 인증 필요:', nextStep);
         toast({
           title: "추가 인증 필요",
-          description: `다음 단계: ${nextStep.signInStep}`,
+          description: `다음 단계가 필요합니다: ${nextStep?.signInStep || '알 수 없음'}`,
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('로그인 에러:', error);
-      toast({
-        title: "로그인 실패",
-        description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-        variant: "destructive",
-      });
+      
+      // 특정 에러 메시지에 맞는 안내문 표시
+      if (error.message?.includes('User is not confirmed')) {
+        toast({
+          title: "인증되지 않은 계정",
+          description: "이메일 인증을 완료하지 않았습니다. 회원가입 페이지로 이동합니다.",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          navigate('/signup?email=' + email);
+        }, 1500);
+      } else {
+        toast({
+          title: "로그인 실패",
+          description: error.message || "알 수 없는 오류가 발생했습니다.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }

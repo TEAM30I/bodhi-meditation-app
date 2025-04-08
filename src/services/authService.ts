@@ -34,6 +34,15 @@ export async function initiateEmailVerification(
     };
   } catch (error: any) {
     console.error("Email verification error:", error);
+    
+    // 이미 존재하는 사용자 에러 처리
+    if (error.message?.includes("already exists")) {
+      return {
+        success: false,
+        message: "이미 가입된 이메일입니다. 로그인을 시도해보세요."
+      };
+    }
+    
     return {
       success: false,
       message: error.message || "이메일 인증 과정에서 문제가 발생했습니다."
@@ -66,6 +75,7 @@ export async function verifyEmailCode(
   }
 }
 
+// 전화번호 인증 시작 (모의 구현)
 export async function initiatePhoneVerification(
   email: string,
   name: string,
@@ -74,12 +84,10 @@ export async function initiatePhoneVerification(
   try {
     const formattedPhone = formatPhoneNumber(phone);
     
-    // Instead of trying to create a new user, we'll update the existing user's phone number
-    // This would require a separate function in a real app, but for now we'll simulate success
+    // 실제로는 SMS 인증 API를 호출해야 하지만, 현재 모의 구현으로 처리
     console.log("Phone verification initiated for:", email, "with phone:", formattedPhone);
     
-    // In a real implementation, this would call an API to send SMS verification
-    // For now, we'll simulate a successful response
+    // 인증번호 발송 성공 응답 (모의 구현)
     return {
       success: true,
       message: "Phone verification code sent successfully",
@@ -93,17 +101,20 @@ export async function initiatePhoneVerification(
   }
 }
 
+// 전화번호 인증코드 확인 (모의 구현)
 export async function verifyPhoneCode(
   email: string,
   verificationCode: string
 ): Promise<SignUpResult> {
   try {
-    // In a real implementation, this would verify the SMS code
-    // For now, just accept code "123456" as valid for testing
-    const isValidCode = verificationCode === "123456";
+    // 테스트용 인증 코드: 123456 (또는 입력한 모든 6자리 코드 허용)
+    const isValidCode = verificationCode.length === 6;
     
     if (isValidCode) {
       console.log("Phone verification successful for:", email);
+      
+      // 여기서 실제로는 사용자 프로필에 전화번호를 업데이트하는 API를 호출해야 함
+      
       return {
         success: true,
         message: "Phone verification successful",
