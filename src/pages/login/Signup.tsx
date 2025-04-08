@@ -356,17 +356,11 @@ export default function Signup() {
           setEmail={setEmail}
           emailValid={emailValid}
           verificationSent={emailVerificationSent}
-          setVerificationSent={setEmailVerificationSent}
           verificationCode={emailVerificationCode}
           setVerificationCode={setEmailVerificationCode}
           verificationComplete={emailVerificationComplete}
-          setVerificationComplete={setEmailVerificationComplete}
           timerExpired={emailTimerExpired}
-          setTimerExpired={setEmailTimerExpired}
           timer={emailTimer}
-          setTimer={() => {}} // This prop is no longer needed
-          timerActive={emailTimerActive}
-          setTimerActive={() => {}} // This prop is no longer needed
           isLoading={isLoading}
           formatTime={formatTime}
           handleSendVerification={handleSendEmailVerification}
