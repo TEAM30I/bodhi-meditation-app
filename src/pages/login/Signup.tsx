@@ -1,12 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import SignupHeader from '@/components/login/SignupHeader';
 import NameInputSection from '@/components/login/NameInputSection';
 import EmailVerificationSection from '@/components/login/EmailVerificationSection';
 import PhoneVerificationSection from '@/components/login/PhoneVerificationSection';
 import PasswordSetupSection from '@/components/login/PasswordSetupSection';
+import AgreementSection from '@/components/login/AgreementSection';
+import SignupButton from '@/components/login/SignupButton';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 import { usePhoneVerification } from '@/hooks/usePhoneVerification';
 import { validatePassword } from '@/utils/validations';
@@ -144,15 +146,22 @@ export default function Signup() {
     }
   };
   
+  const isSignupButtonDisabled = 
+    emailVerification.isLoading || 
+    phoneVerification.isLoading || 
+    !name || 
+    !emailVerification.verificationComplete || 
+    !phoneVerification.verificationComplete || 
+    !password || 
+    password !== confirmPassword || 
+    !agreed;
+  
+  const isLoading = emailVerification.isLoading || phoneVerification.isLoading;
+  
   return (
     <div className="flex flex-col min-h-screen bg-[#181A20] text-white">
       {/* Header */}
-      <div className="flex items-center h-16 px-6">
-        <button onClick={handleGoBack}>
-          <ArrowLeft className="mr-4" />
-        </button>
-        <h1 className="text-2xl font-medium">회원가입</h1>
-      </div>
+      <SignupHeader handleGoBack={handleGoBack} />
       
       {/* Main content */}
       <div className="flex-1 px-6 py-8 space-y-6">
@@ -209,35 +218,13 @@ export default function Signup() {
           />
         )}
         
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="agreement"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mr-2 rounded"
-          />
-          <label htmlFor="agreement" className="text-[#9EA3BE] font-pretendard text-[14px] font-medium">
-            서비스 이용약관에 동의합니다.
-          </label>
-        </div>
+        <AgreementSection agreed={agreed} setAgreed={setAgreed} />
         
-        <Button
-          onClick={handleSignup}
-          disabled={
-            emailVerification.isLoading || 
-            phoneVerification.isLoading || 
-            !name || 
-            !emailVerification.verificationComplete || 
-            !phoneVerification.verificationComplete || 
-            !password || 
-            password !== confirmPassword || 
-            !agreed
-          }
-          className="w-full h-[60px] bg-[#DE7834] text-white rounded-[16px] text-[18px] font-semibold mt-6"
-        >
-          {emailVerification.isLoading || phoneVerification.isLoading ? '처리 중...' : '가입하기'}
-        </Button>
+        <SignupButton 
+          handleSignup={handleSignup}
+          isDisabled={isSignupButtonDisabled}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );
