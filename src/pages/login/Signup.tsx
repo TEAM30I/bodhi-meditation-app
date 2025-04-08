@@ -8,250 +8,58 @@ import NameInputSection from '@/components/login/NameInputSection';
 import EmailVerificationSection from '@/components/login/EmailVerificationSection';
 import PhoneVerificationSection from '@/components/login/PhoneVerificationSection';
 import PasswordSetupSection from '@/components/login/PasswordSetupSection';
-import { useTimer } from '@/hooks/useTimer';
-import { validateEmail, validatePhone, validatePassword } from '@/utils/validations';
-import { 
-  initiateEmailVerification, 
-  verifyEmailCode,
-  initiatePhoneVerification,
-  verifyPhoneCode
-} from '@/services/authService';
+import { useEmailVerification } from '@/hooks/useEmailVerification';
+import { usePhoneVerification } from '@/hooks/usePhoneVerification';
+import { validatePassword } from '@/utils/validations';
 
 export default function Signup() {
   const navigate = useNavigate();
+  
   // User input states
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreed, setAgreed] = useState(false);
   
   // Password states
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   
-  // Email verification states
-  const [emailValid, setEmailValid] = useState(false);
-  const [emailVerificationSent, setEmailVerificationSent] = useState(false);
-  const [emailVerificationCode, setEmailVerificationCode] = useState("");
-  const [emailVerificationComplete, setEmailVerificationComplete] = useState(false);
-  
-  // Phone verification states
-  const [phoneValid, setPhoneValid] = useState(false);
+  // Section visibility
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
-  const [phoneVerificationSent, setPhoneVerificationSent] = useState(false);
-  const [phoneVerificationCode, setPhoneVerificationCode] = useState("");
-  const [phoneVerificationComplete, setPhoneVerificationComplete] = useState(false);
-  
-  // Password section visibility
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   
-  // Loading state
-  const [isLoading, setIsLoading] = useState(false);
-
   // Password validation
   const [passwordValid, setPasswordValid] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(false);
   
-  // Timer hooks
-  const { 
-    timer: emailTimer,
-    timerActive: emailTimerActive,
-    timerExpired: emailTimerExpired,
-    startTimer: startEmailTimer,
-    setTimerExpired: setEmailTimerExpired,
-    formatTime
-  } = useTimer(3, 0);
-  
-  const { 
-    timer: phoneTimer,
-    timerActive: phoneTimerActive,
-    timerExpired: phoneTimerExpired,
-    startTimer: startPhoneTimer,
-    setTimerExpired: setPhoneTimerExpired
-  } = useTimer(3, 0);
-  
-  useEffect(() => {
-    // Email validation
-    setEmailValid(validateEmail(email));
-    
-    // Phone validation
-    setPhoneValid(validatePhone(phone));
-  }, [email, phone]);
+  // Custom hooks for verification
+  const emailVerification = useEmailVerification({ name });
+  const phoneVerification = usePhoneVerification({ name, email: emailVerification.value });
 
   // Password validation effect
   useEffect(() => {
     setPasswordValid(validatePassword(password));
-    
-    // Check if passwords match
     setPasswordMatch(password === confirmPassword && password !== '');
   }, [password, confirmPassword]);
   
   const handleGoBack = () => {
     navigate(-1);
   };
-  
-  // Handle email verification initiation
-  const handleSendEmailVerification = async () => {
-    if (!emailValid) {
-      toast({
-        title: "이메일 오류",
-        description: "올바른 이메일 형식을 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    const result = await initiateEmailVerification(email, name);
-    
-    if (result.success) {
-      setEmailVerificationSent(true);
-      startEmailTimer();
-      
-      toast({
-        title: "인증 코드 발송",
-        description: `${email}로 인증 코드가 발송되었습니다.`,
-      });
-    } else {
-      if (result.message === "User already exists") {
-        toast({
-          title: "가입 오류",
-          description: "이미 가입된 이메일입니다. 로그인 해주세요.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "이메일 인증 오류",
-          description: result.message || "이메일 인증 과정에서 문제가 발생했습니다.",
-          variant: "destructive",
-        });
-      }
-    }
-    
-    setIsLoading(false);
-  };
-  
-  // Handle email verification code confirmation
-  const handleVerifyEmailCode = async () => {
-    if (!emailVerificationCode || emailVerificationCode.length < 6) {
-      toast({
-        title: "인증 코드 오류",
-        description: "올바른 인증 코드를 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    const result = await verifyEmailCode(email, emailVerificationCode);
-    
-    if (result.success) {
-      setEmailVerificationComplete(true);
+
+  // When email verification is complete, show phone verification
+  useEffect(() => {
+    if (emailVerification.verificationComplete) {
       setShowPhoneVerification(true);
-      
-      toast({
-        title: "인증 완료",
-        description: "이메일 인증이 완료되었습니다.",
-      });
-    } else {
-      toast({
-        title: "인증 코드 오류",
-        description: result.message || "인증 코드 확인 중 문제가 발생했습니다.",
-        variant: "destructive",
-      });
     }
-    
-    setIsLoading(false);
-  };
-  
-  // Handle resending email verification code
-  const handleResendEmailVerification = () => {
-    // Reset timer and resend verification
-    startEmailTimer();
-    setEmailTimerExpired(false);
-    handleSendEmailVerification();
-  };
-  
-  // Handle phone verification initiation
-  const handleSendPhoneVerification = async () => {
-    if (!phoneValid) {
-      toast({
-        title: "전화번호 오류",
-        description: "올바른 전화번호 형식을 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    const result = await initiatePhoneVerification(email, name, phone);
-    
-    if (result.success) {
-      // Start the phone verification timer
-      setPhoneVerificationSent(true);
-      startPhoneTimer();
-      
-      toast({
-        title: "인증 코드 발송",
-        description: `${phone}로 인증 코드가 발송되었습니다.`,
-      });
-    } else {
-      toast({
-        title: "전화번호 인증 오류",
-        description: result.message || "전화번호 인증 과정에서 문제가 발생했습니다.",
-        variant: "destructive",
-      });
-    }
-    
-    setIsLoading(false);
-  };
-  
-  // Handle phone verification code confirmation
-  const handleVerifyPhoneCode = async () => {
-    if (!phoneVerificationCode || phoneVerificationCode.length < 6) {
-      toast({
-        title: "인증 코드 오류",
-        description: "올바른 인증 코드를 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    const result = await verifyPhoneCode(email, phoneVerificationCode);
-    
-    if (result.success) {
-      setPhoneVerificationComplete(true);
+  }, [emailVerification.verificationComplete]);
+
+  // When phone verification is complete, show password section
+  useEffect(() => {
+    if (phoneVerification.verificationComplete) {
       setShowPasswordSection(true);
-      
-      toast({
-        title: "인증 완료",
-        description: "전화번호 인증이 완료되었습니다.",
-      });
-    } else {
-      toast({
-        title: "인증 코드 오류",
-        description: result.message || "인증 코드 확인 중 문제가 발생했습니다.",
-        variant: "destructive",
-      });
     }
-    
-    setIsLoading(false);
-  };
-  
-  // Handle resending phone verification code
-  const handleResendPhoneVerification = () => {
-    // Reset timer and resend verification
-    startPhoneTimer();
-    setPhoneTimerExpired(false);
-    handleSendPhoneVerification();
-  };
+  }, [phoneVerification.verificationComplete]);
   
   // Complete signup with final password
   const handleSignup = async () => {
@@ -264,7 +72,7 @@ export default function Signup() {
       return;
     }
     
-    if (!emailVerificationComplete) {
+    if (!emailVerification.verificationComplete) {
       toast({
         title: "이메일 인증 필요",
         description: "이메일 인증을 완료해주세요.",
@@ -273,7 +81,7 @@ export default function Signup() {
       return;
     }
     
-    if (!phoneVerificationComplete) {
+    if (!phoneVerification.verificationComplete) {
       toast({
         title: "전화번호 인증 필요",
         description: "전화번호 인증을 완료해주세요.",
@@ -309,7 +117,8 @@ export default function Signup() {
       return;
     }
     
-    setIsLoading(true);
+    const isLoading = emailVerification.isLoading || phoneVerification.isLoading;
+    if (isLoading) return;
     
     try {
       // At this point the user is already created and verified
@@ -332,8 +141,6 @@ export default function Signup() {
         description: error.message || "회원가입 중 문제가 발생했습니다.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
   
@@ -352,38 +159,38 @@ export default function Signup() {
         <NameInputSection name={name} setName={setName} />
         
         <EmailVerificationSection 
-          email={email}
-          setEmail={setEmail}
-          emailValid={emailValid}
-          verificationSent={emailVerificationSent}
-          verificationCode={emailVerificationCode}
-          setVerificationCode={setEmailVerificationCode}
-          verificationComplete={emailVerificationComplete}
-          timerExpired={emailTimerExpired}
-          timer={emailTimer}
-          isLoading={isLoading}
-          formatTime={formatTime}
-          handleSendVerification={handleSendEmailVerification}
-          handleVerifyCode={handleVerifyEmailCode}
-          handleResendVerification={handleResendEmailVerification}
+          email={emailVerification.value}
+          setEmail={emailVerification.setValue}
+          emailValid={emailVerification.isValid}
+          verificationSent={emailVerification.verificationSent}
+          verificationCode={emailVerification.verificationCode}
+          setVerificationCode={emailVerification.setVerificationCode}
+          verificationComplete={emailVerification.verificationComplete}
+          timerExpired={emailVerification.timerExpired}
+          timer={emailVerification.timer}
+          isLoading={emailVerification.isLoading}
+          formatTime={emailVerification.formatTime}
+          handleSendVerification={emailVerification.handleSendVerification}
+          handleVerifyCode={emailVerification.handleVerifyCode}
+          handleResendVerification={emailVerification.handleResendVerification}
         />
         
         {showPhoneVerification && (
           <PhoneVerificationSection 
-            phoneNumber={phone}
-            setPhoneNumber={setPhone}
-            phoneValid={phoneValid}
-            phoneVerificationSent={phoneVerificationSent}
-            phoneVerificationComplete={phoneVerificationComplete}
-            phoneVerificationCode={phoneVerificationCode}
-            setPhoneVerificationCode={setPhoneVerificationCode}
-            phoneTimer={phoneTimer}
-            phoneTimerExpired={phoneTimerExpired}
-            isLoading={isLoading}
-            formatTime={formatTime}
-            handleSendPhoneVerification={handleSendPhoneVerification}
-            handleVerifyPhoneCode={handleVerifyPhoneCode}
-            handleResendPhoneVerification={handleResendPhoneVerification}
+            phoneNumber={phoneVerification.value}
+            setPhoneNumber={phoneVerification.setValue}
+            phoneValid={phoneVerification.isValid}
+            phoneVerificationSent={phoneVerification.verificationSent}
+            phoneVerificationComplete={phoneVerification.verificationComplete}
+            phoneVerificationCode={phoneVerification.verificationCode}
+            setPhoneVerificationCode={phoneVerification.setVerificationCode}
+            phoneTimer={phoneVerification.timer}
+            phoneTimerExpired={phoneVerification.timerExpired}
+            isLoading={phoneVerification.isLoading}
+            formatTime={phoneVerification.formatTime}
+            handleSendPhoneVerification={phoneVerification.handleSendVerification}
+            handleVerifyPhoneCode={phoneVerification.handleVerifyCode}
+            handleResendPhoneVerification={phoneVerification.handleResendVerification}
           />
         )}
         
@@ -417,11 +224,19 @@ export default function Signup() {
         
         <Button
           onClick={handleSignup}
-          disabled={isLoading || !name || !emailVerificationComplete || !phoneVerificationComplete || 
-                   !password || password !== confirmPassword || !agreed}
+          disabled={
+            emailVerification.isLoading || 
+            phoneVerification.isLoading || 
+            !name || 
+            !emailVerification.verificationComplete || 
+            !phoneVerification.verificationComplete || 
+            !password || 
+            password !== confirmPassword || 
+            !agreed
+          }
           className="w-full h-[60px] bg-[#DE7834] text-white rounded-[16px] text-[18px] font-semibold mt-6"
         >
-          {isLoading ? '처리 중...' : '가입하기'}
+          {emailVerification.isLoading || phoneVerification.isLoading ? '처리 중...' : '가입하기'}
         </Button>
       </div>
     </div>
