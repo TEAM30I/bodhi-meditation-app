@@ -51,7 +51,7 @@ export function useVerification({
   };
 
   // Send verification
-  const handleSendVerification = async (...args: any[]) => {
+  const handleSendVerification = async () => {
     if (!isValid) {
       toast({
         title: "입력 오류",
@@ -64,7 +64,7 @@ export function useVerification({
     setIsLoading(true);
 
     try {
-      const result = await sendVerificationFn(value, ...args);
+      const result = await sendVerificationFn(value);
 
       if (result.success) {
         setVerificationSent(true);
@@ -94,7 +94,7 @@ export function useVerification({
   };
 
   // Verify code
-  const handleVerifyCode = async () => {
+  const handleVerifyCode = async (): Promise<void> => {
     if (!verificationCode || verificationCode.length < 6) {
       toast({
         title: "인증 코드 오류",
@@ -116,15 +116,12 @@ export function useVerification({
           title: "인증 완료",
           description: "인증이 완료되었습니다.",
         });
-        
-        return true;
       } else {
         toast({
           title: "인증 코드 오류",
           description: result.message || "인증 코드 확인 중 문제가 발생했습니다.",
           variant: "destructive",
         });
-        return false;
       }
     } catch (error: any) {
       console.error("Code verification error:", error);
@@ -133,7 +130,6 @@ export function useVerification({
         description: error.message || "인증 코드 확인 중 문제가 발생했습니다.",
         variant: "destructive",
       });
-      return false;
     } finally {
       setIsLoading(false);
     }

@@ -16,8 +16,8 @@ interface PhoneVerificationSectionProps {
   phoneTimerExpired: boolean;
   isLoading: boolean;
   formatTime: (time: number) => string;
-  handleSendPhoneVerification: () => void;
-  handleVerifyPhoneCode: () => void;
+  handleSendPhoneVerification: () => Promise<void>;
+  handleVerifyPhoneCode: () => Promise<void>;
   handleResendPhoneVerification: () => void;
 }
 
