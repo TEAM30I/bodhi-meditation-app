@@ -7,12 +7,15 @@ export {
   readingSchedule,
   bookmarks,
   scriptures,
-  calendarData
+  calendarData,
+  scriptureColorSchemes,
+  readingHistory
 } from '../../../public/data/scriptureData/scriptureRepository';
 
 // Use "export type" for type declarations to fix TS1205 errors
 export type { 
   Scripture,
   Bookmark,
-  ReadingProgress
+  ReadingProgress,
+  ScriptureColorScheme
 } from '../../../public/data/scriptureData/scriptureRepository';

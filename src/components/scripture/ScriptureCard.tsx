@@ -1,45 +1,74 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import { Scripture } from '@/data/scriptureData';
 
 interface ScriptureCardProps {
   scripture: Scripture;
-  color: string;
-  textColor: string;
+  schedule?: {
+    title: string;
+    chapter: string;
+    progress: number;
+  };
 }
 
-// Add these properties to the Scripture interface
-interface EnhancedScripture extends Scripture {
-  hasStarted?: boolean;
-  lastReadPosition?: number;
-}
-
-const ScriptureCard: React.FC<ScriptureCardProps> = ({ scripture, color, textColor }) => {
+const ScriptureCard: React.FC<ScriptureCardProps> = ({ scripture, schedule }) => {
   const navigate = useNavigate();
-  
-  // Cast to enhanced type with optional properties
-  const enhancedScripture = scripture as EnhancedScripture;
+  const progress = schedule?.progress || scripture.progress || 0;
+  const colorScheme = scripture.colorScheme || {
+    bg: "bg-gray-500",
+    text: "text-white",
+    progressBg: "#CCCCCC"
+  };
   
   return (
     <div 
-      className="flex items-center mb-4 cursor-pointer"
+      className="w-full bg-white rounded-[20px] p-5 shadow-sm cursor-pointer"
       onClick={() => navigate(`/scripture/${scripture.id}`)}
     >
-      <div className={`${color} w-16 h-10 rounded-md flex items-center justify-center ${textColor}`}>
-        <span className="text-xs font-bold">{scripture.categories[0]}</span>
+      <div className="flex flex-col gap-3">
+        <div className={`inline-flex px-4 py-2 ${colorScheme.bg} rounded-[12px] w-fit`}>
+          <span className={`text-xs font-medium ${colorScheme.text} tracking-[-0.3px]`}>
+            {scripture.categories[0]}
+          </span>
+        </div>
+        
+        {progress > 0 && (
+          <div className="w-full h-1 bg-[#EEEEEE] rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${progress}%`,
+                backgroundColor: colorScheme.progressBg
+              }}
+            />
+          </div>
+        )}
+        
+        <div className="flex flex-col gap-[6px]">
+          <h3 className="text-base font-semibold text-[#111] tracking-[-0.4px]">
+            {schedule?.title || scripture.title}
+          </h3>
+          {schedule?.chapter && (
+            <p className="text-[#767676] text-base font-medium tracking-[-0.4px]">
+              {schedule.chapter}
+            </p>
+          )}
+          {progress > 0 && (
+            <p className="text-xs text-gray-500 text-right">
+              {progress.toFixed(1)}%
+            </p>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-[2px] justify-end">
+          <span className="text-xs text-[#767676] font-medium tracking-[-0.3px]">
+            {progress > 0 ? "이어보기" : "시작하기"}
+          </span>
+          <ChevronRight className="w-3 h-3 stroke-[#767676]" />
+        </div>
       </div>
-      <div className="ml-4 flex-1">
-        <h3 className="text-sm font-bold text-gray-800">{scripture.title}</h3>
-        <p className="text-xs text-gray-500">
-          {enhancedScripture.hasStarted ? 
-            `이어읽기 (${Math.round((enhancedScripture.lastReadPosition || 0) / scripture.content.length * 100)}% 완료)` 
-            : "시작하기"}
-        </p>
-      </div>
-      <button className="text-gray-500 text-sm">
-        {enhancedScripture.hasStarted ? "이어읽기" : "시작하기"} &gt;
-      </button>
     </div>
   );
 };

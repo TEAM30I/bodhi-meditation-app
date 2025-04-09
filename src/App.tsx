@@ -6,7 +6,6 @@ import { Toaster } from "@/components/ui/toaster";
 import Index from "@/pages/Index";
 import Main from "@/pages/Main";
 import Fortune from "@/pages/Fortune";
-import Nearby from "@/pages/Nearby";
 import Notifications from "@/pages/Notifications";
 import NotFound from "@/pages/NotFound";
 
@@ -42,6 +41,10 @@ import Login from "@/pages/login/Login";
 import FindAccount from "@/pages/login/FindAccount";
 import ResetPassword from "@/pages/login/ResetPassword";
 
+// Scripture Subpages
+import ScriptureCalendarPage from "@/pages/scripture/ScriptureCalendarPage";
+import ScriptureBookmarkPage from "@/pages/scripture/ScriptureBookmarkPage";
+
 function App() {
   return (
     <BrowserRouter>
@@ -53,6 +56,8 @@ function App() {
         {/* Scripture routes */}
         <Route path="/scripture" element={<Scripture />} />
         <Route path="/scripture/:id" element={<ScriptureReader />} />
+        <Route path="/scripture/calendar" element={<ScriptureCalendarPage />} />
+        <Route path="/scripture/bookmarks" element={<ScriptureBookmarkPage />} />
         
         {/* Wishlist routes */}
         <Route path="/wishlist" element={<Wishlist />} />
@@ -61,7 +66,6 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         
         <Route path="/fortune" element={<Fortune />} />
-        <Route path="/nearby" element={<Nearby />} />
         <Route path="/notifications" element={<Notifications />} />
         
         {/* Search Module Routes */}
