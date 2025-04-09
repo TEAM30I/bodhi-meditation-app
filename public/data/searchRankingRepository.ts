@@ -3,7 +3,7 @@ export interface SearchRanking {
   id: number;
   name: string;
   query: string;
-  keyword?: string;  // Add this for backward compatibility
+  keyword: string;  // Ensure this property exists
 }
 
 export const regionSearchRankings: SearchRanking[] = [

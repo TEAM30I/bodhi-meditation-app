@@ -61,7 +61,7 @@ const ScriptureReader = () => {
   const currentChapter = scripture.chapters[currentChapterIndex];
   const content = currentChapter ? (activeTab === 'original' ? currentChapter.original : currentChapter.explanation) : '';
   
-  // Simulate page content (in a real app, this would be properly paginated)
+  // Simulate page content
   const pageContent = content.split('\n');
   
   const handleBackClick = () => {
@@ -72,17 +72,15 @@ const ScriptureReader = () => {
     if (currentPageIndex > 0) {
       setCurrentPageIndex(currentPageIndex - 1);
     } else if (currentChapterIndex > 0) {
-      // Move to the last page of the previous chapter
       setCurrentChapterIndex(currentChapterIndex - 1);
-      setCurrentPageIndex(4); // Assume 5 pages per chapter for this example
+      setCurrentPageIndex(4); // Assume 5 pages per chapter
     }
   };
 
   const handleNextPage = () => {
-    if (currentPageIndex < 4) { // Assume 5 pages per chapter for this example
+    if (currentPageIndex < 4) { // Assume 5 pages per chapter
       setCurrentPageIndex(currentPageIndex + 1);
     } else if (currentChapterIndex < scripture.chapters.length - 1) {
-      // Move to the first page of the next chapter
       setCurrentChapterIndex(currentChapterIndex + 1);
       setCurrentPageIndex(0);
     }
@@ -104,12 +102,12 @@ const ScriptureReader = () => {
 
   return (
     <div 
-      className={`min-h-screen ${darkMode ? 'bg-[#111]' : 'bg-white'}`}
+      className={`min-h-screen ${darkMode ? 'bg-[#1E1E1E]' : 'bg-white'}`}
       onClick={toggleControls}
     >
       {/* Header - Only show when controls are visible */}
       {showControls && (
-        <div className={`fixed top-0 left-0 right-0 z-10 w-full h-[56px] flex items-center px-5 ${darkMode ? 'bg-[#111] border-gray-800' : 'bg-white border-b border-[#E5E5EC]'}`}>
+        <div className={`fixed top-0 left-0 right-0 z-10 w-full h-[56px] flex items-center px-5 ${darkMode ? 'bg-[#1E1E1E] border-gray-800' : 'bg-white border-b border-gray-200'}`}>
           <button onClick={handleBackClick} className="mr-2">
             <ArrowLeft size={22} className={darkMode ? 'text-white' : 'text-black'} />
           </button>
@@ -118,6 +116,7 @@ const ScriptureReader = () => {
             <h1 className={`text-base font-medium ${darkMode ? 'text-white' : 'text-black'}`}>
               {scripture.title}
             </h1>
+            <ChevronLeft size={16} className={`ml-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
           </div>
           
           <div className="flex items-center gap-4">
@@ -136,12 +135,12 @@ const ScriptureReader = () => {
       
       {/* Tab switcher - Only show when controls are visible */}
       {showControls && (
-        <div className={`fixed top-[56px] left-0 right-0 z-10 w-full flex ${darkMode ? 'bg-[#111]' : 'bg-white'}`}>
+        <div className={`fixed top-[56px] left-0 right-0 z-10 w-full flex ${darkMode ? 'bg-[#1E1E1E]' : 'bg-white'}`}>
           <button
             className={`flex-1 py-3 text-center ${
               activeTab === 'original' 
-                ? darkMode ? 'bg-[#333] text-white' : 'bg-[#111] text-white' 
-                : darkMode ? 'bg-[#111] text-gray-400' : 'bg-white text-gray-500'
+                ? darkMode ? 'text-white border-b-2 border-[#DE7834]' : 'text-black border-b-2 border-[#DE7834]' 
+                : darkMode ? 'text-gray-400' : 'text-gray-500'
             }`}
             onClick={(e) => {
               e.stopPropagation();
@@ -153,8 +152,8 @@ const ScriptureReader = () => {
           <button
             className={`flex-1 py-3 text-center ${
               activeTab === 'explanation' 
-                ? darkMode ? 'bg-[#333] text-white' : 'bg-[#111] text-white' 
-                : darkMode ? 'bg-[#111] text-gray-400' : 'bg-white text-gray-500'
+                ? darkMode ? 'text-white border-b-2 border-[#DE7834]' : 'text-black border-b-2 border-[#DE7834]' 
+                : darkMode ? 'text-gray-400' : 'text-gray-500'
             }`}
             onClick={(e) => {
               e.stopPropagation();
@@ -169,7 +168,7 @@ const ScriptureReader = () => {
       {/* Content with proper padding for fixed headers/footers */}
       <div 
         ref={contentRef}
-        className={`${darkMode ? 'bg-[#111] text-white' : 'bg-white text-black'} pt-[120px] pb-[100px] px-5`}
+        className={`${darkMode ? 'bg-[#1E1E1E] text-white' : 'bg-white text-black'} pt-[120px] pb-[100px] px-5`}
         style={{ 
           fontSize: `${fontSize}px`,
           lineHeight: lineHeight
@@ -196,7 +195,7 @@ const ScriptureReader = () => {
       {/* Page navigation buttons - Only show when controls are visible */}
       {showControls && (
         <div className="fixed bottom-20 left-0 right-0 flex justify-between items-center px-5">
-          <Button 
+          <button 
             onClick={(e) => {
               e.stopPropagation();
               handlePrevPage();
@@ -207,9 +206,9 @@ const ScriptureReader = () => {
             disabled={currentChapterIndex === 0 && currentPageIndex === 0}
           >
             <ChevronLeft size={24} />
-          </Button>
+          </button>
           
-          <Button 
+          <button 
             onClick={(e) => {
               e.stopPropagation();
               handleNextPage();
@@ -220,7 +219,7 @@ const ScriptureReader = () => {
             disabled={currentChapterIndex === scripture.chapters.length - 1 && currentPageIndex === 4}
           >
             <ChevronRight size={24} />
-          </Button>
+          </button>
         </div>
       )}
       
@@ -290,13 +289,13 @@ const ScriptureReader = () => {
                     onChange={() => setDarkMode(!darkMode)} 
                     className="sr-only peer"
                   />
-                  <div className={`w-11 h-6 rounded-full peer ${darkMode ? 'bg-orange-600' : 'bg-gray-200'} peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}></div>
+                  <div className={`w-11 h-6 rounded-full peer ${darkMode ? 'bg-[#DE7834]' : 'bg-gray-200'} peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}></div>
                 </label>
               </div>
               
               <Button
                 className={`w-full py-3 rounded-lg ${
-                  darkMode ? 'bg-orange-600 text-white' : 'bg-orange-500 text-white'
+                  darkMode ? 'bg-[#DE7834] text-white' : 'bg-[#DE7834] text-white'
                 } font-medium`}
                 onClick={() => setShowSettings(false)}
               >

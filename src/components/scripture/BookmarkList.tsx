@@ -2,9 +2,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookmarks, scriptures } from '@/data/scriptureData';
+import { ChevronRight } from 'lucide-react';
 
 const BookmarkList: React.FC = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = React.useState('diamond-sutra');
+  
+  const tabs = [
+    { id: 'diamond-sutra', label: '반야심경' },
+    { id: 'heart-sutra', label: '법화경' },
+    { id: 'lotus-sutra', label: '금강경' },
+    { id: 'all', label: '법화경' },
+    { id: 'recent', label: '반야심경' },
+  ];
   
   if (bookmarks.length === 0) {
     return (
@@ -17,39 +27,51 @@ const BookmarkList: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-medium mb-4">북마크</h2>
-      
-      {bookmarks.map((bookmark) => {
-        const scripture = Object.values(scriptures).find(s => s.id === bookmark.scriptureId);
-        if (!scripture) return null;
-        
-        const chapter = scripture.chapters.find(ch => ch.id === bookmark.chapterId);
-        
-        return (
-          <div 
-            key={bookmark.id}
-            className="bg-white rounded-xl p-4 shadow-sm"
-            onClick={() => navigate(`/scripture/${bookmark.scriptureId}`)}
+      {/* Tab navigation */}
+      <div className="flex overflow-x-auto pb-2 border-b whitespace-nowrap">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`px-3 py-2 text-sm font-medium ${activeTab === tab.id ? 'text-[#DE7834] border-b-2 border-[#DE7834]' : 'text-gray-500'}`}
+            onClick={() => setActiveTab(tab.id)}
           >
-            <div className={`inline-flex px-3 py-1 ${scripture.colorScheme.bg} rounded-full mb-2`}>
-              <span className={`text-xs font-medium ${scripture.colorScheme.text}`}>
-                {chapter?.title || scripture.title}
-              </span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      
+      {/* Bookmarks */}
+      <div className="space-y-3">
+        {bookmarks.filter(b => activeTab === 'all' || b.scriptureId === activeTab).map((bookmark) => {
+          const scripture = Object.values(scriptures).find(s => s.id === bookmark.scriptureId);
+          if (!scripture) return null;
+          
+          const chapter = scripture.chapters.find(ch => ch.id === bookmark.chapterId);
+          
+          return (
+            <div 
+              key={bookmark.id}
+              className="bg-white rounded-xl p-4 flex items-center"
+              onClick={() => navigate(`/scripture/${bookmark.scriptureId}`)}
+            >
+              <div className="flex-1">
+                <div className={`inline-flex px-3 py-1 ${scripture.colorScheme?.bg || 'bg-[#DE7834]'} rounded-full mb-2`}>
+                  <span className={`text-xs font-medium ${scripture.colorScheme?.text || 'text-white'}`}>
+                    {scripture.title}
+                  </span>
+                </div>
+                
+                <h3 className="font-medium text-sm mb-1">{bookmark.title}</h3>
+                <p className="text-xs text-gray-500">
+                  {bookmark.date} 저장됨
+                </p>
+              </div>
+              
+              <ChevronRight className="text-gray-400" size={20} />
             </div>
-            
-            <h3 className="font-medium mb-1">{bookmark.title}</h3>
-            <p className="text-xs text-gray-500 mb-2">
-              {bookmark.date} 저장됨
-            </p>
-            
-            {bookmark.note && (
-              <p className="text-sm text-gray-700 border-t border-gray-100 pt-2 mt-2">
-                {bookmark.note}
-              </p>
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };
