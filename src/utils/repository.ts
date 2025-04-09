@@ -4,15 +4,6 @@ import { lazy } from 'react';
 
 // Repository exports with consistent static imports
 export { 
-  imageRepository,
-  getProfileImage, 
-  getScriptureImage, 
-  getTempleImage, 
-  getBackgroundImage, 
-  getIconImage 
-} from '/public/data/image/imageRepository';
-
-export { 
   regionSearchRankings, 
   templeStaySearchRankings 
 } from '/public/data/searchRankingRepository';

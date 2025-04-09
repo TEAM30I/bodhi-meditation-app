@@ -18,11 +18,9 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
       onClick={onClick}
     >
       <div className="relative">
-        <img 
-          src={typedTempleStay.imageUrl} 
-          alt={typedTempleStay.templeName} 
-          className="w-full h-40 object-cover" 
-        />
+        <div className="w-full h-40 bg-gray-300 flex items-center justify-center">
+          <p className="text-gray-600">{typedTempleStay.templeName}</p>
+        </div>
         {typedTempleStay.likeCount && (
           <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
             <Heart className="w-3 h-3 mr-1 fill-white text-white" />

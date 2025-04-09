@@ -7,7 +7,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/context/AuthContext';
 import { typedData } from '@/utils/typeUtils';
 import { 
-  imageRepository, 
   getTempleList, 
   getTempleStayList, 
   readingSchedule, 
@@ -47,7 +46,6 @@ const Main = () => {
 
   const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
   const typedScriptures = typedData<typeof scriptures>(scriptures);
-  const typedImageRepository = typedData<typeof imageRepository>(imageRepository);
 
   return (
     <div className="w-full min-h-screen bg-[#F8F8F8] font-['Pretendard']">
@@ -93,11 +91,9 @@ const Main = () => {
             className="w-full h-36 bg-gray-200 rounded-lg mb-1 overflow-hidden cursor-pointer"
             onClick={() => navigate('/nearby')}
           >
-            <img 
-              src={typedImageRepository.templeBanner.default} 
-              alt="사찰 지도" 
-              className="w-full h-full object-cover"
-            />
+            <div className="w-full h-full flex items-center justify-center bg-[#DE7834] text-white">
+              <p className="text-lg font-semibold">사찰 지도</p>
+            </div>
           </div>
         </div>
 
@@ -117,11 +113,9 @@ const Main = () => {
                 className="min-w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer"
                 onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
               >
-                <img 
-                  src={temple.imageUrl} 
-                  alt={temple.name} 
-                  className="w-full h-full object-cover"
-                />
+                <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-600">
+                  <p className="text-xs">{temple.name}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -143,11 +137,9 @@ const Main = () => {
                 className="min-w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer"
                 onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
               >
-                <img 
-                  src={templeStay.imageUrl} 
-                  alt={templeStay.templeName} 
-                  className="w-full h-full object-cover"
-                />
+                <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-600">
+                  <p className="text-xs">{templeStay.templeName}</p>
+                </div>
               </div>
             ))}
           </div>

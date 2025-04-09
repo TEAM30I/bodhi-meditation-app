@@ -18,12 +18,8 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
       onClick={onClick}
     >
       <div className="flex">
-        <div className="relative w-24 h-24">
-          <img 
-            src={typedTemple.imageUrl} 
-            alt={typedTemple.name} 
-            className="w-full h-full object-cover" 
-          />
+        <div className="relative w-24 h-24 bg-gray-300 flex items-center justify-center">
+          <p className="text-xs text-gray-600">{typedTemple.name}</p>
           {typedTemple.likeCount && (
             <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
               <Heart className="w-3 h-3 mr-1 fill-white text-white" />
