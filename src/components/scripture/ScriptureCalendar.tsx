@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { ChevronRight } from 'lucide-react';
-import { calendarData } from '@/data/scriptureData';
+import { calendarData } from '/public/data/scriptureData/scriptureRepository';
 
 interface ScriptureProgressPreviewProps {
   recentDates?: {

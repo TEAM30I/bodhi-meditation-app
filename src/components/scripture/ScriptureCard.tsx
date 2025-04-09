@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import { ScriptureColorScheme } from '@/data/scriptureData';
+import { ScriptureColorScheme } from '/public/data/scriptureData/scriptureRepository';
 
 interface ScriptureCardProps {
   scripture: {

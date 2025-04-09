@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { bookmarks, scriptures as scriptureDB } from '@/data/scriptureData/scriptureRepository';
+import { bookmarks, scriptures } from '/public/data/scriptureData/scriptureRepository';
 
 const ScriptureBookmarkPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +10,7 @@ const ScriptureBookmarkPage: React.FC = () => {
   // Get unique scripture IDs from bookmarks
   const scriptureIds = [...new Set(bookmarks.map(bookmark => bookmark.scriptureId))];
   const scriptureOptions = scriptureIds.map(id => {
-    const scripture = Object.values(scriptureDB).find(s => s.id === id);
+    const scripture = Object.values(scriptures).find(s => s.id === id);
     return {
       id,
       title: scripture?.title || '',
@@ -59,7 +58,7 @@ const ScriptureBookmarkPage: React.FC = () => {
           {filteredBookmarks.length > 0 ? (
             <div className="space-y-3">
               {filteredBookmarks.map((bookmark) => {
-                const scripture = Object.values(scriptureDB).find(s => s.id === bookmark.scriptureId);
+                const scripture = Object.values(scriptures).find(s => s.id === bookmark.scriptureId);
                 const colorScheme = scripture?.colorScheme || {
                   bg: "bg-gray-800",
                   text: "text-white"

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bookmarks, scriptures } from '@/data/scriptureData';
+import { bookmarks, scriptures } from '/public/data/scriptureData/scriptureRepository';
 import { ChevronRight } from 'lucide-react';
 
 const BookmarkList: React.FC = () => {

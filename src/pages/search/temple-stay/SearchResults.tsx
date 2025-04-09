@@ -4,7 +4,7 @@ import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleStayItem from '@/components/search/TempleStayItem';
-import { searchTempleStays, TempleStay } from '@/data/templeStayData/templeStayRepository';
+import { searchTempleStays, TempleStay } from '/public/data/templeStayData/templeStayRepository';
 
 const SearchResults = () => {
   const location = useLocation();

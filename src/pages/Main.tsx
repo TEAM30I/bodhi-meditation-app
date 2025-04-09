@@ -4,13 +4,12 @@ import BodhiLogo from '@/components/BodhiLogo';
 import BottomNav from '@/components/BottomNav';
 import { Search, MapPin, Bell, ChevronRight, CalendarDays } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getTempleList } from '@/data/templeData/templeRepository';
-import { getTempleStayList } from '@/data/templeStayData/templeStayRepository';
+import { getTempleList } from '/public/data/templeData/templeRepository';
+import { getTempleStayList } from '/public/data/templeStayData/templeStayRepository';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule } from '@/data/scriptureData/scriptureRepository';
-import { imageRepository } from '@/data/imageRepository';
-import { scriptures } from '@/data/scriptureData/scriptureRepository';
+import { readingSchedule, scriptures } from '/public/data/scriptureData/scriptureRepository';
+import { imageRepository } from '/public/data/imageRepository';
 
 const Main = () => {
   const navigate = useNavigate();

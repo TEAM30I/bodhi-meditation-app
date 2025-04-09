@@ -1,64 +1,58 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { Star, Navigation, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Temple } from '@/data/templeData';
+import type { Temple } from '/public/data/templeData/templeRepository';
 
 interface TempleItemProps {
   temple: Temple;
+  onClick?: () => void;
 }
 
-const TempleItem = ({ temple }: TempleItemProps) => {
+const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
   const navigate = useNavigate();
-  
-  const handleClick = () => {
-    navigate(`/search/temple/detail/${temple.id}`);
-  };
-  
+
   return (
     <div 
-      className="flex cursor-pointer mb-6"
-      onClick={handleClick}
+      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer"
+      onClick={onClick}
     >
-      <div className="w-[120px] h-[120px] rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-        <img
-          src={temple.imageUrl}
-          alt={temple.name}
-          className="w-full h-full object-cover"
+      <div className="relative">
+        <img 
+          src={temple.imageUrl} 
+          alt={temple.name} 
+          className="w-full h-40 object-cover" 
         />
-      </div>
-      
-      <div className="ml-4 flex-1">
-        <h3 className="font-bold mb-1">{temple.name}</h3>
-        <p className="text-gray-500 text-sm mb-2">{temple.location}</p>
-        
-        {temple.distance && (
-          <p className="text-gray-700 text-sm mb-2">{temple.distance}</p>
-        )}
-        
-        <div className="flex items-center mb-2">
-          {temple.likeCount && (
-            <Badge className="flex items-center gap-1 bg-pink-100 text-pink-600 font-bold text-xs rounded-full h-6 mr-2">
-              <Heart className="w-3 h-3 fill-current" />
-              <span>{temple.likeCount}</span>
-            </Badge>
-          )}
+        <div className="absolute top-2 left-2">
+          {temple.tags && temple.tags.map((tag, index) => (
+            <Badge key={index} variant="secondary" className="mr-1">{tag}</Badge>
+          ))}
         </div>
-        
-        {temple.tags && temple.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {temple.tags.map((tag, index) => (
-              <Badge 
-                key={index}
-                variant="outline" 
-                className="bg-gray-100 border-none text-gray-700 font-medium text-[10px] px-2 py-1 rounded-full"
-              >
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-        )}
+      </div>
+
+      <div className="p-4">
+        <h3 className="font-semibold text-lg text-gray-800 mb-2">{temple.name}</h3>
+        <div className="flex items-center text-gray-500 text-sm mb-3">
+          <MapPin className="w-4 h-4 mr-1" />
+          {temple.location}
+        </div>
+        <p className="text-gray-600 text-sm line-clamp-2">{temple.description}</p>
+      </div>
+
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-100">
+        <div className="flex items-center text-gray-700 text-sm">
+          <Star className="w-4 h-4 mr-1 text-yellow-500" />
+          {temple.rating || '4.5'} ({temple.reviews || '22'})
+        </div>
+        <button 
+          className="text-[#DE7834] text-sm font-medium flex items-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/search/temple/detail/${temple.id}`);
+          }}
+        >
+          자세히 보기 <Navigation className="w-4 h-4 ml-1" />
+        </button>
       </div>
     </div>
   );

@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { calendarData, readingSchedule, scriptures } from '@/data/scriptureData';
+import { calendarData, readingSchedule, scriptures } from '/public/data/scriptureData/scriptureRepository';
 
 const ScriptureCalendarPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +10,6 @@ const ScriptureCalendarPage: React.FC = () => {
   const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
   
-  // Calculate calendar days
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate();
   };
@@ -26,28 +24,24 @@ const ScriptureCalendarPage: React.FC = () => {
   const daysInMonth = getDaysInMonth(year, month);
   const firstDayOfMonth = getFirstDayOfMonth(year, month);
   
-  // Previous month days (for filling the first row)
   const prevMonthDays = [];
   const daysInPrevMonth = getDaysInMonth(year, month - 1);
   for (let i = 0; i < firstDayOfMonth; i++) {
     prevMonthDays.push(daysInPrevMonth - firstDayOfMonth + i + 1);
   }
   
-  // Current month days
   const days = [];
   for (let i = 1; i <= daysInMonth; i++) {
     days.push(i);
   }
   
-  // Next month days (for filling the last row)
   const nextMonthDays = [];
-  const totalCells = 42; // 6 weeks (rows) * 7 days (columns)
+  const totalCells = 42;
   const remainingCells = totalCells - (prevMonthDays.length + days.length);
   for (let i = 1; i <= remainingCells; i++) {
     nextMonthDays.push(i);
   }
   
-  // Handle month navigation
   const goToPrevMonth = () => {
     const prevMonth = new Date(currentMonth);
     prevMonth.setMonth(prevMonth.getMonth() - 1);
@@ -60,7 +54,6 @@ const ScriptureCalendarPage: React.FC = () => {
     setCurrentMonth(nextMonth);
   };
   
-  // Get progress for a specific date
   const getProgressForDate = (date: number) => {
     const fullDate = new Date(year, month, date);
     const matchingData = calendarData.find(item => 
@@ -72,7 +65,6 @@ const ScriptureCalendarPage: React.FC = () => {
     return matchingData;
   };
   
-  // Get reading progress items
   const readingItems = readingSchedule.slice(0, 2).map(schedule => {
     const matchingScripture = Object.values(scriptures).find(s => s.id === schedule.scriptureId);
     return {
@@ -97,7 +89,6 @@ const ScriptureCalendarPage: React.FC = () => {
       </div>
 
       <div className="px-5 pt-5 pb-5">
-        {/* Month Navigation */}
         <div className="flex justify-between items-center mb-4 bg-white p-4 rounded-lg">
           <button onClick={goToPrevMonth}>
             <ChevronLeft size={24} />
@@ -110,9 +101,7 @@ const ScriptureCalendarPage: React.FC = () => {
           </button>
         </div>
         
-        {/* Calendar */}
         <div className="bg-white rounded-lg p-4 mb-4">
-          {/* Weekdays */}
           <div className="grid grid-cols-7 mb-2">
             {weekdays.map((day, index) => (
               <div 
@@ -124,9 +113,7 @@ const ScriptureCalendarPage: React.FC = () => {
             ))}
           </div>
           
-          {/* Calendar grid */}
           <div className="grid grid-cols-7 gap-1">
-            {/* Previous month days */}
             {prevMonthDays.map((day, index) => (
               <div 
                 key={`prev-${index}`} 
@@ -136,7 +123,6 @@ const ScriptureCalendarPage: React.FC = () => {
               </div>
             ))}
             
-            {/* Current month days */}
             {days.map((day) => {
               const isToday = day === new Date().getDate() && 
                              month === new Date().getMonth() && 
@@ -161,7 +147,6 @@ const ScriptureCalendarPage: React.FC = () => {
               );
             })}
             
-            {/* Next month days */}
             {nextMonthDays.map((day, index) => (
               <div 
                 key={`next-${index}`} 
@@ -173,7 +158,6 @@ const ScriptureCalendarPage: React.FC = () => {
           </div>
         </div>
         
-        {/* Reading Progress */}
         <div className="bg-white rounded-lg p-4 mb-4">
           <h3 className="text-base font-medium mb-3">
             인기 경전 중
@@ -199,14 +183,13 @@ const ScriptureCalendarPage: React.FC = () => {
                 </div>
                 
                 <p className="text-xs text-gray-500">
-                  {index === 0 ? '다음 학습 권장일: 10일 후' : '다음 학습 권장일: 17일 후'}
+                  {index === 0 ? '다음 학습 권장일: 10일 후' : '다음 핈습 권장일: 17일 후'}
                 </p>
               </div>
             ))}
           </div>
         </div>
         
-        {/* My Reading History */}
         <div className="bg-white rounded-lg p-4">
           <h3 className="text-base font-medium mb-3">
             나의 경전 여정

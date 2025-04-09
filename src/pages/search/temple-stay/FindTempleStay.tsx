@@ -1,174 +1,142 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Calendar, Users, MapPin, ArrowLeft, X } from 'lucide-react';
-import { DateRange } from 'react-day-picker';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Search, X, CalendarRange, Users, ChevronRight, TrendingUp } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import DateRangePicker from '@/components/search/DateRangePicker';
 import GuestSelector from '@/components/search/GuestSelector';
-import { regionSearchRankings } from '@/data/searchRankingRepository';
-import { regions } from '@/data/templeStayData/templeStayRepository';
+import { templeStaySearchRankings } from '/public/data/searchRankingRepository';
+import { locations } from '/public/data/templeStayData/templeStayRepository';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
-  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [showDateRangePicker, setShowDateRangePicker] = useState(false);
   const [showGuestSelector, setShowGuestSelector] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
-  const [guests, setGuests] = useState<{ adults: number; children: number }>({ adults: 2, children: 0 });
-  
-  const handleGuestsChange = (newValue: { adults: number; children: number }) => {
-    setGuests(newValue);
+
+  const handleClearSearch = () => {
+    setSearchValue('');
   };
-  
-  const handleSearch = () => {
-    // Navigate to search results
-    navigate('/search/temple-stay/results', { 
-      state: { 
-        searchTerm, 
-        date: dateRange, 
-        guests 
-      } 
-    });
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
   };
-  
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/search/temple-stay/results?query=${searchValue}`);
   };
-  
-  // Get the popular search regions for temple stays
-  const popularRegions = regionSearchRankings
-    .filter(r => regions.some(region => region.toLowerCase().includes(r.name.toLowerCase())))
-    .slice(0, 10);
-  
+
   return (
-    <div className="bg-white min-h-screen pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-4 flex items-center">
-        <button 
-          className="mr-3"
-          onClick={() => navigate('/search')}
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="text-xl font-semibold flex-1">템플스테이 찾기</h1>
-      </div>
-      
-      <div className="px-4 py-4">
-        {/* Search Input */}
-        <div className="relative mb-6">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
-          </div>
-          
-          <input
-            type="text"
-            placeholder="템플스테이 이름 또는 지역"
-            className="pl-10 pr-4 py-3 w-full rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
-          
-          {searchTerm && (
-            <button 
-              className="absolute inset-y-0 right-3 flex items-center"
-              onClick={() => setSearchTerm('')}
-            >
-              <X className="h-5 w-5 text-gray-400" />
-            </button>
-          )}
-        </div>
-        
-        {/* Search Options */}
-        <div className="flex space-x-3 mb-6 overflow-x-auto pb-2">
-          <button 
-            className="flex items-center bg-gray-100 rounded-full px-4 py-2 whitespace-nowrap"
-            onClick={() => setShowDatePicker(true)}
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            <span className="text-sm">
-              {dateRange.from 
-                ? `${dateRange.from?.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'})} - ${dateRange.to?.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'})}`
-                : '날짜'}
-            </span>
+    <div className="bg-[#F5F5F5] min-h-screen pb-16">
+      <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
+        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
+          <button onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-6 w-6" />
           </button>
           
-          <button 
-            className="flex items-center bg-gray-100 rounded-full px-4 py-2 whitespace-nowrap"
-            onClick={() => setShowGuestSelector(true)}
-          >
-            <Users className="h-4 w-4 mr-2" />
-            <span className="text-sm">
-              성인 {guests.adults}, 어린이 {guests.children}
-            </span>
-          </button>
-        </div>
-        
-        {/* Popular Regions */}
-        <div className="mb-6">
-          <h2 className="text-lg font-medium mb-3">인기 지역</h2>
-          <div className="flex flex-wrap gap-2">
-            {popularRegions.map((region, index) => (
-              <button 
-                key={index}
-                className="bg-gray-100 rounded-full px-4 py-2 text-sm"
-                onClick={() => {
-                  setSearchTerm(region.query);
-                  handleSearch();
-                }}
-              >
-                {region.name}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        {/* Top Temple Stay Regions */}
-        <div>
-          <h2 className="text-lg font-medium mb-3">인기 템플스테이 지역</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {regions.slice(0, 6).map((region, index) => (
-              <button 
-                key={index}
-                className="bg-gray-100 rounded-lg p-4 flex items-center justify-center"
-                onClick={() => {
-                  setSearchTerm(region);
-                  handleSearch();
-                }}
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                <span>{region}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-      
-      {/* Date Picker Modal */}
-      {showDatePicker && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-4 w-full max-w-md mx-4">
-            <DateRangePicker 
-              dateRange={dateRange}
-              onChange={setDateRange}
-              onClose={() => setShowDatePicker(false)}
+          <form onSubmit={handleSearchSubmit} className="flex-1 relative">
+            <Input
+              value={searchValue}
+              onChange={handleSearchInputChange}
+              placeholder="가고 싶은 지역이나 템플스테이를 검색해보세요"
+              className="w-full pl-9 pr-8 py-2 rounded-full bg-[#F5F5F5] border-none"
             />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            {searchValue && (
+              <button 
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                <X className="h-4 w-4 text-gray-400" />
+              </button>
+            )}
+          </form>
+        </div>
+      </div>
+
+      <div className="max-w-[480px] mx-auto px-5 py-6">
+        <div className="bg-white rounded-2xl shadow-sm mb-6">
+          <div className="p-4 border-b border-[#E5E5EC]">
+            <h3 className="text-sm font-medium mb-2">
+              <CalendarRange className="inline-block mr-1 h-4 w-4" />
+              날짜
+            </h3>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => setShowDateRangePicker(!showDateRangePicker)}
+            >
+              {/* 날짜 선택 컴포넌트 */}
+              {/* {selectedDateRange ? `${format(selectedDateRange.from, 'yyyy-MM-dd')} ~ ${format(selectedDateRange.to, 'yyyy-MM-dd')}` : '날짜를 선택해주세요'} */}
+              {/* 임시 텍스트 */}
+              2024년 5월 14일 ~ 2024년 5월 16일
+            </Button>
+          </div>
+          
+          <div className="p-4">
+            <h3 className="text-sm font-medium mb-2">
+              <Users className="inline-block mr-1 h-4 w-4" />
+              인원
+            </h3>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => setShowGuestSelector(!showGuestSelector)}
+            >
+              {/* 게스트 선택 컴포넌트 */}
+              {/* {guests > 0 ? `${guests}명` : '인원수를 선택해주세요'} */}
+              {/* 임시 텍스트 */}
+              게스트 2명
+            </Button>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-lg font-bold mb-4">인기 검색어</h2>
+          <div className="flex flex-wrap gap-2">
+            {templeStaySearchRankings.map((ranking) => (
+              <Link to={`/search/temple-stay/results?query=${ranking.term}`} key={ranking.id}>
+                <Button variant="outline" className="rounded-full text-sm">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  {ranking.term}
+                </Button>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-bold mb-4">어디로 떠나볼까요?</h2>
+          <div className="flex flex-wrap gap-3">
+            {locations.map((location) => (
+              <Button 
+                key={location.name} 
+                variant={location.active ? "default" : "outline"} 
+                className="rounded-full text-sm"
+              >
+                {location.name}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {showDateRangePicker && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-6">
+            <DateRangePicker />
+            <Button onClick={() => setShowDateRangePicker(false)}>닫기</Button>
           </div>
         </div>
       )}
-      
-      {/* Guest Selector Modal */}
+
       {showGuestSelector && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg w-full max-w-md mx-4">
-            <GuestSelector 
-              value={guests}
-              onChange={handleGuestsChange}
-              onClose={() => setShowGuestSelector(false)}
-            />
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-6">
+            <GuestSelector />
+            <Button onClick={() => setShowGuestSelector(false)}>닫기</Button>
           </div>
         </div>
       )}

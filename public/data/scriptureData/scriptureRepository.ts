@@ -1,3 +1,4 @@
+
 /* ------------------------------------------------------------
  * 📚 통합 불교 경전 데이터베이스 (Single‑Source of Truth)
  * ------------------------------------------------------------
@@ -26,15 +27,17 @@ export interface ScriptureChapter {
 
 export interface Bookmark {
   id: string;
+  scriptureId: string;
   chapterId: string;
   pageIndex: number;
   title: string;
   note?: string;
-  createdAt: string; // ISO string (서버 저장/전송 시 직렬화 편의)
+  date: string;
 }
 
 export interface ReadingScheduleItem {
   id: number;
+  scriptureId: string;
   chapter: string;
   title: string;
   progress: number; // %
@@ -61,6 +64,26 @@ export interface ScriptureMeta {
 export interface ScriptureDBEntry {
   meta: ScriptureMeta;
   users: Record<string, UserScriptureData>; // key = userId
+}
+
+export interface Scripture {
+  id: string;
+  title: string;
+  categories: string[];
+  colorScheme: ScriptureColorScheme;
+  content: string;
+  chapters: ScriptureChapter[];
+  progress?: number;
+  hasStarted?: boolean;
+  lastReadChapter?: string;
+  lastPageIndex?: number;
+}
+
+export interface ReadingProgress {
+  scriptureId: string;
+  progress: number;
+  completedPages: number;
+  totalPages: number;
 }
 
 /* ------------------------------------------------------------------
@@ -171,4 +194,125 @@ export const getUserData = (scriptureName: string, userId: string): UserScriptur
   if (!entry) throw new Error(`Unknown scripture: ${scriptureName}`);
   if (!entry.users[userId]) entry.users[userId] = { ...EMPTY_USER_DATA };
   return entry.users[userId];
+};
+
+// 페이지에서 쓰일 데이터 - 스크립처 객체
+export const scriptures: Record<string, Scripture> = Object.fromEntries(
+  Object.entries(META).map(([name, meta]) => [
+    name, 
+    {
+      ...meta,
+      progress: Math.floor(Math.random() * 100), // 임시 진도율
+      hasStarted: Math.random() > 0.5, // 임시 시작 여부
+      lastReadChapter: meta.chapters[0].id, // 첫번째 챕터로 설정
+      lastPageIndex: 0
+    }
+  ])
+);
+
+// 경전 카테고리
+export const scriptureCategories = [
+  { id: "sutra", name: "경", active: true },
+  { id: "vinaya", name: "율", active: false },
+  { id: "shastra", name: "론", active: false },
+  { id: "zen", name: "선", active: false }
+];
+
+// 읽기 일정
+export const readingSchedule: ReadingScheduleItem[] = [
+  { id: 1, scriptureId: "diamond-sutra", chapter: "1장", title: "금강경 1장", progress: 35 },
+  { id: 2, scriptureId: "heart-sutra", chapter: "전체", title: "반야심경 전체", progress: 60 },
+  { id: 3, scriptureId: "lotus-sutra", chapter: "2장", title: "법화경 2장", progress: 15 }
+];
+
+// 북마크 데이터
+export const bookmarks: Bookmark[] = [
+  {
+    id: "bm1",
+    scriptureId: "diamond-sutra",
+    chapterId: "ch1",
+    pageIndex: 2,
+    title: "법회인유분 중요 구절",
+    note: "중요한 내용, 나중에 다시 읽기",
+    date: "2025-04-01"
+  },
+  {
+    id: "bm2",
+    scriptureId: "heart-sutra",
+    chapterId: "ch1",
+    pageIndex: 0,
+    title: "반야심경 시작 부분",
+    date: "2025-04-03"
+  },
+  {
+    id: "bm3",
+    scriptureId: "lotus-sutra",
+    chapterId: "ch2",
+    pageIndex: 1,
+    title: "방편품 주요 가르침",
+    note: "수행에 적용할 내용",
+    date: "2025-04-05"
+  }
+];
+
+// 경전 캘린더 데이터
+export const calendarData = [
+  {
+    date: new Date(2025, 3, 1), // 2025-04-01
+    title: "금강경",
+    completed: true,
+    progress: 25.5
+  },
+  {
+    date: new Date(2025, 3, 3), // 2025-04-03
+    title: "반야심경",
+    completed: true,
+    progress: 42.0
+  },
+  {
+    date: new Date(2025, 3, 5), // 2025-04-05
+    title: "법화경",
+    completed: false,
+    progress: 10.2
+  },
+  {
+    date: new Date(2025, 3, 7), // 2025-04-07
+    title: "금강경",
+    completed: false,
+    progress: 30.0
+  },
+  {
+    date: new Date(2025, 3, 9), // 2025-04-09 (오늘)
+    title: "반야심경",
+    completed: false,
+    progress: 45.0
+  }
+];
+
+// 경전 데이터 접근 함수들
+export const getScriptureById = (id: string): Scripture | undefined => {
+  return Object.values(scriptures).find(s => s.id === id);
+};
+
+export const updateReadingProgress = (scriptureId: string, progress: number, chapterId: string, pageIndex: number) => {
+  const scripture = getScriptureById(scriptureId);
+  if (scripture) {
+    scripture.progress = progress;
+    scripture.lastReadChapter = chapterId;
+    scripture.lastPageIndex = pageIndex;
+  }
+};
+
+export const addBookmark = (userId: string, scriptureId: string, chapterId: string, pageIndex: number, title: string) => {
+  const newBookmark: Bookmark = {
+    id: `bm${bookmarks.length + 1}`,
+    scriptureId,
+    chapterId,
+    pageIndex,
+    title,
+    date: new Date().toISOString().split('T')[0]
+  };
+  
+  bookmarks.push(newBookmark);
+  return newBookmark;
 };

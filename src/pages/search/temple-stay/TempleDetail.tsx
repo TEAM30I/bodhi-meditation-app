@@ -1,153 +1,151 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Share, MapPin, Clock, Calendar, Home, Globe } from 'lucide-react';
-import { getTempleStayById, TempleStay } from '@/data/templeStayData';
-import BottomNav from '@/components/BottomNav';
+import { ArrowLeft, MapPin, Clock, Globe, Heart, Share, PhoneCall } from 'lucide-react';
+import { temples } from '/public/data/templeStayData/templeStayRepository';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 
-const TempleStayDetail = () => {
+const TempleDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [templeStay, setTempleStay] = useState<TempleStay | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      const foundTempleStay = getTempleStayById(id);
-      if (foundTempleStay) {
-        setTempleStay(foundTempleStay);
-      }
-      setLoading(false);
-    }
-  }, [id]);
+  // 임시 데이터: id에 해당하는 템플 정보 가져오기
+  const temple = temples[id || ''];
 
-  if (loading) {
-    return <div className="p-5 text-center">템플스테이 정보를 불러오는 중...</div>;
+  if (!temple) {
+    return <div>사찰 정보를 찾을 수 없습니다.</div>;
   }
 
-  if (!templeStay) {
-    return <div className="p-5 text-center">템플스테이를 찾을 수 없습니다.</div>;
-  }
-
-  const formatPrice = (price: number) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원";
+  const handleShare = () => {
+    // Implement share functionality
+    alert('공유 기능은 아직 준비 중입니다.');
   };
 
-  // Mock schedule times for the temple stay
-  const scheduleTimes = [
-    { time: "10:00", activity: "도착 및 안내" },
-    { time: "10:30~11:40", activity: "참선 명상" },
-    { time: "11:50~13:00", activity: "스님과의 대화" }
-  ];
-
   return (
-    <div className="bg-[#F1F3F5] min-h-screen pb-20">
-      <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px] mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between h-[56px] px-5 bg-white">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeft size={28} />
-          </button>
-          <button onClick={() => navigate('/main')}>
-            <Home size={28} />
-          </button>
-        </div>
+    <div className="bg-[#F5F5F5] min-h-screen">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center border-b border-[#E5E5EC] px-5">
+        <button onClick={() => navigate(-1)} className="mr-4">
+          <ArrowLeft size={24} />
+        </button>
+        <h1 className="text-lg font-bold text-center flex-1">{temple.name}</h1>
+      </div>
 
-        {/* Temple Stay Image */}
-        <div className="w-full h-[255px] bg-gray-200">
-          <img 
-            src={templeStay.imageUrl} 
-            alt={templeStay.templeName} 
-            className="w-full h-full object-cover"
-          />
+      {/* Banner */}
+      <div className="relative">
+        <img
+          src={temple.imageUrl}
+          alt={temple.name}
+          className="w-full h-[200px] object-cover"
+        />
+        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black to-transparent"></div>
+        <div className="absolute bottom-4 left-4 text-white">
+          <h2 className="text-lg font-bold">{temple.name}</h2>
+          <div className="flex items-center text-sm">
+            <MapPin className="mr-1 w-4 h-4" />
+            {temple.location}
+          </div>
         </div>
+        <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-white">
+          <Heart className="w-5 h-5" />
+        </Button>
+      </div>
 
-        {/* Temple Stay Information */}
-        <div className="px-5 py-4 bg-white">
-          <div className="flex justify-between items-start mb-1.5">
-            <h1 className="text-base font-bold text-[#222]">{templeStay.templeName}</h1>
-            <div className="flex items-center gap-2.5">
-              <button onClick={() => setIsFavorite(!isFavorite)}>
-                <Heart size={18} fill={isFavorite ? "#FF0000" : "none"} stroke={isFavorite ? "#FF0000" : "#111111"} />
-              </button>
-              <button>
-                <Share size={18} />
-              </button>
-            </div>
-          </div>
-          
-          {/* Location */}
-          <div className="flex items-center gap-1 mb-4">
-            <MapPin size={14} className="text-gray-500" />
-            <span className="text-xs text-[#111111]">
-              {templeStay.location} · 속리산터미널에서 도보 10분
-            </span>
-          </div>
-          
-          {/* Website */}
-          <div className="flex items-center gap-1 mb-7">
-            <Globe size={10} className="text-gray-500" />
-            <span className="text-xs text-[#111111]">www.bodhis.com</span>
-          </div>
-          
-          {/* Schedule Box */}
-          <div className="w-full border border-[rgba(153,153,153,0.2)] rounded-xl p-3 mb-6 shadow-sm">
-            <div className="flex justify-between gap-2.5">
-              {scheduleTimes.map((schedule, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center justify-center bg-[#21212F] rounded-full px-1.5 py-0.5"
-                >
-                  <span className="text-white text-[8px] font-medium">{schedule.time}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-3">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="w-[99px] h-[51px] bg-[#C6C6C6]"></div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Price Information */}
-          <h2 className="text-base font-bold text-[#222] mb-4">이용요금</h2>
-          <div className="mb-6">
-            <p className="text-lg font-bold text-[#DE7834]">{formatPrice(templeStay.price)}</p>
-            <p className="text-xs text-gray-500">총 {templeStay.duration} (세금 포함)</p>
-          </div>
-          
-          {/* Notes */}
-          <h2 className="text-base font-bold text-[#222] mb-4">유의사항</h2>
-          <div className="mb-6">
-            <p className="text-sm text-[#555] leading-relaxed">
-              {templeStay.description}
-            </p>
-          </div>
-          
-          {/* Program Schedule */}
-          <h2 className="text-base font-bold text-[#222] mb-4">프로그램 일정</h2>
-          <div className="space-y-3 mb-6">
-            {scheduleTimes.map((schedule, index) => (
-              <div key={index} className="flex">
-                <div className="w-24 text-sm font-medium">{schedule.time}</div>
-                <div>
-                  <p className="text-sm font-medium">{schedule.activity}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {/* Book Button */}
-          <button className="w-full bg-[#DE7834] text-white py-3 rounded-md text-base font-bold">
-            예약하기
-          </button>
+      {/* Info Bar */}
+      <div className="bg-white px-5 py-4 flex items-center justify-around border-b border-[#E5E5EC]">
+        <div className="flex flex-col items-center">
+          <Clock className="w-5 h-5 text-gray-500 mb-1" />
+          <span className="text-xs text-gray-700">
+            {temple.openingHours || '09:00 - 18:00'}
+          </span>
+        </div>
+        <div className="flex flex-col items-center">
+          <MapPin className="w-5 h-5 text-gray-500 mb-1" />
+          <span className="text-xs text-gray-700">{temple.direction}</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <Globe className="w-5 h-5 text-gray-500 mb-1" />
+          <a href={temple.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500">
+            웹사이트
+          </a>
         </div>
       </div>
-      
-      <BottomNav />
+
+      {/* Action Bar */}
+      <div className="bg-white px-5 py-4 flex items-center justify-around border-b border-[#E5E5EC]">
+        <Button className="w-full mx-1 flex-1" onClick={() => alert('예약 기능은 아직 준비 중입니다.')}>
+          예약하기
+        </Button>
+        <Button variant="outline" className="w-full mx-1 flex-1" onClick={handleShare}>
+          <Share className="w-4 h-4 mr-2" />
+          공유하기
+        </Button>
+      </div>
+
+      {/* Tabs */}
+      <div className="px-5 pt-6">
+        <Tabs defaultValue="information" className="w-full">
+          <TabsList className="w-full bg-white rounded-lg">
+            <TabsTrigger value="information" className="w-1/2 data-[state=active]:bg-[#DE7834] data-[state=active]:text-white">
+              정보
+            </TabsTrigger>
+            <TabsTrigger value="review" className="w-1/2 data-[state=active]:bg-[#DE7834] data-[state=active]:text-white">
+              리뷰
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="information" className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">사찰 소개</h3>
+              <p className="text-gray-700">{temple.description}</p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">주요 시설</h3>
+              <div className="flex gap-2">
+                {temple.facilities?.map((facility, index) => (
+                  <Badge key={index}>{facility}</Badge>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">오시는 길</h3>
+              <p className="text-gray-700">{temple.direction}</p>
+            </div>
+            {temple.contact?.phone && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">연락처</h3>
+                <p className="text-gray-700">
+                  <PhoneCall className="inline-block w-4 h-4 mr-1 align-middle" />
+                  {temple.contact.phone}
+                </p>
+              </div>
+            )}
+            {temple.social?.instagram && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">인스타그램</h3>
+                <a href={temple.social.instagram} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                  <Instagram className="inline-block w-4 h-4 mr-1 align-middle" />
+                  {temple.name} 인스타그램
+                </a>
+              </div>
+            )}
+            {temple.social?.facebook && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">페이스북</h3>
+                <a href={temple.social.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                  <Facebook className="inline-block w-4 h-4 mr-1 align-middle" />
+                  {temple.name} 페이스북
+                </a>
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="review">
+            <div>리뷰 기능은 아직 준비 중입니다.</div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
 
-export default TempleStayDetail;
+export default TempleDetail;

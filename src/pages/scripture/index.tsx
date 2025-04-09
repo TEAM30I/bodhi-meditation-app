@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Heart } from 'lucide-react';
-import { scriptures, readingSchedule, scriptureColorSchemes } from '@/data/scriptureData';
+import { scriptures, readingSchedule, calendarData } from '/public/data/scriptureData/scriptureRepository';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
