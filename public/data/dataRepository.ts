@@ -8,7 +8,7 @@ import {
   readingSchedule, 
   bookmarks, 
   Scripture, 
-  Bookmark, 
+  Bookmark,
   ReadingProgress,
   scriptureColorSchemes
 } from './scriptureData/scriptureRepository';

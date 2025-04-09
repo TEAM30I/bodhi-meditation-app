@@ -5,8 +5,13 @@ import {
   readingHistory,
   calendarData,
   bookmarks,
-  readingSchedule
-} from '../public/data/scriptureData/scriptureRepository';
+  readingSchedule,
+  Scripture,
+  ScriptureChapter,
+  Bookmark,
+  ScriptureColorScheme,
+  scriptureCategories
+} from '../../public/data/scriptureData/scriptureRepository';
 
 // Export types from scriptureRepository
 export type { 
@@ -14,7 +19,7 @@ export type {
   ScriptureChapter,
   Bookmark,
   ScriptureColorScheme
-} from '../public/data/scriptureData/scriptureRepository';
+};
 
 // Export all scripture data
 export {
@@ -23,21 +28,22 @@ export {
   readingHistory,
   calendarData,
   bookmarks,
-  readingSchedule
+  readingSchedule,
+  scriptureCategories
 };
 
 // Function to get scripture by ID
-export const getScriptureById = (id: string) => {
+export const getScriptureById = (id: string): Scripture | undefined => {
   return Object.values(scriptures).find(scripture => scripture.id === id);
 };
 
 // Function to get scripture by title
-export const getScriptureByTitle = (title: string) => {
+export const getScriptureByTitle = (title: string): Scripture | undefined => {
   return scriptures[title];
 };
 
 // Functions to update reading progress
-export const updateReadingProgress = (scriptureId: string, progress: number, chapterId: string, pageIndex: number) => {
+export const updateReadingProgress = (scriptureId: string, progress: number, chapterId: string, pageIndex: number): boolean => {
   const scripture = Object.values(scriptures).find(s => s.id === scriptureId);
   
   if (scripture) {
@@ -52,7 +58,7 @@ export const updateReadingProgress = (scriptureId: string, progress: number, cha
 };
 
 // Function to add bookmark
-export const addBookmark = (userId: string, scriptureId: string, chapterId: string, pageIndex: number, title: string, note?: string) => {
+export const addBookmark = (userId: string, scriptureId: string, chapterId: string, pageIndex: number, title: string, note?: string): Bookmark => {
   const newBookmark = {
     id: `bm${bookmarks.length + 1}`,
     userId,

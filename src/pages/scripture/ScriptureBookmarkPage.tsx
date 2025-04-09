@@ -59,7 +59,7 @@ const ScriptureBookmarkPage: React.FC = () => {
           {filteredBookmarks.length > 0 ? (
             <div className="space-y-3">
               {filteredBookmarks.map((bookmark) => {
-                const scripture = scriptures.find(s => s.id === bookmark.scriptureId);
+                const scripture = Object.values(scriptures).find(s => s.id === bookmark.scriptureId);
                 const colorScheme = scripture?.colorScheme || {
                   bg: "bg-gray-800",
                   text: "text-white"

@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import ScriptureCalendar from '@/components/scripture/ScriptureCalendar';
+import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
 
 const ScriptureCalendarPage: React.FC = () => {
   const navigate = useNavigate();

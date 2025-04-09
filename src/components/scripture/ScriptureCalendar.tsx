@@ -55,8 +55,14 @@ const ScriptureProgressPreview: React.FC<ScriptureProgressPreviewProps> = ({ rec
   );
 };
 
-const ScriptureCalendar = () => {
+export const ScriptureCalendar: React.FC = () => {
   const today = new Date();
+  
+  // Get day of week in Korean
+  const getDayOfWeek = (date: Date) => {
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return days[date.getDay()];
+  };
   
   return (
     <div className="space-y-6">
@@ -110,4 +116,4 @@ const ScriptureCalendar = () => {
   );
 };
 
-export { ScriptureCalendar, ScriptureProgressPreview };
+export { ScriptureProgressPreview };

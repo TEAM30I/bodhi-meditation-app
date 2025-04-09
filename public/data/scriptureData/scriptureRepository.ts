@@ -29,6 +29,15 @@ export interface Scripture {
   lastPageIndex?: number;
 }
 
+// Interface for reading progress
+export interface ReadingProgress {
+  userId: string;
+  scriptureId: string;
+  lastReadPosition: number;
+  completedChapters: string[];
+  lastReadTimestamp: Date;
+}
+
 // Interface for bookmark
 export interface Bookmark {
   id: string;
@@ -42,6 +51,14 @@ export interface Bookmark {
   date?: string;
 }
 
+// Scripture categories for filtering
+export const scriptureCategories = [
+  { id: 'original', label: '원문' },
+  { id: 'translation', label: '번역문' },
+  { id: 'annotation', label: '주석' },
+  { id: 'interpretation', label: '해설' }
+];
+
 // Color schemes for each scripture type
 export const scriptureColorSchemes: Record<string, ScriptureColorScheme> = {
   "금강경": { bg: "bg-[#21212F]", text: "text-white", progressBg: "#FF4D00" },
@@ -51,6 +68,40 @@ export const scriptureColorSchemes: Record<string, ScriptureColorScheme> = {
   "용수경": { bg: "bg-[#4CAF50]", text: "text-white", progressBg: "#4CAF50" },
   "육조단경": { bg: "bg-[#4CAF50]", text: "text-white", progressBg: "#4CAF50" },
 };
+
+// Calendar data
+export const calendarData = [
+  {
+    date: new Date(2025, 3, 1),
+    title: "금강경",
+    completed: true,
+    progress: 25.5
+  },
+  {
+    date: new Date(2025, 3, 3),
+    title: "반야심경",
+    completed: true,
+    progress: 87.8
+  },
+  {
+    date: new Date(2025, 3, 4),
+    title: "법화경",
+    completed: false,
+    progress: 0
+  },
+  {
+    date: new Date(2025, 3, 7),
+    title: "금강경",
+    completed: false,
+    progress: 0
+  },
+  {
+    date: new Date(2025, 3, 8),
+    title: "반야심경",
+    completed: false,
+    progress: 0
+  }
+];
 
 // Reading history data
 export const readingHistory = [
@@ -178,40 +229,6 @@ export const scriptures: Record<string, Scripture> = {
     lastPageIndex: 0
   }
 };
-
-// Calendar data
-export const calendarData = [
-  {
-    date: new Date(2025, 3, 1),
-    title: "금강경",
-    completed: true,
-    progress: 25.5
-  },
-  {
-    date: new Date(2025, 3, 3),
-    title: "반야심경",
-    completed: true,
-    progress: 87.8
-  },
-  {
-    date: new Date(2025, 3, 4),
-    title: "법화경",
-    completed: false,
-    progress: 0
-  },
-  {
-    date: new Date(2025, 3, 7),
-    title: "금강경",
-    completed: false,
-    progress: 0
-  },
-  {
-    date: new Date(2025, 3, 8),
-    title: "반야심경",
-    completed: false,
-    progress: 0
-  }
-];
 
 // User bookmarks
 export const bookmarks: Bookmark[] = [

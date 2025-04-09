@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { scriptures, readingSchedule } from '@/data/scriptureData';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
-import ScriptureCalendar from '@/components/scripture/ScriptureCalendar';
+import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
 import BookmarkList from '@/components/scripture/BookmarkList';
 import ShareOptions from '@/components/scripture/ShareOptions';
 import SettingsPanel from '@/components/scripture/SettingsPanel';

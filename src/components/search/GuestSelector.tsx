@@ -1,121 +1,119 @@
 
-import React from 'react';
-import { Minus, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { Dispatch, SetStateAction } from 'react';
+import { Plus, Minus } from 'lucide-react';
 
 export interface GuestSelectorProps {
-  value: number;
-  onChange: (value: number) => void;
-  onClose?: () => void;
-  // Add these props for backward compatibility
+  value: { adults: number; children: number };
+  onChange: (value: { adults: number; children: number }) => void;
   adults?: number;
   children?: number;
-  onAdultsChange?: (value: number) => void;
-  onChildrenChange?: (value: number) => void;
+  onAdultsChange?: Dispatch<SetStateAction<number>>;
+  onChildrenChange?: Dispatch<SetStateAction<number>>;
+  onClose?: () => void;
 }
 
 const GuestSelector: React.FC<GuestSelectorProps> = ({ 
   value, 
   onChange, 
-  onClose,
-  adults,
-  children,
-  onAdultsChange,
-  onChildrenChange
+  adults, 
+  children, 
+  onAdultsChange, 
+  onChildrenChange, 
+  onClose 
 }) => {
-  // Handle both direct value/onChange and adults/onAdultsChange patterns
-  const actualValue = typeof adults === 'number' ? adults : value;
-  
-  const handleIncrement = () => {
-    if (actualValue < 10) {
-      const newValue = actualValue + 1;
-      onChange?.(newValue);
-      onAdultsChange?.(newValue);
+  // Use either the controlled (value+onChange) or uncontrolled (direct state setters) approach
+  const adultCount = adults !== undefined ? adults : value.adults;
+  const childCount = children !== undefined ? children : value.children;
+
+  const handleAdultsChange = (count: number) => {
+    const newCount = Math.max(1, count); // At least one adult
+
+    if (onAdultsChange) {
+      onAdultsChange(newCount);
+    } else {
+      onChange({ ...value, adults: newCount });
     }
   };
 
-  const handleDecrement = () => {
-    if (actualValue > 1) {
-      const newValue = actualValue - 1;
-      onChange?.(newValue);
-      onAdultsChange?.(newValue);
+  const handleChildrenChange = (count: number) => {
+    const newCount = Math.max(0, count); // Children can be zero
+
+    if (onChildrenChange) {
+      onChildrenChange(newCount);
+    } else {
+      onChange({ ...value, children: newCount });
     }
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="font-medium">인원 수</h3>
-        {onClose && (
-          <button 
-            className="text-gray-400 text-sm"
-            onClick={onClose}
-          >
-            닫기
-          </button>
-        )}
+    <div className="p-4 bg-white rounded-lg shadow-lg">
+      <div className="mb-4">
+        <h3 className="text-lg font-medium">인원 선택</h3>
+        <p className="text-sm text-gray-500">여행에 참여하는 인원을 선택하세요</p>
       </div>
-      
-      <div className="flex items-center justify-between">
-        <p>성인</p>
-        <div className="flex items-center">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleDecrement}
-            disabled={actualValue <= 1}
-            className="h-8 w-8 rounded-full"
-          >
-            <Minus size={16} />
-          </Button>
-          <span className="mx-4 w-8 text-center">{actualValue}</span>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleIncrement}
-            disabled={actualValue >= 10}
-            className="h-8 w-8 rounded-full"
-          >
-            <Plus size={16} />
-          </Button>
-        </div>
-      </div>
-      
-      {children !== undefined && onChildrenChange && (
-        <div className="flex items-center justify-between mt-4">
-          <p>어린이</p>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">성인</p>
+            <p className="text-sm text-gray-500">만 18세 이상</p>
+          </div>
           <div className="flex items-center">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onChildrenChange(Math.max(0, children - 1))}
-              disabled={children <= 0}
-              className="h-8 w-8 rounded-full"
+            <button
+              onClick={() => handleAdultsChange(adultCount - 1)}
+              className={`w-8 h-8 flex items-center justify-center rounded-full border ${
+                adultCount <= 1 ? 'border-gray-200 text-gray-300' : 'border-gray-300 text-gray-700'
+              }`}
+              disabled={adultCount <= 1}
             >
               <Minus size={16} />
-            </Button>
-            <span className="mx-4 w-8 text-center">{children}</span>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onChildrenChange(Math.min(5, children + 1))}
-              disabled={children >= 5}
-              className="h-8 w-8 rounded-full"
+            </button>
+            <span className="mx-4 min-w-8 text-center">{adultCount}</span>
+            <button
+              onClick={() => handleAdultsChange(adultCount + 1)}
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-700"
             >
               <Plus size={16} />
-            </Button>
+            </button>
           </div>
         </div>
-      )}
-      
-      <div className="mt-6">
-        <Button 
-          className="w-full bg-gray-900 hover:bg-black text-white"
-          onClick={onClose}
-        >
-          완료
-        </Button>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">아동</p>
+            <p className="text-sm text-gray-500">만 18세 미만</p>
+          </div>
+          <div className="flex items-center">
+            <button
+              onClick={() => handleChildrenChange(childCount - 1)}
+              className={`w-8 h-8 flex items-center justify-center rounded-full border ${
+                childCount <= 0 ? 'border-gray-200 text-gray-300' : 'border-gray-300 text-gray-700'
+              }`}
+              disabled={childCount <= 0}
+            >
+              <Minus size={16} />
+            </button>
+            <span className="mx-4 min-w-8 text-center">{childCount}</span>
+            <button
+              onClick={() => handleChildrenChange(childCount + 1)}
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-700"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+        </div>
       </div>
+
+      {onClose && (
+        <div className="mt-6">
+          <button
+            onClick={onClose}
+            className="w-full py-2 bg-[#DE7834] hover:bg-[#C96E2E] text-white font-medium rounded"
+          >
+            완료
+          </button>
+        </div>
+      )}
     </div>
   );
 };

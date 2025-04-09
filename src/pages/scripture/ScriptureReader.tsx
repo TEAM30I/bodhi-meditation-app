@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bookmark, Share2, Settings, Search, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
-import { getScriptureById, updateReadingProgress, addBookmark } from '@/data/scriptureData';
+import { getScriptureById, updateReadingProgress, addBookmark, Scripture } from '@/data/scriptureData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -20,7 +20,7 @@ const ScriptureReader = () => {
   
   const contentRef = useRef<HTMLDivElement>(null);
   
-  const scripture = id ? getScriptureById(id) : undefined;
+  const scripture: Scripture | undefined = id ? getScriptureById(id) : undefined;
   
   useEffect(() => {
     window.scrollTo(0, 0);
