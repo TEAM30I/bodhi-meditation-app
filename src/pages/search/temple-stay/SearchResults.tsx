@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleStayItem from '@/components/search/TempleStayItem';
-import { searchTempleStays, TempleStay } from '@/data/templeStayData';
+import { searchTempleStays, TempleStay } from '@/data/templeStayData/templeStayRepository';
 
 const SearchResults = () => {
   const location = useLocation();

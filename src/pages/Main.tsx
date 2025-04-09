@@ -1,17 +1,16 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BodhiLogo from '@/components/BodhiLogo';
 import BottomNav from '@/components/BottomNav';
 import { Search, MapPin, Bell, ChevronRight, CalendarDays } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getTempleList } from '../data/templeData';
-import { getTempleStayList } from '../data/templeStayData';
+import { getTempleList } from '@/data/templeData/templeRepository';
+import { getTempleStayList } from '@/data/templeStayData/templeStayRepository';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule } from '../data/scriptureData';
-import { imageRepository } from '../data/imageRepository';
-import { scriptures } from '../data/scriptureData';
+import { readingSchedule } from '@/data/scriptureData/scriptureRepository';
+import { imageRepository } from '@/data/imageRepository';
+import { scriptures } from '@/data/scriptureData/scriptureRepository';
 
 const Main = () => {
   const navigate = useNavigate();
@@ -21,7 +20,6 @@ const Main = () => {
   const [loading, setLoading] = React.useState(true);
 
   useEffect(() => {
-    // 잠시 후 로딩 상태 해제
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
@@ -29,7 +27,6 @@ const Main = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // 로딩 중일 때 표시
   if (loading) {
     return (
       <div className="flex items-center justify-center w-screen h-screen">
@@ -38,15 +35,12 @@ const Main = () => {
     );
   }
 
-  // 추천 사찰 목록
   const templeList = getTempleList();
   const recommendedTemples = templeList.slice(0, 3);
   
-  // 추천 템플스테이 목록
   const templeStayList = getTempleStayList();
   const recommendedTempleStays = templeStayList.slice(0, 3);
 
-  // Calendar days
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
   const today = new Date();
   const currentDate = today.getDate();
@@ -56,13 +50,12 @@ const Main = () => {
     return {
       day: weekDays[date.getDay()],
       date: date.getDate(),
-      active: i === 3, // Today is active
+      active: i === 3,
     };
   });
 
   return (
     <div className="w-full min-h-screen bg-[#F8F8F8]">
-      {/* 헤더 */}
       <div className="w-full bg-white shadow-sm">
         <div className="flex justify-between items-center px-5 py-3 max-w-[480px] mx-auto">
           <div className="text-[#DE7834] text-xl font-bold">BODHI</div>
@@ -82,7 +75,6 @@ const Main = () => {
         </div>
       </div>
 
-      {/* 달력 */}
       <div className="w-full bg-white px-5 py-3 mb-2">
         <div className="max-w-[480px] mx-auto">
           <div className="flex justify-between">
@@ -102,7 +94,6 @@ const Main = () => {
       </div>
 
       <div className="w-full max-w-[480px] mx-auto pb-20">
-        {/* 사찰 지도 섹션 */}
         <div className="bg-white px-5 py-4 mb-2">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-semibold text-base">
@@ -127,7 +118,6 @@ const Main = () => {
           </div>
         </div>
 
-        {/* 사찰 섹션 */}
         <div className="bg-white px-5 py-4 mb-2">
           <div 
             className="flex items-center justify-between mb-3 cursor-pointer" 
@@ -154,7 +144,6 @@ const Main = () => {
           </div>
         </div>
           
-        {/* 템플스테이 섹션 */}
         <div className="bg-white px-5 py-4 mb-2">
           <div 
             className="flex items-center justify-between mb-3 cursor-pointer"
@@ -181,7 +170,6 @@ const Main = () => {
           </div>
         </div>
           
-        {/* 경전 섹션 */}
         <div className="bg-white px-5 py-4 mb-2">
           <div 
             className="flex items-center justify-between mb-3 cursor-pointer"
@@ -239,7 +227,6 @@ const Main = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNav />
     </div>
   );
