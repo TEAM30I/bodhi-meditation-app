@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, ArrowLeft, Home } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { calendarData, readingSchedule, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
 
@@ -101,20 +101,27 @@ const ScriptureCalendarPage: React.FC = () => {
     return "text-[#111]";
   };
 
+  const handleBackClick = () => {
+    navigate('/scripture');
+  };
+
+  const handleHomeClick = () => {
+    navigate('/main');
+  };
+
   return (
     <div className="bg-[#F8F8F8] min-h-screen">
-      <div className="sticky top-0 z-10 bg-white w-full h-[44px] flex items-center justify-between px-5">
-        <span className="text-[15px] text-[#111111]">9:41</span>
-      </div>
-      
-      <div className="sticky top-[44px] z-10 bg-white w-full h-[56px] flex items-center px-5">
-        <button 
-          onClick={() => navigate('/scripture')}
-          className="mr-4"
-        >
-          <ChevronLeft size={28} />
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center justify-between px-5">
+        <div className="flex items-center">
+          <button onClick={handleBackClick}>
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-lg font-bold ml-4">경전 읽기 캘린더</h1>
+        </div>
+        <button onClick={handleHomeClick}>
+          <Home size={24} />
         </button>
-        <h1 className="text-[20px] font-bold">경전 읽기 캘린더</h1>
       </div>
 
       <div className="p-5">

@@ -17,7 +17,7 @@ const Scripture = () => {
   const typedScriptures = typedData<typeof scriptures>(scriptures);
   const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
 
-  const handleTabChange = (tab: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings') => {
+  const handleTabChange = (tab: 'calendar' | 'bookmark' | 'share' | 'settings') => {
     setActiveTab(tab);
   };
 

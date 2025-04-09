@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Home, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { bookmarks, scriptures, scriptureCategories } from '@/utils/repository';
 import { typedData } from '@/utils/typeUtils';
@@ -42,6 +42,10 @@ const ScriptureBookmarkPage = () => {
   const handleBackClick = () => {
     navigate('/scripture');
   };
+
+  const handleHomeClick = () => {
+    navigate('/main');
+  };
   
   const handleBookmarkClick = (bookmarkId: string) => {
     const bookmark = typedBookmarks.find(b => b.id === bookmarkId);
@@ -54,12 +58,15 @@ const ScriptureBookmarkPage = () => {
     <div className="bg-[#F1F3F5] min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between h-[56px] px-5 border-b border-[#EAECEE] bg-white">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center">
           <button onClick={handleBackClick}>
-            <ArrowLeft className="w-7 h-7" />
+            <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-bold text-[#111]">북마크</h1>
+          <h1 className="text-lg font-bold ml-4 text-[#111]">북마크</h1>
         </div>
+        <button onClick={handleHomeClick}>
+          <Home size={24} />
+        </button>
       </div>
       
       {/* Scripture filters */}
