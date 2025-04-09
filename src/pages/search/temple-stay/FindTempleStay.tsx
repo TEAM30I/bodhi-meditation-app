@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Calendar, Users, ChevronRight, Home } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { locations, templeStays } from '/public/data/templeStayData/templeStayRepository';
+import { locations, templeStays, TempleStay } from '/public/data/templeStayData/templeStayRepository';
 import { templeStaySearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
 import { typedData } from '@/utils/typeUtils';
 
@@ -16,9 +16,8 @@ const FindTempleStay = () => {
   const typedLocations = typedData<typeof locations>(locations);
   const typedSearchRankings = typedData<SearchRanking[]>(templeStaySearchRankings);
   
-  // Get templestay data
-  const allTempleStays = Object.values(templeStays);
-  const typedTempleStays = typedData(allTempleStays);
+  // Get templestay data with proper typing
+  const templeStayArray = typedData<TempleStay[]>(Object.values(templeStays));
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
@@ -123,7 +122,7 @@ const FindTempleStay = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {typedTempleStays.slice(0, 2).map((templestay) => (
+            {templeStayArray.slice(0, 2).map((templestay) => (
               <div 
                 key={templestay.id} 
                 className="bg-gray-200 rounded-lg p-2 h-[120px] relative cursor-pointer"
@@ -172,7 +171,7 @@ const FindTempleStay = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {typedTempleStays.slice(2, 6).map((templestay) => (
+            {templeStayArray.slice(2, 6).map((templestay) => (
               <div 
                 key={templestay.id} 
                 className="bg-gray-200 rounded-lg p-2 h-[120px] relative cursor-pointer"

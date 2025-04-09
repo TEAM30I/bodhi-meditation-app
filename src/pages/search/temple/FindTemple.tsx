@@ -7,7 +7,7 @@ import { regionTags } from '/public/data/templeData/templeRepository';
 import { regionSearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
 import { typedData } from '@/utils/typeUtils';
 import TempleItem from '@/components/search/TempleItem';
-import { temples } from '/public/data/templeData/templeRepository';
+import { temples, Temple } from '/public/data/templeData/templeRepository';
 
 const FindTemple = () => {
   const navigate = useNavigate();
@@ -18,9 +18,8 @@ const FindTemple = () => {
   const typedRegionTags = typedData<typeof regionTags>(regionTags);
   const typedSearchRankings = typedData<SearchRanking[]>(regionSearchRankings);
   
-  // Get popular temples (assuming first 4 are popular)
-  const popularTemples = Object.values(temples).slice(0, 4);
-  const typedPopularTemples = typedData(popularTemples);
+  // Get temples and ensure they are properly typed
+  const popularTemples = typedData<Temple[]>(Object.values(temples));
   
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
@@ -79,7 +78,7 @@ const FindTemple = () => {
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {typedPopularTemples.slice(0, 2).map((temple) => (
+            {popularTemples.slice(0, 2).map((temple) => (
               <div 
                 key={temple.id} 
                 className="bg-gray-200 rounded-lg p-2 h-[120px] cursor-pointer"
@@ -122,7 +121,7 @@ const FindTemple = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {typedPopularTemples.slice(0, 4).map((temple) => (
+            {popularTemples.slice(0, 4).map((temple) => (
               <div 
                 key={temple.id} 
                 className="bg-gray-200 rounded-lg p-2 h-[120px] relative cursor-pointer"
