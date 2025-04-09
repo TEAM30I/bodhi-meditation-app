@@ -1,12 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Heart } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
-// Use relative imports
-import { scriptures, readingSchedule, calendarData } from '../../public/data/scriptureData/scriptureRepository';
-import ScriptureCard from '@/components/scripture/ScriptureCard';
+// Use correct path for imports
+import { scriptures, readingSchedule, calendarData } from '../../../public/data/scriptureData/scriptureRepository';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
 import BookmarkList from '@/components/scripture/BookmarkList';
