@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bookmark, Share2, Settings, Search, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
-import { getScriptureById, updateReadingProgress, addBookmark, Scripture } from '../../public/data/scriptureData/scriptureRepository';
+import { getScriptureById, updateReadingProgress, addBookmark, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
