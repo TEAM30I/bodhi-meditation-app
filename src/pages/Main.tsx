@@ -1,17 +1,16 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
 import { typedData } from '@/utils/typeUtils';
-import { templeBanner, logo } from '/public/data/image/imageRepository';
+import { imageRepository } from '/public/data/image/imageRepository';
 
 const Main = () => {
   const navigate = useNavigate();
+  const typedImageRepo = typedData<typeof imageRepository>(imageRepository);
 
   return (
     <div className="bg-white min-h-screen font-['Pretendard']">
-      {/* Header */}
       <div className="w-full bg-white">
         <div className="flex items-center justify-between px-5 py-3">
           <div className="flex items-center gap-2">
@@ -36,7 +35,6 @@ const Main = () => {
         </div>
       </div>
 
-      {/* Calendar Widget */}
       <div className="w-full h-[110px] bg-white rounded-b-[32px] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between px-[29px] py-5 overflow-x-auto">
           <div className="flex items-center gap-2">
@@ -61,14 +59,11 @@ const Main = () => {
               </svg>
             </div>
             {/* Calendar days */}
-            {/* ... Additional calendar days would go here */}
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="px-5 py-6">
-        {/* Temple Map Section */}
         <div className="flex items-center gap-2 mb-4">
           <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g clipPath="url(#clip0_temple_map)">
@@ -85,9 +80,7 @@ const Main = () => {
         <p className="text-sm text-[#767676] mb-4">지도로 사찰을 둘러보고, 관심 사찰로 저장해보세요</p>
         <div className="w-full h-[150px] bg-[#C9C9C9] rounded-2xl mb-8"></div>
 
-        {/* Sections */}
         <div className="flex flex-col gap-8">
-          {/* Temple Section */}
           <div>
             <div className="flex items-center gap-[2px] mb-4">
               <div className="text-lg font-semibold">자연이 깃든 사찰, 찾아볼까요?</div>
@@ -103,7 +96,6 @@ const Main = () => {
             </div>
           </div>
 
-          {/* Temple Stay Section */}
           <div>
             <div className="flex items-center gap-[2px] mb-4">
               <div className="text-lg font-semibold">쉼이 필요한 당신께, 템플스테이</div>
@@ -119,7 +111,6 @@ const Main = () => {
             </div>
           </div>
 
-          {/* Scripture Section */}
           <div>
             <div className="flex items-center gap-[2px] mb-4">
               <div className="text-lg font-semibold">경전과 함께하는 하루</div>
@@ -128,7 +119,6 @@ const Main = () => {
               </svg>
             </div>
             <div className="flex flex-col gap-3">
-              {/* Scripture Card - Gold */}
               <div className="w-full bg-white rounded-[32px] p-5 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.04)]">
                 <div className="flex flex-col gap-3">
                   <div className="inline-flex p-2 bg-[#21212F] rounded-xl text-white text-xs">금강경</div>
@@ -145,7 +135,6 @@ const Main = () => {
                 </div>
               </div>
 
-              {/* Scripture Card - Red */}
               <div className="w-full bg-white rounded-[32px] p-5 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.04)]">
                 <div className="flex flex-col gap-3">
                   <div className="inline-flex p-2 bg-[#EF4223] rounded-xl text-white text-xs">반야심경</div>
@@ -162,7 +151,6 @@ const Main = () => {
                 </div>
               </div>
 
-              {/* Scripture Card - Green */}
               <div className="w-full bg-white rounded-[32px] p-5 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.04)]">
                 <div className="flex flex-col gap-3">
                   <div className="inline-flex p-2 bg-[#4CAF50] rounded-xl text-white text-xs">육조단경</div>
@@ -183,7 +171,6 @@ const Main = () => {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0">
         <div className="flex justify-between bg-white">
           <div className="flex items-center justify-center w-[72px] h-16 rounded-[32px]">
