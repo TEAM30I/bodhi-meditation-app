@@ -14,102 +14,58 @@ interface ScriptureProgressPreviewProps {
   }[];
 }
 
-const ScriptureProgressPreview: React.FC<ScriptureProgressPreviewProps> = ({ recentDates }) => {
+export const ScriptureCalendar: React.FC<ScriptureProgressPreviewProps> = ({ recentDates }) => {
   const typedCalendarData = typedData<typeof calendarData>(calendarData);
-  const dates = recentDates || typedCalendarData.slice(0, 2);
+  const dates = recentDates || typedCalendarData;
   
-  // Get day of week in Korean
-  const getDayOfWeek = (date: Date) => {
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    return days[date.getDay()];
-  };
-
-  return (
-    <div>
-      <h3 className="text-base font-medium mb-3">경전 캘린더</h3>
-      <div className="space-y-3">
-        {dates.map((item, index) => (
-          <div key={index} className="flex items-center">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex flex-col items-center justify-center mr-4">
-              <span className="text-xs text-gray-500">{getDayOfWeek(item.date)}</span>
-              <span className="text-sm font-bold">{item.date.getDate()}</span>
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">{item.title}</p>
-              <div className="flex items-center mt-1">
-                <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
-                  <div 
-                    className="h-2 rounded-full" 
-                    style={{
-                      width: `${item.progress}%`,
-                      backgroundColor: item.title === '금강경' ? '#FF4D00' : 
-                                      item.title === '반야심경' ? '#FF9B21' : '#0080FF'
-                    }}
-                  ></div>
-                </div>
-                <span className="text-xs text-gray-500 whitespace-nowrap">{item.progress.toFixed(1)}%</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export const ScriptureCalendar: React.FC = () => {
   const today = new Date();
-  const typedCalendarData = typedData<typeof calendarData>(calendarData);
-  
-  // Get day of week in Korean
-  const getDayOfWeek = (date: Date) => {
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    return days[date.getDay()];
-  };
-  
+  const currentDate = today.getDate();
+  const currentMonth = today.toLocaleString('default', { month: 'long' });
+
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl p-4 shadow-sm">
-        <h3 className="text-lg font-medium mb-4">이번 달 경전읽기</h3>
-        <Calendar
-          mode="single"
-          selected={today}
-          className="rounded-md border"
-        />
-      </div>
-      
-      <div>
+      <div className="bg-white p-4 rounded-xl">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">경전 기록</h3>
-          <button className="flex items-center text-gray-500 text-sm">
-            전체보기 <ChevronRight size={16} />
+          <h3 className="text-lg font-medium">캘린더</h3>
+          <button className="text-sm text-gray-500 flex items-center">
+            {currentMonth} <ChevronRight className="h-4 w-4 ml-1" />
           </button>
         </div>
         
-        <div className="space-y-3">
-          {typedCalendarData.slice(0, 3).map((item, index) => (
-            <div key={index} className="bg-white rounded-xl p-4 shadow-sm">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex flex-col items-center justify-center mr-4">
-                  <span className="text-xs text-gray-500">{getDayOfWeek(item.date)}</span>
-                  <span className="text-sm font-bold">{item.date.getDate()}</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <div className="flex items-center mt-1">
-                    <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
-                      <div 
-                        className="h-2 rounded-full" 
-                        style={{
-                          width: `${item.progress}%`,
-                          backgroundColor: item.title === '금강경' ? '#FF4D00' : 
-                                          item.title === '반야심경' ? '#FF9B21' : '#0080FF'
-                        }}
-                      ></div>
-                    </div>
-                    <span className="text-xs text-gray-500 whitespace-nowrap">{item.progress.toFixed(1)}%</span>
-                  </div>
-                </div>
+        <Calendar
+          mode="single"
+          selected={today}
+          onSelect={() => {}}
+          disabled={(date) => date > new Date()}
+          classNames={{
+            day_selected: "bg-[#DE7834] text-white hover:bg-[#DE7834]",
+          }}
+        />
+      </div>
+      
+      <div className="bg-white p-4 rounded-xl">
+        <h3 className="text-lg font-medium mb-4">진행상황</h3>
+        
+        <div className="space-y-4">
+          {dates.slice(0, 3).map((item, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">{item.title}</span>
+                <span className="text-xs text-gray-500">
+                  {item.date.toLocaleDateString()}
+                </span>
+              </div>
+              
+              <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-[#DE7834] rounded-full"
+                  style={{ width: `${item.progress}%` }}
+                ></div>
+              </div>
+              
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-500">진행률</span>
+                <span className="font-medium">{item.progress.toFixed(1)}%</span>
               </div>
             </div>
           ))}
@@ -118,5 +74,3 @@ export const ScriptureCalendar: React.FC = () => {
     </div>
   );
 };
-
-export { ScriptureProgressPreview };
