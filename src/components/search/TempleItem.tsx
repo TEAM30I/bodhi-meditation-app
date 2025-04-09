@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Temple } from '/public/data/templeRepository';
+import { Temple } from '../../../data/templeData';
 
 interface TempleItemProps {
   temple: Temple;

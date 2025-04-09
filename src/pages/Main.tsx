@@ -5,12 +5,12 @@ import BodhiLogo from '@/components/BodhiLogo';
 import BottomNav from '@/components/BottomNav';
 import { Search, MapPin, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { temples } from '/public/data/templeRepository';
-import { templeStays } from '/public/data/templeStayRepository';
+import { temples } from '../data/templeData';
+import { templeStays } from '../data/templeStayData';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule, scriptures } from '/public/data/scriptureRepository';
-import { imageRepository } from '/public/data/imageRepository';
+import { readingSchedule, scriptures } from '../data/scriptureData';
+import { imageRepository } from '../data/imageRepository';
 
 const Main = () => {
   const navigate = useNavigate();

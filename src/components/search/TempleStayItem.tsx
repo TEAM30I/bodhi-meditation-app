@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { TempleStay } from '/public/data/templeStayRepository';
+import { TempleStay } from '../../../data/templeStayData';
 
 interface TempleStayItemProps {
   templeStay: TempleStay;

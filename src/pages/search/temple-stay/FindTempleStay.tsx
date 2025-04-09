@@ -1,34 +1,20 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Search, ArrowLeft, Home } from 'lucide-react';
-import { templeStays, nearbyTempleStays } from '/public/data/templeStayRepository';
-import BottomNav from '@/components/BottomNav';
+import BottomNav from "@/components/BottomNav";
+import { templeStays, locations } from '../../../data/templeStayData';
 
-// Define the proper type for location objects
 interface Location {
   id: string;
   name: string;
 }
 
-// Define locations array with proper type
-const locations: Location[] = [
-  { id: 'seoul', name: '서울' },
-  { id: 'gyeonggi', name: '경기도' },
-  { id: 'gangwon', name: '강원도' },
-  { id: 'chungcheong', name: '충청도' },
-  { id: 'jeolla', name: '전라도' },
-  { id: 'gyeongsang', name: '경상도' },
-  { id: 'jeju', name: '제주도' }
-];
-
 const FindTempleStay = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedLocations, setSelectedLocations] = React.useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
 
   const handleLocationClick = (locationId: string) => {
     if (selectedLocations.includes(locationId)) {
