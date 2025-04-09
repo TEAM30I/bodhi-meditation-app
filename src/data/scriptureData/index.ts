@@ -6,7 +6,8 @@ export {
   scriptureCategories,
   readingSchedule,
   bookmarks,
-  scriptures
+  scriptures,
+  calendarData
 } from '../../../public/data/scriptureData/scriptureRepository';
 
 // Use "export type" for type declarations to fix TS1205 errors
@@ -15,4 +16,3 @@ export type {
   Bookmark,
   ReadingProgress
 } from '../../../public/data/scriptureData/scriptureRepository';
-

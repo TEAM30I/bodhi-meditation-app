@@ -7,4 +7,5 @@ export const scriptureTexts = {
   반야심경,
 };
 
+// Re-export everything from scriptureRepository
 export * from './scriptureRepository';

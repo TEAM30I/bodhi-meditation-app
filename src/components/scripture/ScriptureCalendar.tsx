@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { calendarData } from '@/data/scriptureData';
 import { Calendar } from '@/components/ui/calendar';
+import { calendarData } from '@/data/scriptureData/scriptureRepository';
 
 const ScriptureCalendar: React.FC = () => {
   return (
