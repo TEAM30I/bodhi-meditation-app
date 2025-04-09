@@ -1,19 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Home } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
 // Use correct path for imports
 import { scriptures, readingSchedule, calendarData } from '../../../public/data/scriptureData/scriptureRepository';
-import ScriptureBottomNav from '@/components/ScriptureBottomNav';
-import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
-import BookmarkList from '@/components/scripture/BookmarkList';
-import ShareOptions from '@/components/scripture/ShareOptions';
-import SettingsPanel from '@/components/scripture/SettingsPanel';
 
 const Scripture = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'reading' | 'calendar' | 'bookmark' | 'share' | 'settings'>('reading');
   const [loading, setLoading] = useState(true);
 
   // Type our data correctly
@@ -44,10 +39,6 @@ const Scripture = () => {
     };
   });
 
-  const handleTabChange = (tab: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings') => {
-    setActiveTab(tab);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -57,16 +48,23 @@ const Scripture = () => {
   }
 
   return (
-    <div className="bg-[#F8F8F8] min-h-screen pb-20">
+    <div className="bg-[#F8F8F8] min-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center border-b border-[#E5E5EC] px-5">
         <button 
           onClick={() => navigate('/main')}
           className="mr-4"
         >
-          <ArrowLeft size={24} />
+          <Home size={24} />
         </button>
         <h1 className="text-lg font-bold text-center flex-1">경전 읽기</h1>
+        
+        <button 
+          onClick={() => navigate('/scripture/calendar')}
+          className="text-sm text-[#DE7834] border border-[#DE7834] px-3 py-1 rounded-full"
+        >
+          경전 캘린더
+        </button>
       </div>
 
       {/* Calendar */}
@@ -86,43 +84,92 @@ const Scripture = () => {
         </div>
       </div>
 
-      {activeTab === 'reading' ? (
-        <div className="px-5 py-4">
-          <h2 className="text-base font-medium mb-5">
-            이어하기
-          </h2>
+      <div className="px-5 py-4">
+        <h2 className="text-base font-medium mb-5">
+          이어하기
+        </h2>
 
-          {/* 읽을 경전 목록 */}
-          <div className="space-y-3 mb-6">
-            {typedReadingSchedule.map((schedule, index) => {
-              // Find the scripture by scriptureId
-              const matchingScripture = Object.values(typedScriptures).find(
-                s => s.id === schedule.scriptureId
+        {/* 읽을 경전 목록 */}
+        <div className="space-y-3 mb-6">
+          {typedReadingSchedule.map((schedule, index) => {
+            // Find the scripture by scriptureId
+            const matchingScripture = Object.values(typedScriptures).find(
+              s => s.id === schedule.scriptureId
+            );
+            
+            if (!matchingScripture) return null;
+            
+            const progressColor = matchingScripture.colorScheme?.progressBg || "#DE7834";
+            
+            return (
+              <div 
+                key={schedule.id}
+                className="bg-white p-4 rounded-lg shadow-sm border border-gray-100"
+                onClick={() => navigate(`/scripture/${matchingScripture.id}`)}
+              >
+                <div className="flex flex-col mb-3">
+                  <div className={`inline-flex px-3 py-1 ${matchingScripture.colorScheme?.bg || 'bg-[#DE7834]'} rounded-full w-fit mb-2`}>
+                    <span className={`text-xs font-medium ${matchingScripture.colorScheme?.text || 'text-white'}`}>
+                      {matchingScripture.title}
+                    </span>
+                  </div>
+                  
+                  <h3 className="text-sm font-medium text-gray-800 mb-1">
+                    "{schedule.title}"
+                  </h3>
+                  <p className="text-gray-500 text-xs">
+                    {schedule.chapter}
+                  </p>
+                </div>
+                
+                {/* Progress bar */}
+                <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full rounded-full" 
+                    style={{ 
+                      width: `${matchingScripture.progress || 0}%`,
+                      backgroundColor: progressColor
+                    }}
+                  ></div>
+                </div>
+                <p className="text-xs text-right mt-1 text-gray-500">
+                  {matchingScripture.progress || 0}%
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 다른 경전 목록 */}
+        <div className="mb-6">
+          <h2 className="text-base font-medium mb-4">다른 경전 읽기</h2>
+          <div className="space-y-3">
+            {Object.values(typedScriptures).map((scripture) => {
+              // Check if this scripture is already in readingSchedule
+              const alreadyIncluded = typedReadingSchedule.some(
+                schedule => schedule.scriptureId === scripture.id
               );
               
-              if (!matchingScripture) return null;
+              if (alreadyIncluded) return null;
               
-              const progressColor = matchingScripture.colorScheme?.progressBg || "#DE7834";
+              const progressColor = scripture.colorScheme?.progressBg || "#DE7834";
               
               return (
                 <div 
-                  key={schedule.id}
+                  key={scripture.id}
                   className="bg-white p-4 rounded-lg shadow-sm border border-gray-100"
-                  onClick={() => navigate(`/scripture/${matchingScripture.id}`)}
+                  onClick={() => navigate(`/scripture/${scripture.id}`)}
                 >
                   <div className="flex flex-col mb-3">
-                    <div className={`inline-flex px-3 py-1 ${matchingScripture.colorScheme?.bg || 'bg-[#DE7834]'} rounded-full w-fit mb-2`}>
-                      <span className={`text-xs font-medium ${matchingScripture.colorScheme?.text || 'text-white'}`}>
-                        {matchingScripture.title}
+                    <div className={`inline-flex px-3 py-1 ${scripture.colorScheme?.bg || 'bg-[#DE7834]'} rounded-full w-fit mb-2`}>
+                      <span className={`text-xs font-medium ${scripture.colorScheme?.text || 'text-white'}`}>
+                        {scripture.title}
                       </span>
                     </div>
                     
                     <h3 className="text-sm font-medium text-gray-800 mb-1">
-                      "{schedule.title}"
+                      {scripture.title} 읽기 시작하기
                     </h3>
-                    <p className="text-gray-500 text-xs">
-                      {schedule.chapter}
-                    </p>
                   </div>
                   
                   {/* Progress bar */}
@@ -130,84 +177,20 @@ const Scripture = () => {
                     <div 
                       className="h-full rounded-full" 
                       style={{ 
-                        width: `${matchingScripture.progress || 0}%`,
+                        width: `${scripture.progress || 0}%`,
                         backgroundColor: progressColor
                       }}
                     ></div>
                   </div>
                   <p className="text-xs text-right mt-1 text-gray-500">
-                    {matchingScripture.progress || 0}%
+                    {scripture.progress || 0}%
                   </p>
                 </div>
               );
             })}
           </div>
-
-          {/* 다른 경전 목록 */}
-          <div className="mb-6">
-            <h2 className="text-base font-medium mb-4">다른 경전 읽기</h2>
-            <div className="space-y-3">
-              {Object.values(typedScriptures).map((scripture) => {
-                // Check if this scripture is already in readingSchedule
-                const alreadyIncluded = typedReadingSchedule.some(
-                  schedule => schedule.scriptureId === scripture.id
-                );
-                
-                if (alreadyIncluded) return null;
-                
-                const progressColor = scripture.colorScheme?.progressBg || "#DE7834";
-                
-                return (
-                  <div 
-                    key={scripture.id}
-                    className="bg-white p-4 rounded-lg shadow-sm border border-gray-100"
-                    onClick={() => navigate(`/scripture/${scripture.id}`)}
-                  >
-                    <div className="flex flex-col mb-3">
-                      <div className={`inline-flex px-3 py-1 ${scripture.colorScheme?.bg || 'bg-[#DE7834]'} rounded-full w-fit mb-2`}>
-                        <span className={`text-xs font-medium ${scripture.colorScheme?.text || 'text-white'}`}>
-                          {scripture.title}
-                        </span>
-                      </div>
-                      
-                      <h3 className="text-sm font-medium text-gray-800 mb-1">
-                        {scripture.title} 읽기 시작하기
-                      </h3>
-                    </div>
-                    
-                    {/* Progress bar */}
-                    <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full" 
-                        style={{ 
-                          width: `${scripture.progress || 0}%`,
-                          backgroundColor: progressColor
-                        }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-right mt-1 text-gray-500">
-                      {scripture.progress || 0}%
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
-      ) : (
-        <div className="px-5 py-4">
-          {activeTab === 'calendar' && <ScriptureCalendar />}
-          {activeTab === 'bookmark' && <BookmarkList />}
-          {activeTab === 'share' && <ShareOptions />}
-          {activeTab === 'settings' && <SettingsPanel />}
-        </div>
-      )}
-
-      {/* Scripture Bottom Navigation */}
-      <ScriptureBottomNav 
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-      />
+      </div>
     </div>
   );
 };

@@ -31,6 +31,7 @@ const FindTempleStay = () => {
 
   const handleLocationClick = (location: string) => {
     setActiveLocation(location);
+    // Update UI without navigation
   };
 
   const handleDateRangeChange = (range: DateRange) => {
@@ -133,7 +134,10 @@ const FindTempleStay = () => {
           />
         </div>
 
-        <Button className="w-full mt-8 bg-[#DE7834] hover:bg-[#C56A2D]">
+        <Button 
+          className="w-full mt-8 bg-[#DE7834] hover:bg-[#C56A2D]"
+          onClick={() => navigate(`/search/temple-stay/results?query=${searchTerm}&guests=${guestCount}`)}
+        >
           검색하기
         </Button>
       </div>

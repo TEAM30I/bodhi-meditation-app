@@ -33,7 +33,7 @@ const FindTemple = () => {
 
   const handleRegionClick = (region: string) => {
     setActiveRegion(region);
-    navigate(`/search/temple/results?region=${region}`);
+    // Update UI with filtered temples, but don't navigate
   };
 
   const handleTempleClick = (id: string) => {
@@ -80,7 +80,11 @@ const FindTemple = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {typedPopularTemples.slice(0, 2).map((temple) => (
-              <div key={temple.id} className="bg-gray-200 rounded-lg p-2 h-[120px]">
+              <div 
+                key={temple.id} 
+                className="bg-gray-200 rounded-lg p-2 h-[120px] cursor-pointer"
+                onClick={() => handleTempleClick(temple.id)}
+              >
                 <div className="text-sm font-medium mt-auto">
                   <p className="text-xs text-gray-600">{temple.location} · {temple.direction || '도보 10분'}</p>
                 </div>

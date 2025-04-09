@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
 import { calendarData, readingSchedule, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
@@ -190,7 +190,7 @@ const ScriptureCalendarPage: React.FC = () => {
                 </div>
                 
                 <p className="text-xs text-gray-500">
-                  {index === 0 ? '다음 학습 권장일: 10일 후' : '다음 핈습 권장일: 17일 후'}
+                  {index === 0 ? '다음 학습 권장일: 10일 후' : '다음 핵습 권장일: 17일 후'}
                 </p>
               </div>
             ))}

@@ -168,10 +168,11 @@ const ScriptureReader = () => {
       
       <div 
         ref={contentRef}
-        className={`${darkMode ? 'bg-[#1E1E1E] text-white' : 'bg-white text-black'} pt-[120px] pb-[100px] px-5`}
+        className={`${darkMode ? 'bg-[#1E1E1E] text-white' : 'bg-white text-black'} pt-[120px] pb-[100px] px-5 overflow-y-auto`}
         style={{ 
           fontSize: `${fontSize}px`,
-          lineHeight: lineHeight
+          lineHeight: lineHeight,
+          height: 'calc(100vh - 120px)'
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -320,7 +321,7 @@ const ScriptureReader = () => {
             className="flex flex-col items-center"
             onClick={(e) => {
               e.stopPropagation();
-              handleBookmark();
+              navigate('/scripture/bookmark');
             }}
           >
             <Bookmark size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />

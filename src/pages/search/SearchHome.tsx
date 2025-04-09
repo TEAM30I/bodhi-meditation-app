@@ -34,7 +34,7 @@ const SearchHome = () => {
 
   const handleSearch = () => {
     if (activeTab === 'temple') {
-      navigate(`/search/temple/?query=${searchValue}`);
+      navigate(`/search/temple/results?query=${searchValue}`);
     } else {
       let queryParams = `query=${searchValue}`;
       
@@ -48,7 +48,7 @@ const SearchHome = () => {
       
       queryParams += `&guests=${guestCount}`;
       
-      navigate(`/search/temple-stay/?${queryParams}`);
+      navigate(`/search/temple-stay/results?${queryParams}`);
     }
   };
 
@@ -62,9 +62,9 @@ const SearchHome = () => {
 
   const handleNearbySearch = () => {
     if (activeTab === 'temple') {
-      navigate('/search/temple/?nearby=true');
+      navigate('/search/temple/results?nearby=true');
     } else {
-      navigate('/search/temple-stay/?nearby=true');
+      navigate('/search/temple-stay/results?nearby=true');
     }
   };
 
@@ -201,7 +201,7 @@ const SearchHome = () => {
             {activeTab === 'temple' ? '많이 둘러본 사찰' : '많이 찾는 지역'}
           </h2>
           <div className="grid grid-cols-2 gap-y-3">
-            {activeSearchRankings.slice(0, 8).map((item, index) => (
+            {activeSearchRankings.map((item, index) => (
               <div key={item.id} className="flex items-center">
                 <span className="text-[#DE7834] font-bold w-6">{index + 1}</span>
                 <span 
