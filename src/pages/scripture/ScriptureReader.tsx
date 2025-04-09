@@ -1,22 +1,24 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bookmark, Share2, Settings, Search, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
-import { scriptures, scriptureCategories } from '@/data/scriptureData';
+import { scriptureTexts } from '@/data/scriptureData';
 import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
 
 const ScriptureReader = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState<'original' | 'translation'>('original');
+  const [activeTab, setActiveTab] = useState<'original' | 'explanation'>('original');
   const [fontSize, setFontSize] = useState(16);
   const [showSettings, setShowSettings] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [lineHeight, setLineHeight] = useState(1.6);
+  const [showControls, setShowControls] = useState(true);
   
-  const scripture = scriptures.find(s => s.id === id);
+  const contentRef = useRef<HTMLDivElement>(null);
+  
+  const scripture = Object.values(scriptureTexts).find(s => s.title === id);
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -30,114 +32,107 @@ const ScriptureReader = () => {
     );
   }
 
-  const paragraphs = scripture.content.split('\n').filter(p => p.trim());
-  
-  const charactersPerPage = Math.floor(6000 / fontSize);
-  const totalCharacters = paragraphs.join('').length;
-  const totalPages = Math.ceil(totalCharacters / charactersPerPage);
-  
-  const startCharIndex = (currentPage - 1) * charactersPerPage;
-  const endCharIndex = Math.min(startCharIndex + charactersPerPage, totalCharacters);
-  
-  let currentPageContent = '';
-  let charCount = 0;
-  let pageContent = [];
-  
-  for (const paragraph of paragraphs) {
-    if (charCount + paragraph.length < startCharIndex) {
-      charCount += paragraph.length;
-      continue;
-    }
-    
-    if (charCount >= endCharIndex) break;
-    
-    let paragraphContent;
-    
-    if (charCount < startCharIndex) {
-      const offset = startCharIndex - charCount;
-      paragraphContent = paragraph.slice(offset);
-    } else if (charCount + paragraph.length > endCharIndex) {
-      const remaining = endCharIndex - charCount;
-      paragraphContent = paragraph.slice(0, remaining);
-    } else {
-      paragraphContent = paragraph;
-    }
-    
-    pageContent.push(paragraphContent);
-    charCount += paragraph.length;
-  }
+  // For this implementation we're using the first chapter
+  const currentChapter = scripture.chapters[0];
+  const content = activeTab === 'original' ? currentChapter.original : currentChapter.explanation;
   
   const handleBackClick = () => {
     navigate('/scripture');
   };
 
+  const toggleControls = () => {
+    setShowControls(!showControls);
+  };
+
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-[#111]' : 'bg-[#F5F5F5]'}`}>
-      {/* Header */}
-      <div className={`sticky top-0 z-10 w-full h-[56px] flex items-center px-5 ${darkMode ? 'bg-[#111] border-gray-800' : 'bg-white border-b border-[#E5E5EC]'}`}>
-        <button onClick={handleBackClick} className="mr-2">
-          <ArrowLeft size={22} className={darkMode ? 'text-white' : 'text-black'} />
-        </button>
-        
-        <div className="flex-1 flex items-center">
-          <h1 className={`text-base font-medium ${darkMode ? 'text-white' : 'text-black'}`}>
-            {scripture.title}
-          </h1>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <button>
-            <Bookmark size={20} className={darkMode ? 'text-white' : 'text-black'} />
+    <div 
+      className={`min-h-screen ${darkMode ? 'bg-[#111]' : 'bg-white'}`}
+      onClick={toggleControls}
+    >
+      {/* Header - Only show when controls are visible */}
+      {showControls && (
+        <div className={`fixed top-0 left-0 right-0 z-10 w-full h-[56px] flex items-center px-5 ${darkMode ? 'bg-[#111] border-gray-800' : 'bg-white border-b border-[#E5E5EC]'}`}>
+          <button onClick={handleBackClick} className="mr-2">
+            <ArrowLeft size={22} className={darkMode ? 'text-white' : 'text-black'} />
           </button>
-          <button>
-            <Search size={20} className={darkMode ? 'text-white' : 'text-black'} />
+          
+          <div className="flex-1 flex items-center">
+            <h1 className={`text-base font-medium ${darkMode ? 'text-white' : 'text-black'}`}>
+              {scripture.title}
+            </h1>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <button>
+              <Bookmark size={20} className={darkMode ? 'text-white' : 'text-black'} />
+            </button>
+            <button>
+              <Search size={20} className={darkMode ? 'text-white' : 'text-black'} />
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Tab switcher - Only show when controls are visible */}
+      {showControls && (
+        <div className={`fixed top-[56px] left-0 right-0 z-10 w-full flex ${darkMode ? 'bg-[#111]' : 'bg-white'}`}>
+          <button
+            className={`flex-1 py-3 text-center ${
+              activeTab === 'original' 
+                ? darkMode ? 'bg-[#333] text-white' : 'bg-[#111] text-white' 
+                : darkMode ? 'bg-[#111] text-gray-400' : 'bg-white text-gray-500'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveTab('original');
+            }}
+          >
+            원문
+          </button>
+          <button
+            className={`flex-1 py-3 text-center ${
+              activeTab === 'explanation' 
+                ? darkMode ? 'bg-[#333] text-white' : 'bg-[#111] text-white' 
+                : darkMode ? 'bg-[#111] text-gray-400' : 'bg-white text-gray-500'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveTab('explanation');
+            }}
+          >
+            해설문
           </button>
         </div>
-      </div>
+      )}
       
-      {/* Tab switcher */}
-      <div className={`w-full flex ${darkMode ? 'bg-[#111]' : 'bg-white'}`}>
-        <button
-          className={`flex-1 py-3 text-center ${
-            activeTab === 'original' 
-              ? darkMode ? 'bg-[#333] text-white' : 'bg-[#111] text-white' 
-              : darkMode ? 'bg-[#111] text-gray-400' : 'bg-white text-gray-500'
-          }`}
-          onClick={() => setActiveTab('original')}
-        >
-          원문
-        </button>
-        <button
-          className={`flex-1 py-3 text-center ${
-            activeTab === 'translation' 
-              ? darkMode ? 'bg-[#333] text-white' : 'bg-[#111] text-white' 
-              : darkMode ? 'bg-[#111] text-gray-400' : 'bg-white text-gray-500'
-          }`}
-          onClick={() => setActiveTab('translation')}
-        >
-          해설문
-        </button>
-      </div>
-      
-      {/* Content */}
+      {/* Content with proper padding for fixed headers/footers */}
       <div 
-        className={`p-5 ${darkMode ? 'bg-[#111] text-white' : 'bg-white text-black'}`}
+        ref={contentRef}
+        className={`${darkMode ? 'bg-[#111] text-white' : 'bg-white text-black'} pt-[120px] pb-[100px] px-5`}
         style={{ 
           fontSize: `${fontSize}px`,
           lineHeight: lineHeight
         }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-bold text-lg mb-4">1. 개경 (開經)</h2>
-        {pageContent.map((paragraph, index) => (
-          <p key={index} className="mb-4">
-            {paragraph}
-          </p>
-        ))}
-        
-        {/* Page navigation */}
-        <div className="flex justify-between items-center mt-8 mb-20">
+        <h2 className="font-bold text-lg mb-4">{currentChapter.title}</h2>
+        <div className="mb-4">
+          {content.split('\n').map((paragraph, index) => (
+            <p key={index} className="mb-4 leading-relaxed">
+              {paragraph}
+            </p>
+          ))}
+        </div>
+      </div>
+      
+      {/* Page navigation buttons - Only show when controls are visible */}
+      {showControls && (
+        <div className="fixed bottom-20 left-0 right-0 flex justify-between items-center px-5">
           <button 
-            onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (currentPage > 1) setCurrentPage(currentPage - 1);
+            }}
             className={`flex items-center justify-center w-12 h-12 rounded-full ${
               darkMode ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-800'
             } ${currentPage === 1 ? 'opacity-50' : ''}`}
@@ -146,25 +141,29 @@ const ScriptureReader = () => {
             <ChevronLeft size={24} />
           </button>
           
-          <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            {currentPage} / {totalPages}
-          </span>
-          
           <button 
-            onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrentPage(currentPage + 1);
+            }}
             className={`flex items-center justify-center w-12 h-12 rounded-full ${
               darkMode ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-800'
-            } ${currentPage === totalPages ? 'opacity-50' : ''}`}
-            disabled={currentPage === totalPages}
+            }`}
           >
             <ChevronRight size={24} />
           </button>
         </div>
-      </div>
+      )}
       
       {/* Settings panel */}
       {showSettings && (
-        <div className={`fixed inset-0 z-50 ${darkMode ? 'bg-black/80' : 'bg-black/50'}`} onClick={() => setShowSettings(false)}>
+        <div 
+          className={`fixed inset-0 z-50 ${darkMode ? 'bg-black/80' : 'bg-black/50'}`} 
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowSettings(false);
+          }}
+        >
           <div 
             className={`absolute bottom-0 left-0 right-0 p-5 ${darkMode ? 'bg-gray-900' : 'bg-white'} rounded-t-3xl`}
             onClick={(e) => e.stopPropagation()}
@@ -173,6 +172,7 @@ const ScriptureReader = () => {
               경전 설정
             </h3>
             
+            {/* Settings content from the fifth image */}
             <div className="space-y-6">
               <div className="space-y-3">
                 <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -180,12 +180,13 @@ const ScriptureReader = () => {
                 </label>
                 <div className="flex items-center gap-3">
                   <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>작게</span>
-                  <Slider
-                    defaultValue={[fontSize]}
-                    min={12}
-                    max={24}
-                    step={1}
-                    onValueChange={(value) => setFontSize(value[0])}
+                  <input
+                    type="range"
+                    min="12"
+                    max="24"
+                    step="1"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(parseInt(e.target.value))}
                     className="flex-1"
                   />
                   <span className={`text-base font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>크게</span>
@@ -198,12 +199,13 @@ const ScriptureReader = () => {
                 </label>
                 <div className="flex items-center gap-3">
                   <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>좁게</span>
-                  <Slider
-                    defaultValue={[lineHeight * 10]}
-                    min={10}
-                    max={25}
-                    step={1}
-                    onValueChange={(value) => setLineHeight(value[0] / 10)}
+                  <input
+                    type="range"
+                    min="10"
+                    max="25"
+                    step="1"
+                    value={lineHeight * 10}
+                    onChange={(e) => setLineHeight(parseInt(e.target.value) / 10)}
                     className="flex-1"
                   />
                   <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>넓게</span>
@@ -236,39 +238,51 @@ const ScriptureReader = () => {
         </div>
       )}
       
-      {/* Bottom Navigation */}
-      <div className={`fixed bottom-0 left-0 right-0 h-16 ${darkMode ? 'bg-gray-900' : 'bg-white'} border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'} flex items-center justify-around px-6`}>
-        <button 
-          className="flex flex-col items-center"
-          onClick={() => navigate('/scripture/calendar')}
-        >
-          <CalendarDays size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />
-          <span className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>캘린더</span>
-        </button>
-        
-        <button 
-          className="flex flex-col items-center"
-          onClick={() => navigate(`/scripture/bookmarks?scripture=${id}`)}
-        >
-          <Bookmark size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />
-          <span className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>북마크</span>
-        </button>
-        
-        <button 
-          className="flex flex-col items-center"
-        >
-          <Share2 size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />
-          <span className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>공유</span>
-        </button>
-        
-        <button 
-          className="flex flex-col items-center"
-          onClick={() => setShowSettings(true)}
-        >
-          <Settings size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />
-          <span className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>설정</span>
-        </button>
-      </div>
+      {/* Bottom Navigation - Only show when controls are visible */}
+      {showControls && (
+        <div className={`fixed bottom-0 left-0 right-0 h-16 ${darkMode ? 'bg-gray-900' : 'bg-white'} border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'} flex items-center justify-around px-6 z-10`}>
+          <button 
+            className="flex flex-col items-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate('/scripture/calendar');
+            }}
+          >
+            <CalendarDays size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />
+            <span className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>캘린더</span>
+          </button>
+          
+          <button 
+            className="flex flex-col items-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/scripture/bookmarks?scripture=${id}`);
+            }}
+          >
+            <Bookmark size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />
+            <span className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>북마크</span>
+          </button>
+          
+          <button 
+            className="flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Share2 size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />
+            <span className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>공유</span>
+          </button>
+          
+          <button 
+            className="flex flex-col items-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSettings(true);
+            }}
+          >
+            <Settings size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />
+            <span className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>설정</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

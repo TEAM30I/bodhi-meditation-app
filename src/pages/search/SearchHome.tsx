@@ -2,25 +2,34 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, MapPin, Search as SearchIcon, Calendar, Users } from "lucide-react";
+import { ArrowLeft, MapPin, Search as SearchIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DateRange } from "react-day-picker";
+import { Button } from "@/components/ui/button";
 import { regionSearchRankings } from "../../data/searchRankingRepository";
-import { allTemples, allTempleStays } from '../../data/dataRepository';
 import BottomNav from '@/components/BottomNav';
 import { DateRangePicker } from "@/components/search/DateRangePicker";
 import { GuestSelector } from "@/components/search/GuestSelector";
-import { toast } from "@/hooks/use-toast";
 
 export default function SearchHome() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"temple" | "templeStay">("templeStay");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Set default date range to tomorrow and day after tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const dayAfterTomorrow = new Date();
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(2025, 3, 15),
-    to: new Date(2025, 3, 16),
+    from: tomorrow,
+    to: dayAfterTomorrow,
   });
-  const [adults, setAdults] = useState(1);
+  
+  // Default to 2 adults
+  const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
 
   const handleRegionClick = (query: string) => {
@@ -34,14 +43,6 @@ export default function SearchHome() {
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${searchQuery || '서울'}`);
     } else {
-      if (!dateRange?.from || !dateRange?.to) {
-        toast({
-          title: "날짜를 선택해주세요",
-          description: "템플스테이는 예약 날짜 선택이 필수입니다.",
-          variant: "destructive",
-        });
-        return;
-      }
       navigate(`/search/temple-stay/results?query=${searchQuery || '서울'}`);
     }
   };
@@ -58,14 +59,7 @@ export default function SearchHome() {
       navigate(`/search/temple/results?query=nearby`);
     } else {
       setSearchQuery("내 주변");
-      if (!dateRange?.from || !dateRange?.to) {
-        toast({
-          title: "날짜를 선택해주세요",
-          description: "템플스테이는 예약 날짜 선택이 필수입니다.",
-        });
-      } else {
-        navigate(`/search/temple-stay/results?query=nearby`);
-      }
+      navigate(`/search/temple-stay/results?query=nearby`);
     }
   };
 
@@ -125,7 +119,7 @@ export default function SearchHome() {
 
         {/* Date and Guest Selection - Only for Temple Stay */}
         {activeTab === "templeStay" && (
-          <div className="flex border-b border-[#E5E5EC] mb-4">
+          <div className="flex border-b border-[#E5E5EC]">
             <div className="flex-1 px-4 py-3 border-r border-[#E5E5EC]">
               <DateRangePicker 
                 dateRange={dateRange}
@@ -143,8 +137,18 @@ export default function SearchHome() {
           </div>
         )}
 
+        {/* Search Button */}
+        <div className="px-4 py-3 border-b border-[#E5E5EC]">
+          <Button 
+            className="w-full bg-[#FF8433] hover:bg-[#E67422] text-white"
+            onClick={handleSearch}
+          >
+            검색하기
+          </Button>
+        </div>
+
         {/* Location Search Button */}
-        <div className="px-4 mb-6">
+        <div className="px-4 py-3 mb-3 border-b border-[#E5E5EC]">
           <button
             className="flex items-center gap-2 text-sm text-[#FF8433] border border-[#FF8433] rounded-full py-2 px-4 w-full"
             onClick={handleLocationSearch}
@@ -157,7 +161,7 @@ export default function SearchHome() {
         {/* Regional Search Ranking */}
         <div className="px-4 mb-6">
           <h2 className="text-base font-bold mb-4 text-[#333333]">
-            {activeTab === 'temple' ? '많이 찾는 사찰' : '인기 검색어'}
+            {activeTab === 'temple' ? '많이 찜한 사찰' : '인기 검색어'}
           </h2>
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-4">
@@ -173,13 +177,6 @@ export default function SearchHome() {
             ))}
           </div>
         </div>
-        
-        {/* Additional info for Temple Stay tab */}
-        {activeTab === 'templeStay' && (
-          <div className="px-4 py-2 bg-[#F5F5F5]">
-            <p className="text-xs text-gray-500">* 템플스테이는 예약 가능 일자와 인원을 선택해주세요.</p>
-          </div>
-        )}
       </div>
       
       <BottomNav />

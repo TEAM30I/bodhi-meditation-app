@@ -2,14 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, ArrowLeft, Home, Calendar, Users } from 'lucide-react';
+import { Search, ArrowLeft, Home, Calendar, Users, Heart } from 'lucide-react';
 import BottomNav from "@/components/BottomNav";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DateRange } from "react-day-picker";
-import TempleStayItem from '@/components/search/TempleStayItem';
-import { allTempleStays } from '@/data/dataRepository';
+import { getTempleStayList, searchTempleStays } from '@/data/templeStayData';
 import { DateRangePicker } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
+import { Button } from '@/components/ui/button';
 
 type SortOption = '추천순' | '거리순' | '가격낮은순' | '가격높은순';
 
@@ -21,39 +21,53 @@ const TempleStaySearchResults = () => {
   
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [sortBy, setSortBy] = useState<SortOption>('추천순');
+  const [templeStays, setTempleStays] = useState(getTempleStayList());
+  
+  // Set default date range to tomorrow and day after tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const dayAfterTomorrow = new Date();
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(2025, 3, 15),
-    to: new Date(2025, 3, 16),
+    from: tomorrow,
+    to: dayAfterTomorrow,
   });
-  const [adults, setAdults] = useState(1);
+  
+  // Default guest count
+  const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
 
-  // Filter results based on search query
-  const filteredTempleStays = allTempleStays.filter(templeStay => 
-    templeStay.name.includes(searchQuery) || 
-    templeStay.location.includes(searchQuery) ||
-    (templeStay.description && templeStay.description.includes(searchQuery))
-  );
+  // Update search results based on query
+  useEffect(() => {
+    if (searchQuery === 'nearby') {
+      // Just get all temple stays for now - in a real app this would filter by location
+      setTempleStays(getTempleStayList());
+    } else {
+      setTempleStays(searchTempleStays(searchQuery));
+    }
+  }, [searchQuery]);
 
   // Sort results based on selected option
   const sortedTempleStays = React.useMemo(() => {
     switch (sortBy) {
       case '거리순':
-        return [...filteredTempleStays].sort((a, b) => {
+        return [...templeStays].sort((a, b) => {
           if (!a.distance || !b.distance) return 0;
           const distA = parseInt(a.distance.replace(/[^0-9]/g, ''));
           const distB = parseInt(b.distance.replace(/[^0-9]/g, ''));
           return distA - distB;
         });
       case '가격낮은순':
-        return [...filteredTempleStays].sort((a, b) => a.price - b.price);
+        return [...templeStays].sort((a, b) => a.price - b.price);
       case '가격높은순':
-        return [...filteredTempleStays].sort((a, b) => b.price - a.price);
+        return [...templeStays].sort((a, b) => b.price - a.price);
       case '추천순':
       default:
-        return filteredTempleStays;
+        return [...templeStays].sort((a, b) => b.likeCount - a.likeCount);
     }
-  }, [filteredTempleStays, sortBy]);
+  }, [templeStays, sortBy]);
 
   const handleSearch = () => {
     navigate(`/search/temple-stay/results?query=${searchQuery}`);
@@ -64,10 +78,6 @@ const TempleStaySearchResults = () => {
       handleSearch();
     }
   };
-
-  useEffect(() => {
-    setSearchQuery(initialQuery);
-  }, [initialQuery]);
 
   return (
     <div className="bg-[#F5F5F5] min-h-screen pb-20">
@@ -120,6 +130,16 @@ const TempleStaySearchResults = () => {
           </div>
         </div>
 
+        {/* Search Button */}
+        <div className="px-4 py-3 border-b border-[#E5E5EC]">
+          <Button 
+            className="w-full bg-[#FF8433] hover:bg-[#E67422] text-white"
+            onClick={handleSearch}
+          >
+            검색하기
+          </Button>
+        </div>
+
         {/* Sort Options */}
         <div className="flex px-4 py-3 gap-2 border-b border-[#E5E5EC] overflow-x-auto">
           {(['추천순', '거리순', '가격낮은순', '가격높은순'] as SortOption[]).map((option) => (
@@ -141,9 +161,43 @@ const TempleStaySearchResults = () => {
         {/* Results */}
         <div className="px-4 py-4">
           {sortedTempleStays.length > 0 ? (
-            sortedTempleStays.map((templeStay) => (
-              <TempleStayItem key={templeStay.id} templeStay={templeStay} />
-            ))
+            <div className="space-y-4">
+              {sortedTempleStays.map((templeStay) => (
+                <div 
+                  key={templeStay.id}
+                  className="flex bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm cursor-pointer"
+                  onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
+                >
+                  <div className="w-[100px] h-[100px] bg-gray-200">
+                    <img 
+                      src={templeStay.imageUrl} 
+                      alt={templeStay.templeName} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 p-3">
+                    <h3 className="font-semibold text-base mb-1">{templeStay.templeName} 템플스테이</h3>
+                    <div className="flex items-center text-sm text-gray-500 mb-2">
+                      <span>{templeStay.location}</span>
+                      {templeStay.distance && (
+                        <span className="ml-2 text-xs px-1.5 py-0.5 bg-gray-100 rounded-full">
+                          {templeStay.direction || `도보 ${templeStay.distance}`}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center text-xs text-gray-500">
+                        <Heart className="w-3 h-3 fill-red-500 stroke-red-500 mr-1" />
+                        <span>{templeStay.likeCount}</span>
+                      </div>
+                      <div className="text-sm font-semibold text-[#FF8433]">
+                        {templeStay.price.toLocaleString()}원
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <p className="text-center py-8 text-gray-500">검색 결과가 없습니다</p>
           )}

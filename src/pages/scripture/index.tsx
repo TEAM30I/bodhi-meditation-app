@@ -1,22 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bookmark, ChevronRight, Home } from 'lucide-react';
-import { scriptures, readingSchedule, calendarData } from '@/data/scriptureData';
+import { Home, Bookmark, ChevronRight } from 'lucide-react';
+import { scriptureTexts, readingSchedule, calendarData } from '@/data/scriptureData';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
 import ScriptureProgressPreview from '@/components/scripture/ScriptureProgressPreview';
 
 const Scripture = () => {
   const navigate = useNavigate();
 
-  // Filter active reading schedules
-  const activeReadingSchedules = readingSchedule.filter(schedule => schedule.progress > 0);
+  // Filter scriptures with progress
+  const activeScriptures = Object.entries(scriptureTexts)
+    .map(([key, scripture]) => ({ 
+      key, 
+      ...scripture,
+      progress: readingSchedule.find(s => s.category === key)?.progress || 0
+    }))
+    .filter(scripture => scripture.progress > 0);
   
-  // Filter unstarted scriptures
-  const unreadScriptures = scriptures.filter(scripture => 
-    !activeReadingSchedules.some(schedule => 
-      scripture.categories.includes(schedule.category)
-    )
-  );
+  // Filter scriptures without progress
+  const unreadScriptures = Object.entries(scriptureTexts)
+    .map(([key, scripture]) => ({ 
+      key, 
+      ...scripture,
+      progress: readingSchedule.find(s => s.category === key)?.progress || 0
+    }))
+    .filter(scripture => scripture.progress === 0);
 
   // Get the next 7 days for calendar preview
   const getRecentDates = () => {
@@ -51,10 +59,6 @@ const Scripture = () => {
       </div>
 
       <div className="px-5 py-5">
-        <h2 className="text-lg font-medium mb-4">
-          이어보기
-        </h2>
-
         {/* Calendar Preview */}
         <div 
           className="bg-white rounded-xl p-4 mb-6 shadow-sm"
@@ -68,23 +72,24 @@ const Scripture = () => {
           </div>
         </div>
 
+        <h2 className="text-lg font-medium mb-4">
+          이어보기
+        </h2>
+
         {/* Active Reading List */}
         <div className="space-y-4 mb-8">
-          {activeReadingSchedules.map((schedule) => {
-            const matchingScripture = scriptures.find(
-              s => s.categories.includes(schedule.category)
-            );
-            
-            if (!matchingScripture) return null;
-
-            return (
-              <ScriptureCard
-                key={schedule.id}
-                scripture={matchingScripture}
-                schedule={schedule}
-              />
-            );
-          })}
+          {activeScriptures.map((scripture) => (
+            <ScriptureCard
+              key={scripture.key}
+              scripture={{
+                id: scripture.key,
+                title: scripture.title,
+                progress: scripture.progress,
+                colorScheme: scripture.color
+              }}
+              onClick={() => navigate(`/scripture/${scripture.title}`)}
+            />
+          ))}
         </div>
 
         {/* Other Scriptures List */}
@@ -94,8 +99,14 @@ const Scripture = () => {
             <div className="space-y-4">
               {unreadScriptures.map((scripture) => (
                 <ScriptureCard
-                  key={scripture.id}
-                  scripture={scripture}
+                  key={scripture.key}
+                  scripture={{
+                    id: scripture.key,
+                    title: scripture.title,
+                    progress: 0,
+                    colorScheme: scripture.color
+                  }}
+                  onClick={() => navigate(`/scripture/${scripture.title}`)}
                 />
               ))}
             </div>
