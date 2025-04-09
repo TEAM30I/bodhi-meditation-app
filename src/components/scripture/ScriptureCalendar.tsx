@@ -3,10 +3,7 @@ import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-
-// Import the data using require
-const scriptureData = require('/public/data/scriptureData/scriptureRepository');
-const calendarData = scriptureData.calendarData;
+import { calendarData } from '/public/data/scriptureData/scriptureRepository';
 
 interface ScriptureProgressPreviewProps {
   recentDates?: {

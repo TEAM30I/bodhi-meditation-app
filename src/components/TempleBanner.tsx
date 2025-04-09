@@ -2,14 +2,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { typedData } from '@/utils/typeUtils';
+import { imageRepository } from '/public/data/imageRepository';
 
-// Use dynamic import for the actual data
-// The types are defined in the declaration files
 const TempleBanner = () => {
   const navigate = useNavigate();
   
-  // Import from the correct path
-  const imageRepository = require('/public/data/imageRepository').imageRepository;
   const typedImageRepo = typedData<typeof imageRepository>(imageRepository);
 
   return (
