@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Home, ChevronRight } from 'lucide-react';
+import { Home, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { scriptures, readingSchedule } from '../../../public/data/scriptureData/scriptureRepository';
-import ScriptureCard from '@/components/scripture/ScriptureCard';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
 import BookmarkList from '@/components/scripture/BookmarkList';
@@ -56,6 +55,10 @@ const Scripture = () => {
   
   const weekDates = getWeekDates();
 
+  // Group scriptures by read status
+  const startedScriptures = Object.values(typedScriptures).filter(s => s.hasStarted);
+  const notStartedScriptures = Object.values(typedScriptures).filter(s => !s.hasStarted);
+
   return (
     <div className="bg-[#F1F3F5] min-h-screen pb-20 font-['Pretendard']">
       {/* Header */}
@@ -67,6 +70,13 @@ const Scripture = () => {
           <Home size={24} />
         </button>
         <h1 className="text-lg font-bold text-center flex-1">경전 읽기</h1>
+        <button
+          onClick={() => navigate('/scripture/bookmarks')}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 7.8C5 6.11984 5 5.27976 5.32698 4.63803C5.6146 4.07354 6.07354 3.6146 6.63803 3.32698C7.27976 3 8.11984 3 9.8 3H14.2C15.8802 3 16.7202 3 17.362 3.32698C17.9265 3.6146 18.3854 4.07354 18.673 4.63803C19 5.27976 19 6.11984 19 7.8V21L12 17L5 21V7.8Z" stroke="#111111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </div>
 
       <div className="px-5 py-4">
@@ -115,45 +125,51 @@ const Scripture = () => {
             <div className="mb-6">
               <h2 className="text-lg font-bold mb-4">이어보기</h2>
               <div className="space-y-2">
-                {typedReadingSchedule.map((schedule) => {
-                  // Find the scripture by scriptureId
-                  const matchingScripture = Object.values(typedScriptures).find(
-                    s => s.id === schedule.scriptureId
-                  );
-                  
-                  if (!matchingScripture || !matchingScripture.hasStarted) return null;
-
-                  const progressColor = matchingScripture.colorScheme?.progressBg || "#FF4D00";
-                  
-                  return (
-                    <div
-                      key={schedule.id}
-                      className="bg-white p-5 rounded-3xl shadow-sm"
-                      onClick={() => navigate(`/scripture/${matchingScripture.id}`)}
-                    >
-                      <div className={`inline-flex px-2 py-2 ${matchingScripture.colorScheme?.bg || 'bg-red-500'} rounded-xl mb-3`}>
-                        <span className={`text-xs font-medium ${matchingScripture.colorScheme?.text || 'text-white'}`}>
-                          {matchingScripture.title}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-bold text-gray-900 mb-3">
-                        보리11님의 {matchingScripture.title} 통독
-                      </h3>
-                      <div className="w-full h-1 bg-[#FBF3E9] rounded-full mb-1">
+                {startedScriptures.length > 0 ? (
+                  startedScriptures.map((scripture) => {
+                    const badgeColor = scripture.id === "heart-sutra" ? "#EF4223" :
+                                    scripture.id === "diamond-sutra" ? "#21212F" :
+                                    scripture.id === "lotus-sutra" ? "#0080FF" :
+                                    scripture.id === "sixpatriarch-sutra" ? "#4CAF50" :
+                                    scripture.id === "avatamsaka-sutra" ? "#FFB23F" : "#DE7834";
+                    
+                    return (
+                      <div
+                        key={scripture.id}
+                        className="bg-white p-5 rounded-3xl shadow-sm cursor-pointer"
+                        onClick={() => navigate(`/scripture/${scripture.id}`)}
+                      >
                         <div 
-                          className="h-1 rounded-full" 
-                          style={{ 
-                            width: `${matchingScripture.progress || 0}%`,
-                            background: `linear-gradient(90deg, rgba(218, 0, 0, 0.55) 0%, ${progressColor} 44.19%)`
-                          }}
-                        ></div>
+                          className="inline-flex px-2 py-2 rounded-xl mb-3"
+                          style={{ backgroundColor: badgeColor }}
+                        >
+                          <span className="text-xs font-medium text-white">
+                            {scripture.title}
+                          </span>
+                        </div>
+                        <h3 className="text-base font-bold text-gray-900 mb-3">
+                          보리11님의 {scripture.title} 통독
+                        </h3>
+                        <div className="w-full h-1 bg-[#FBF3E9] rounded-full mb-1">
+                          <div 
+                            className="h-1 rounded-full" 
+                            style={{ 
+                              width: `${scripture.progress || 0}%`,
+                              background: `linear-gradient(90deg, rgba(218, 0, 0, 0.55) 0%, ${badgeColor} 44.19%)`
+                            }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-end">
+                          <span className="text-xs text-gray-500">{scripture.progress}%</span>
+                        </div>
                       </div>
-                      <div className="flex justify-end">
-                        <span className="text-xs text-gray-500">{matchingScripture.progress}%</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                ) : (
+                  <div className="bg-white p-6 rounded-3xl shadow-sm text-center">
+                    <p className="text-gray-500">아직 시작한 경전이 없습니다.</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -161,31 +177,43 @@ const Scripture = () => {
             <div className="mb-6">
               <h2 className="text-lg font-bold mb-4">아직 펼치지 않은 이야기</h2>
               <div className="space-y-2">
-                {Object.values(typedScriptures).map((scripture) => {
-                  // Check if this scripture is already started
-                  if (scripture.hasStarted) return null;
-                  
-                  return (
-                    <div
-                      key={scripture.id}
-                      className="bg-white p-5 rounded-3xl shadow-sm"
-                      onClick={() => navigate(`/scripture/${scripture.id}`)}
-                    >
-                      <div className={`inline-flex px-2 py-2 ${scripture.colorScheme?.bg || 'bg-blue-500'} rounded-xl mb-3`}>
-                        <span className={`text-xs font-medium ${scripture.colorScheme?.text || 'text-white'}`}>
-                          {scripture.title}
-                        </span>
+                {notStartedScriptures.length > 0 ? (
+                  notStartedScriptures.map((scripture) => {
+                    const badgeColor = scripture.id === "heart-sutra" ? "#EF4223" :
+                                    scripture.id === "diamond-sutra" ? "#21212F" :
+                                    scripture.id === "lotus-sutra" ? "#0080FF" :
+                                    scripture.id === "sixpatriarch-sutra" ? "#4CAF50" :
+                                    scripture.id === "avatamsaka-sutra" ? "#FFB23F" : "#DE7834";
+                    
+                    return (
+                      <div
+                        key={scripture.id}
+                        className="bg-white p-5 rounded-3xl shadow-sm cursor-pointer"
+                        onClick={() => navigate(`/scripture/${scripture.id}`)}
+                      >
+                        <div 
+                          className="inline-flex px-2 py-2 rounded-xl mb-3"
+                          style={{ backgroundColor: badgeColor }}
+                        >
+                          <span className="text-xs font-medium text-white">
+                            {scripture.title}
+                          </span>
+                        </div>
+                        <h3 className="text-base font-bold text-gray-900 mb-3">
+                          보리11님의 {scripture.title} 통독
+                        </h3>
+                        <div className="w-full h-1 bg-[#FBF3E9] rounded-full mb-1"></div>
+                        <div className="flex justify-end">
+                          <span className="text-xs text-gray-500">0%</span>
+                        </div>
                       </div>
-                      <h3 className="text-base font-bold text-gray-900 mb-3">
-                        보리11님의 {scripture.title} 통독
-                      </h3>
-                      <div className="w-full h-1 bg-[#FBF3E9] rounded-full mb-1"></div>
-                      <div className="flex justify-end">
-                        <span className="text-xs text-gray-500">0%</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                ) : (
+                  <div className="bg-white p-6 rounded-3xl shadow-sm text-center">
+                    <p className="text-gray-500">모든 경전을 시작했습니다.</p>
+                  </div>
+                )}
               </div>
             </div>
           </>
@@ -200,12 +228,10 @@ const Scripture = () => {
       </div>
 
       {/* Scripture Bottom Navigation */}
-      {activeTab !== 'reading' && (
-        <ScriptureBottomNav 
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-        />
-      )}
+      <ScriptureBottomNav 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
     </div>
   );
 };

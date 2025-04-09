@@ -1,16 +1,35 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
 interface SettingsPanelProps {
   onFontSizeChange?: (size: number) => void;
+  onFontFamilyChange?: (family: 'gothic' | 'serif') => void;
+  onThemeChange?: (theme: 'light' | 'dark') => void;
+  initialFontSize?: number;
+  initialFontFamily?: 'gothic' | 'serif';
+  initialTheme?: 'light' | 'dark';
 }
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ onFontSizeChange }) => {
-  const [fontSize, setFontSize] = useState(90);
-  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>('gothic');
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
+  onFontSizeChange, 
+  onFontFamilyChange,
+  onThemeChange,
+  initialFontSize = 90,
+  initialFontFamily = 'gothic',
+  initialTheme = 'light'
+}) => {
+  const [fontSize, setFontSize] = useState(initialFontSize);
+  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>(initialFontFamily);
+  const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
+
+  useEffect(() => {
+    // Immediately apply initial settings
+    if (onFontSizeChange) onFontSizeChange((initialFontSize / 100) * 16);
+    if (onFontFamilyChange) onFontFamilyChange(initialFontFamily);
+    if (onThemeChange) onThemeChange(initialTheme);
+  }, []);
 
   const decreaseFontSize = () => {
     if (fontSize > 50) {
@@ -29,6 +48,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onFontSizeChange }) => {
       if (onFontSizeChange) {
         onFontSizeChange((newSize / 100) * 16);
       }
+    }
+  };
+
+  const handleFontFamilyChange = (family: 'gothic' | 'serif') => {
+    setFontFamily(family);
+    if (onFontFamilyChange) {
+      onFontFamilyChange(family);
+    }
+  };
+
+  const handleThemeChange = (themeMode: 'light' | 'dark') => {
+    setTheme(themeMode);
+    if (onThemeChange) {
+      onThemeChange(themeMode);
     }
   };
 
@@ -74,7 +107,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onFontSizeChange }) => {
             <span className="text-base text-[#111]">글꼴</span>
             <div className="inline-flex p-[2px] bg-[#F1F1F5] rounded-2xl">
               <button 
-                onClick={() => setFontFamily('gothic')}
+                onClick={() => handleFontFamilyChange('gothic')}
                 className={`w-20 py-2 text-center rounded-xl ${
                   fontFamily === 'gothic' 
                     ? 'bg-white font-bold text-black shadow-sm' 
@@ -84,7 +117,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onFontSizeChange }) => {
                 고딕체
               </button>
               <button 
-                onClick={() => setFontFamily('serif')}
+                onClick={() => handleFontFamilyChange('serif')}
                 className={`w-20 py-2.5 text-center ${
                   fontFamily === 'serif' 
                     ? 'bg-white font-bold text-black shadow-sm rounded-xl' 
@@ -101,7 +134,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onFontSizeChange }) => {
             <span className="text-base text-[#111]">테마</span>
             <div className="inline-flex p-[2px] bg-[#F1F1F5] rounded-2xl">
               <button 
-                onClick={() => setTheme('light')}
+                onClick={() => handleThemeChange('light')}
                 className={`w-20 py-2 text-center rounded-xl ${
                   theme === 'light' 
                     ? 'bg-white font-bold text-black shadow-sm' 
@@ -111,7 +144,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onFontSizeChange }) => {
                 라이트
               </button>
               <button 
-                onClick={() => setTheme('dark')}
+                onClick={() => handleThemeChange('dark')}
                 className={`w-20 py-2.5 text-center ${
                   theme === 'dark' 
                     ? 'bg-white font-bold text-black shadow-sm rounded-xl' 

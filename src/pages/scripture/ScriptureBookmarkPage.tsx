@@ -1,135 +1,152 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import { bookmarks, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
+import { scriptures, bookmarks } from '../../../public/data/scriptureData/scriptureRepository';
+import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 
-const ScriptureBookmarkPage: React.FC = () => {
+const ScriptureBookmarkPage = () => {
   const navigate = useNavigate();
-  const [activeScripture, setActiveScripture] = useState<string | null>(null);
-
-  // Type our data properly
-  const typedBookmarks = typedData<typeof bookmarks>(bookmarks);
+  const [activeScriptureId, setActiveScriptureId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  
   const typedScriptures = typedData<typeof scriptures>(scriptures);
-
+  const typedBookmarks = typedData<typeof bookmarks>(bookmarks);
+  
   // Get unique scripture IDs from bookmarks
   const scriptureIds = [...new Set(typedBookmarks.map(bookmark => bookmark.scriptureId))];
-  
-  // Get all scripture titles from repository
-  const allScriptureOptions = Object.values(typedScriptures).map(scripture => ({
-    id: scripture.id,
-    title: scripture.title,
-    colorScheme: scripture.colorScheme,
-    badgeColor: scripture.id === "heart-sutra" ? "#EF4223" :
-                scripture.id === "diamond-sutra" ? "#21212F" :
-                scripture.id === "lotus-sutra" ? "#0080FF" :
-                scripture.id === "sixpatriarch-sutra" ? "#4CAF50" : "#DE7834"
-  }));
+
+  useEffect(() => {
+    // If we have scripture IDs, set the first one as active by default
+    if (scriptureIds.length > 0 && !activeScriptureId) {
+      setActiveScriptureId(scriptureIds[0]);
+    }
+    
+    // Simulate loading
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [scriptureIds, activeScriptureId]);
 
   // Filter bookmarks by active scripture
-  const filteredBookmarks = activeScripture 
-    ? typedBookmarks.filter(bookmark => bookmark.scriptureId === activeScripture)
+  const filteredBookmarks = activeScriptureId 
+    ? typedBookmarks.filter(bookmark => bookmark.scriptureId === activeScriptureId)
     : typedBookmarks;
 
-  const handleScriptureSelect = (id: string) => {
-    setActiveScripture(activeScripture === id ? null : id);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white min-h-screen font-['Pretendard']">
-      <div className="flex flex-col w-full max-w-[360px] mx-auto">
-        {/* Status Bar */}
-        <div className="h-11 px-5 flex items-center justify-between">
-          <span className="text-base">9:41</span>
-        </div>
-        
-        {/* Header */}
-        <div className="flex items-center justify-between h-14 px-5 border-b border-[#EAECEE]">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/scripture')}>
-              <ArrowLeft size={28} />
-            </button>
-            <span className="font-bold text-xl text-[#111]">북마크</span>
-          </div>
-        </div>
-        
-        {/* Scripture tabs */}
-        <div className="flex overflow-x-auto gap-0 px-5 py-2 border-b border-[#EAECEE]">
-          {allScriptureOptions.map((option) => (
-            <button
-              key={option.id}
-              className={`h-8 px-3 mx-0 flex items-center border-2 ${
-                activeScripture === option.id
-                  ? 'border-[#DE7834] text-[#DE7834]'
-                  : 'border-[#76767680] text-[#767676]'
-              }`}
-              onClick={() => handleScriptureSelect(option.id)}
-            >
-              <span className="text-sm font-bold whitespace-nowrap">
-                {option.title}
-              </span>
-            </button>
-          ))}
-        </div>
+    <div className="bg-[#F1F3F5] min-h-screen pb-20 font-['Pretendard']">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center border-b border-[#E5E5EC] px-5">
+        <button 
+          onClick={() => navigate('/scripture')}
+          className="mr-4"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <h1 className="text-lg font-bold text-center flex-1">북마크</h1>
+      </div>
 
-        {/* Bookmark list */}
-        <div className="p-5">
-          <h2 className="text-xl font-bold text-[#111] mb-4">
-            {filteredBookmarks.length}개의 북마크가 있습니다
-          </h2>
-          
-          {filteredBookmarks.length > 0 ? (
-            <div className="space-y-2">
-              {filteredBookmarks.map((bookmark) => {
-                const scripture = Object.values(typedScriptures).find(s => s.id === bookmark.scriptureId);
-                const chapter = scripture?.chapters.find(ch => ch.id === bookmark.chapterId);
-                
-                if (!scripture) return null;
-                
-                let badgeColor = "#EF4223";
-                if (scripture.id === "diamond-sutra") {
-                  badgeColor = "#21212F";
-                } else if (scripture.id === "lotus-sutra") {
-                  badgeColor = "#0080FF";
-                } else if (scripture.id === "sixpatriarch-sutra") {
-                  badgeColor = "#4CAF50";
-                }
-                
-                return (
-                  <div
-                    key={bookmark.id}
-                    className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center cursor-pointer"
-                    onClick={() => navigate(`/scripture/${bookmark.scriptureId}`)}
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div 
-                        className="px-2 py-2 rounded-xl"
-                        style={{ backgroundColor: badgeColor }}
-                      >
-                        <span className="text-xs text-white">
-                          {scripture.title}
-                        </span>
-                      </div>
-                      <span className="text-lg font-bold text-[#111]">
-                        {chapter?.title || '제1권 1장'}
+      {/* Scripture Filter Tabs */}
+      <div className="bg-white w-full overflow-x-auto px-5 py-3 border-b border-[#E5E5EC]">
+        <div className="flex space-x-3">
+          {scriptureIds.map(id => {
+            const scripture = typedScriptures[id];
+            if (!scripture) return null;
+            
+            return (
+              <button
+                key={id}
+                className={`px-3 py-2 rounded-xl whitespace-nowrap ${
+                  activeScriptureId === id 
+                    ? 'border-2 border-[#DE7834] text-[#DE7834] font-bold'
+                    : 'border-2 border-gray-300 text-gray-500'
+                }`}
+                onClick={() => setActiveScriptureId(id)}
+              >
+                {scripture.title}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Bookmark List */}
+      <div className="px-5 py-4">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          {filteredBookmarks.length}개의 북마크가 있습니다
+        </h2>
+        
+        <div className="space-y-3">
+          {filteredBookmarks.map(bookmark => {
+            const scripture = typedScriptures[bookmark.scriptureId];
+            if (!scripture) return null;
+            
+            // Determine badge color based on scripture ID
+            const badgeColor = scripture.id === "heart-sutra" ? "#EF4223" :
+                          scripture.id === "diamond-sutra" ? "#21212F" :
+                          scripture.id === "lotus-sutra" ? "#0080FF" :
+                          scripture.id === "sixpatriarch-sutra" ? "#4CAF50" :
+                          scripture.id === "avatamsaka-sutra" ? "#FFB23F" : "#DE7834";
+            
+            return (
+              <div 
+                key={bookmark.id}
+                className="bg-white p-5 rounded-xl shadow-sm cursor-pointer"
+                onClick={() => navigate(`/scripture/${bookmark.scriptureId}`)}
+              >
+                <div className="flex items-center">
+                  <div className="flex-1">
+                    <div 
+                      className="inline-flex px-2 py-2 rounded-xl mb-3"
+                      style={{ backgroundColor: badgeColor }}
+                    >
+                      <span className="text-xs font-medium text-white">
+                        {scripture.title}
                       </span>
                     </div>
-                    <div className="flex items-center">
-                      <span className="text-xs text-[#767676]">시작하기</span>
-                      <ChevronRight size={12} className="text-[#767676]" />
-                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {bookmark.title}
+                    </h3>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-48 bg-white rounded-xl border border-gray-100">
-              <p className="text-gray-500">북마크가 없습니다.</p>
+                  
+                  <div className="flex items-center text-gray-500">
+                    <span className="text-xs mr-1">시작하기</span>
+                    <ChevronRight size={12} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          
+          {filteredBookmarks.length === 0 && (
+            <div className="bg-white p-6 rounded-xl shadow-sm text-center">
+              <p className="text-gray-500">북마크가 없습니다</p>
             </div>
           )}
         </div>
       </div>
+
+      {/* Scripture Bottom Navigation */}
+      <ScriptureBottomNav 
+        activeTab="bookmark"
+        onTabChange={(tab) => {
+          if (tab === 'reading') navigate('/scripture');
+          else if (tab === 'calendar') navigate('/scripture/calendar');
+          else if (tab === 'share') navigate('/scripture/share');
+          else if (tab === 'settings') navigate('/scripture/settings');
+        }}
+      />
     </div>
   );
 };
