@@ -123,7 +123,7 @@ const Main = () => {
           </div>
           
           <p className="text-gray-500 text-sm mb-3">
-            ���도로 사찰을 둘러보고, 관심 사찰로 저장해보세요
+            도로 사찰을 둘러보고, 관심 사찰로 저장해보세요
           </p>
           
           <div 
