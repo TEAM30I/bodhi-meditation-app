@@ -44,6 +44,7 @@ declare module "*/templeRepository" {
     name: string;
     location: string;
     imageUrl: string;
+    region: string; // Make sure region property is defined
     distance?: string;
     rating?: number;
     reviews?: number;
@@ -71,6 +72,7 @@ declare module "*/templeRepository" {
   export const popularTemples: Temple[];
   export const temples: Record<string, Temple>;
   export const regionTags: { id: string; name: string; active: boolean }[];
+  export const regions: { id: string; name: string; active: boolean }[]; // Add regions export
   export const templeData: Temple[];
   
   export function getTempleList(): Temple[];
