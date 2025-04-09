@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Search, MapPin, ChevronRight, X, TrendingUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { regionTags, regionSearchRankings } from '/public/data/templeData/templeRepository';
+import { regionTags } from '/public/data/templeData/templeRepository';
+import { regionSearchRankings } from '/public/data/searchRankingRepository';
 
 const FindTemple = () => {
   const navigate = useNavigate();
