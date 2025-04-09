@@ -10,6 +10,9 @@ import {
   regionTags
 } from '../../../public/data/templeData/templeRepository';
 
+// Import nearbyTemples from templeData
+import { nearbyTemples } from '../../../public/data/templeData/templeData';
+
 // Export everything from templeRepository
 export {
   temples,
@@ -17,7 +20,8 @@ export {
   getTopLikedTemples,
   filterTemplesByTag,
   searchTemples,
-  regionTags
+  regionTags,
+  nearbyTemples
 };
 
 // Export Temple interface

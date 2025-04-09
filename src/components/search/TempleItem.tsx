@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Temple } from '@/data/templeData';
 
@@ -37,17 +38,11 @@ const TempleItem = ({ temple }: TempleItemProps) => {
         )}
         
         <div className="flex items-center mb-2">
-          {temple.rating && (
-            <Badge className="flex items-center gap-1 bg-[#ffc83b] text-black font-bold text-xs rounded-full h-6 mr-2">
-              <Star className="w-3 h-3 fill-current" />
-              <span>{temple.rating}</span>
+          {temple.likeCount && (
+            <Badge className="flex items-center gap-1 bg-pink-100 text-pink-600 font-bold text-xs rounded-full h-6 mr-2">
+              <Heart className="w-3 h-3 fill-current" />
+              <span>{temple.likeCount}</span>
             </Badge>
-          )}
-          
-          {temple.reviews && (
-            <span className="text-gray-500 text-xs">
-              {temple.reviews}개의 평가
-            </span>
           )}
         </div>
         

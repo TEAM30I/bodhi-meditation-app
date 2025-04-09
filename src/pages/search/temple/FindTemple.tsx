@@ -1,18 +1,19 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Home } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { nearbyTemples, regionTags } from "../../../data/templeData";
-import { temples } from '../../../data/templeData';
+import { regionTags, getTempleList } from "../../../data/templeData";
 import BottomNav from '@/components/BottomNav';
 
 const FindTemple = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [selectedTags, setSelectedTags] = React.useState(['seoul']);
-
+  
+  // Get temple data from the repository
+  const allTemples = getTempleList();
+  
   const handleTagClick = (tagId: string) => {
     if (tagId === 'all') {
       setSelectedTags([]);
@@ -39,11 +40,13 @@ const FindTemple = () => {
     navigate(`/search/temple/detail/${templeId}`);
   };
 
-  // Get the nearby temples
-  const nearbyTemplesDisplay = nearbyTemples.slice(0, 4);
+  // Get the nearby temples - assuming the first few temples as nearby for demo
+  const nearbyTemplesDisplay = allTemples.slice(0, 4);
   
-  // Get the popular temples
-  const popularTemples = temples.slice(0, 4);
+  // Get the popular temples - sort by likeCount for popular temples
+  const popularTemples = [...allTemples]
+    .sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0))
+    .slice(0, 4);
 
   return (
     <div className="bg-[#F5F5F5] min-h-screen pb-20">

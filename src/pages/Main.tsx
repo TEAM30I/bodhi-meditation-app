@@ -1,12 +1,11 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BodhiLogo from '@/components/BodhiLogo';
 import BottomNav from '@/components/BottomNav';
 import { Search, MapPin, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { temples } from '../data/templeData';
-import { templeStays } from '../data/templeStayData';
+import { getTempleList } from '../data/templeData';
+import { getTempleStayList } from '../data/templeStayData';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { readingSchedule, scriptures } from '../data/scriptureData';
@@ -42,10 +41,12 @@ const Main = () => {
   const featuredScriptures = readingSchedule.slice(0, 3);
   
   // 추천 사찰 목록
-  const recommendedTemples = temples.slice(0, 3);
+  const templeList = getTempleList();
+  const recommendedTemples = templeList.slice(0, 3);
   
   // 추천 템플스테이 목록
-  const recommendedTempleStays = templeStays.slice(0, 3);
+  const templeStayList = getTempleStayList();
+  const recommendedTempleStays = templeStayList.slice(0, 3);
 
   return (
     <div className="w-full min-h-screen bg-[#F1F3F5]">

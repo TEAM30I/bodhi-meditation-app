@@ -1,112 +1,134 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home, Heart, Share, MapPin, Globe, Calendar } from 'lucide-react';
-import { temples } from '../../../data/templeData';
-import BottomNav from '@/components/BottomNav';
+import { ArrowLeft, Heart, Share, MapPin, Clock, Car } from 'lucide-react';
+import { temples } from '@/data/templeData';
 
 const TempleDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  const [temple, setTemple] = useState(temples.find(t => t.id === id));
-  const [isFavorite, setIsFavorite] = useState(false);
-  
-  useEffect(() => {
-    if (!temple) {
-      // If temple not found, navigate back to search
-      navigate('/search/temple/results');
-    }
-    // Scroll to top when page loads
-    window.scrollTo(0, 0);
-  }, [temple, navigate]);
+
+  // Find the temple by id
+  const temple = Object.values(temples).find(temple => temple.id === id);
 
   if (!temple) {
-    return <div className="flex items-center justify-center h-screen">로딩 중...</div>;
+    return <div>사찰을 찾을 수 없습니다.</div>;
   }
 
+  const handleBackClick = () => {
+    navigate('/search/temple');
+  };
+
   return (
-    <div className="bg-[#F1F3F5] min-h-screen pb-20">
-      <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px] mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between h-[56px] px-5 bg-white">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeft size={28} />
-          </button>
-          <button onClick={() => navigate('/main')}>
-            <Home size={28} />
-          </button>
+    <div className="bg-white min-h-screen">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white w-full px-6 py-4 flex items-center border-b">
+        <button 
+          onClick={handleBackClick}
+          className="mr-4"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        
+        <div className="flex-1">
+          <h1 className="text-lg font-bold">{temple.name}</h1>
         </div>
-
-        {/* Temple Image */}
-        <div className="w-full h-[255px] bg-gray-200">
-          <img 
-            src={temple.imageUrl} 
-            alt={temple.name} 
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        {/* Temple Information */}
-        <div className="px-5 py-4 bg-white">
-          <div className="flex justify-between items-start mb-1.5">
-            <h1 className="text-base font-bold text-[#222]">{temple.name}</h1>
-            <div className="flex items-center gap-2.5">
-              <button onClick={() => setIsFavorite(!isFavorite)}>
-                <Heart size={18} fill={isFavorite ? "#FF0000" : "none"} stroke={isFavorite ? "#FF0000" : "#111111"} />
-              </button>
-              <button>
-                <Share size={18} />
-              </button>
-            </div>
-          </div>
-          
-          {/* Location */}
-          <div className="flex items-center gap-1 mb-4">
-            <MapPin size={14} className="text-gray-500" />
-            <span className="text-xs text-[#111111]">
-              {temple.location}
-            </span>
-          </div>
-          
-          {/* Description */}
-          <div className="mb-7">
-            <p className="text-sm text-[#555] leading-relaxed">
-              {temple.description || '사찰에 대한 설명이 없습니다.'}
-            </p>
-          </div>
-          
-          {/* Additional Information */}
-          <h2 className="text-base font-bold text-[#222] mb-4">추가 정보</h2>
-          <div className="space-y-3 mb-6">
-            <div className="flex">
-              <div className="w-24 text-sm font-medium">개방 시간</div>
-              <div>
-                <p className="text-sm font-medium">{temple.openingHours || '정보 없음'}</p>
-              </div>
-            </div>
-            <div className="flex">
-              <div className="w-24 text-sm font-medium">주차 여부</div>
-              <div>
-                <p className="text-sm font-medium">{temple.hasParkingLot ? '주차 가능' : '주차 불가'}</p>
-              </div>
-            </div>
-            <div className="flex">
-              <div className="w-24 text-sm font-medium">템플스테이</div>
-              <div>
-                <p className="text-sm font-medium">{temple.hasTempleStay ? '운영' : '미운영'}</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Contact Button */}
-          <button className="w-full bg-[#DE7834] text-white py-3 rounded-md text-base font-bold">
-            문의하기
+        
+        <div className="flex items-center gap-4">
+          <button>
+            <Heart size={20} />
+          </button>
+          <button>
+            <Share size={20} />
           </button>
         </div>
       </div>
-      
-      {/* Bottom Navigation */}
-      <BottomNav />
+
+      {/* Image */}
+      <div className="relative">
+        <img
+          src={temple.imageUrl}
+          alt={temple.name}
+          className="w-full h-[240px] object-cover"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="px-6 py-4">
+        {/* Location and Distance */}
+        <div className="flex items-center text-gray-600 mb-2">
+          <MapPin className="w-4 h-4 mr-1" />
+          <span>{temple.location}</span>
+          {temple.distance && (
+            <span className="ml-2">({temple.distance})</span>
+          )}
+        </div>
+
+        {/* Opening Hours */}
+        {temple.openingHours && (
+          <div className="flex items-center text-gray-600 mb-2">
+            <Clock className="w-4 h-4 mr-1" />
+            <span>{temple.openingHours}</span>
+          </div>
+        )}
+
+        {/* Description */}
+        {temple.description && (
+          <p className="text-gray-700 mb-4">{temple.description}</p>
+        )}
+
+        {/* Tags */}
+        {temple.tags && temple.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {temple.tags.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Parking Lot Information */}
+        <div className="flex items-center text-gray-600 mb-2">
+          <Car className="w-4 h-4 mr-1" />
+          <span>
+            {temple.hasParkingLot ? '주차 가능' : '주차 불가'}
+          </span>
+        </div>
+
+        {/* Temple Stay Information */}
+        <div className="flex items-center text-gray-600 mb-2">
+          <Calendar className="w-4 h-4 mr-1" />
+          <span>
+            {temple.hasTempleStay ? '템플스테이 운영' : '템플스테이 미운영'}
+          </span>
+        </div>
+
+        {/* Direction */}
+        {temple.direction && (
+          <div className="mb-4">
+            <h4 className="font-semibold mb-2">오시는 길</h4>
+            <p className="text-gray-700">{temple.direction}</p>
+          </div>
+        )}
+
+        {/* Website URL */}
+        {temple.websiteUrl && (
+          <div>
+            <h4 className="font-semibold mb-2">웹사이트</h4>
+            <a
+              href={temple.websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              {temple.websiteUrl}
+            </a>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

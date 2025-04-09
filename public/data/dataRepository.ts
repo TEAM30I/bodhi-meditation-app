@@ -1,7 +1,7 @@
 
 // Central data repository that exports all data from various sources
-import { temples, Temple } from './templeData';
-import { templeStays, nearbyTempleStays, locations, TempleStay } from './templeStayData';
+import { temples, Temple } from './templeData/templeRepository';
+import { templeStays, locations, TempleStay } from './templeStayData/templeStayRepository';
 import { 
   scriptures, 
   scriptureCategories, 
@@ -10,17 +10,17 @@ import {
   Scripture, 
   Bookmark, 
   ReadingProgress 
-} from './scriptureData';
+} from './scriptureData/scriptureRepository';
 import { newsData, NewsItem } from './newsRepository';
 import { regionSearchRankings, SearchRanking } from './searchRankingRepository';
 import { imageRepository } from './imageRepository';
-import { nearbyTemples, regionTags } from './templeData';
+import { nearbyTemples, regionTags } from './templeData/templeData';
 
-// All temples data - combine all temple data from different sources
-export const allTemples = [...temples, ...nearbyTemples];
+// All temples data - combine temple data from different sources
+export const allTemples = Object.values(temples).concat(nearbyTemples);
 
-// All temple stays data - combine all temple stay data from different sources
-export const allTempleStays = [...templeStays, ...nearbyTempleStays];
+// All temple stays data
+export const allTempleStays = Object.values(templeStays);
 
 // Export all data 
 export {
@@ -28,7 +28,6 @@ export {
   nearbyTemples,
   regionTags,
   templeStays,
-  nearbyTempleStays,
   locations,
   scriptures,
   scriptureCategories,

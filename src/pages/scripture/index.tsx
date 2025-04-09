@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Bookmark, ChevronRight } from 'lucide-react';
-import { scriptureTexts, readingSchedule, calendarData } from '@/data/scriptureData';
+import { scriptures, readingSchedule, calendarData, scriptureColorSchemes } from '@/data/scriptureData';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
 import ScriptureProgressPreview from '@/components/scripture/ScriptureProgressPreview';
 
@@ -9,22 +10,24 @@ const Scripture = () => {
   const navigate = useNavigate();
 
   // Filter scriptures with progress
-  const activeScriptures = Object.entries(scriptureTexts)
-    .map(([key, scripture]) => ({ 
-      key, 
-      ...scripture,
-      progress: readingSchedule.find(s => s.category === key)?.progress || 0
-    }))
-    .filter(scripture => scripture.progress > 0);
+  const activeScriptures = scriptures
+    .filter(scripture => scripture.progress && scripture.progress > 0)
+    .map(scripture => ({
+      id: scripture.id,
+      title: scripture.title,
+      progress: scripture.progress || 0,
+      colorScheme: scripture.colorScheme || scriptureColorSchemes[scripture.title] || scriptureColorSchemes['금강경']
+    }));
   
   // Filter scriptures without progress
-  const unreadScriptures = Object.entries(scriptureTexts)
-    .map(([key, scripture]) => ({ 
-      key, 
-      ...scripture,
-      progress: readingSchedule.find(s => s.category === key)?.progress || 0
-    }))
-    .filter(scripture => scripture.progress === 0);
+  const unreadScriptures = scriptures
+    .filter(scripture => !scripture.progress || scripture.progress === 0)
+    .map(scripture => ({
+      id: scripture.id,
+      title: scripture.title,
+      progress: 0,
+      colorScheme: scripture.colorScheme || scriptureColorSchemes[scripture.title] || scriptureColorSchemes['금강경']
+    }));
 
   // Get the next 7 days for calendar preview
   const getRecentDates = () => {

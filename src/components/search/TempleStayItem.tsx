@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { TempleStay } from '@/data/templeStayData';
 
@@ -27,13 +28,13 @@ const TempleStayItem = ({ templeStay }: TempleStayItemProps) => {
       <div className="w-[120px] h-[120px] rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
         <img
           src={templeStay.imageUrl}
-          alt={templeStay.name}
+          alt={templeStay.templeName}
           className="w-full h-full object-cover"
         />
       </div>
       
       <div className="ml-4 flex-1">
-        <h3 className="font-bold mb-1">{templeStay.name}</h3>
+        <h3 className="font-bold mb-1">{templeStay.templeName}</h3>
         <p className="text-gray-500 text-sm mb-1">{templeStay.location}</p>
         
         {templeStay.distance && (
@@ -41,14 +42,10 @@ const TempleStayItem = ({ templeStay }: TempleStayItemProps) => {
         )}
         
         <div className="flex items-center mb-2">
-          <Badge className="flex items-center gap-1 bg-[#ffc83b] text-black font-bold text-xs rounded-full h-6 mr-2">
-            <Star className="w-3 h-3 fill-current" />
-            <span>{templeStay.rating}</span>
+          <Badge className="flex items-center gap-1 bg-pink-100 text-pink-600 font-bold text-xs rounded-full h-6 mr-2">
+            <Heart className="w-3 h-3 fill-current" />
+            <span>{templeStay.likeCount}</span>
           </Badge>
-          
-          <span className="text-gray-500 text-xs">
-            {templeStay.reviews}개의 평가
-          </span>
         </div>
         
         <div className="flex justify-between items-center">

@@ -1,28 +1,17 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home, Heart, Share, MapPin, Globe, Calendar } from 'lucide-react';
-import { templeStays } from '../../../data/templeStayData';
-import BottomNav from '@/components/BottomNav';
+import { ArrowLeft, Heart, Share, MapPin, Clock, Calendar } from 'lucide-react';
+import { templeStays } from '@/data/templeStayData';
 
-const TempleStayDetail: React.FC = () => {
+const TempleStayDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  const [templeStay, setTempleStay] = useState(templeStays.find(t => t.id === id));
-  const [isFavorite, setIsFavorite] = useState(false);
-  
-  useEffect(() => {
-    if (!templeStay) {
-      // If temple stay not found, navigate back to search
-      navigate('/search/temple-stay/results');
-    }
-    // Scroll to top when page loads
-    window.scrollTo(0, 0);
-  }, [templeStay, navigate]);
+
+  // Find the temple stay by id
+  const templeStay = Object.values(templeStays).find(ts => ts.id === id);
 
   if (!templeStay) {
-    return <div className="flex items-center justify-center h-screen">로딩 중...</div>;
+    return <div>템플스테이를 찾을 수 없습니다.</div>;
   }
 
   const formatPrice = (price: number) => {
