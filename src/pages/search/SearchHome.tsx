@@ -1,18 +1,15 @@
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, MapPin, Search as SearchIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { regionSearchRankings } from "../../data/searchRankingRepository";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { allTemples, allTempleStays } from '../../data/dataRepository';
 import BottomNav from '@/components/BottomNav';
 
 export default function SearchHome() {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<"temple" | "templeStay">("temple");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -37,19 +34,17 @@ export default function SearchHome() {
   };
 
   return (
-    <div className="bg-white flex flex-col items-center min-h-screen w-full pb-20">
-      <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px]">
+    <div className="bg-[#F5F5F5] min-h-screen w-full pb-20">
+      <div className="w-full max-w-[480px] mx-auto bg-white">
         {/* Header */}
-        <div className="w-full h-[60px] flex items-center justify-center relative border-b border-gray-100">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-4"
+        <div className="flex items-center h-[56px] px-5 border-b border-gray-100">
+          <button 
             onClick={() => navigate('/main')}
+            className="mr-4"
           >
-            <ArrowLeft className="w-[20px] h-[20px]" />
-          </Button>
-          <h1 className="text-base font-bold">검색</h1>
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-lg font-bold flex-1 text-center">검색</h1>
         </div>
 
         {/* Tabs */}
@@ -59,18 +54,20 @@ export default function SearchHome() {
             onValueChange={(value) => setActiveTab(value as "temple" | "templeStay")}
             className="w-full"
           >
-            <TabsList className="w-full grid grid-cols-2">
-              <TabsTrigger 
-                value="temple" 
-                className={`py-2 text-sm ${activeTab === 'temple' ? 'text-bodhi-orange border-b-2 border-bodhi-orange' : 'text-gray-500'}`}
-              >
-                사찰
-              </TabsTrigger>
+            <TabsList className="w-full grid grid-cols-2 bg-transparent h-12">
               <TabsTrigger 
                 value="templeStay" 
-                className={`py-2 text-sm ${activeTab === 'templeStay' ? 'text-bodhi-orange border-b-2 border-bodhi-orange' : 'text-gray-500'}`}
+                className={`data-[state=active]:shadow-none data-[state=active]:bg-transparent h-full
+                ${activeTab === 'templeStay' ? 'text-[#FF8433] border-b-2 border-[#FF8433] font-medium' : 'text-gray-500'}`}
               >
                 템플스테이
+              </TabsTrigger>
+              <TabsTrigger 
+                value="temple" 
+                className={`data-[state=active]:shadow-none data-[state=active]:bg-transparent h-full
+                ${activeTab === 'temple' ? 'text-[#FF8433] border-b-2 border-[#FF8433] font-medium' : 'text-gray-500'}`}
+              >
+                사찰
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -81,8 +78,8 @@ export default function SearchHome() {
           <div className="relative w-full">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              className="w-full pl-9 py-2 bg-gray-100 border-none text-sm"
-              placeholder="도시, 지역, 지하철역"
+              className="w-full pl-9 py-2 bg-gray-100 border-none text-sm rounded-full"
+              placeholder="도시, 지역, 사찰명"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -92,9 +89,8 @@ export default function SearchHome() {
 
         {/* Location Search Button */}
         <div className="px-4 mb-6">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 text-sm border-bodhi-orange text-bodhi-orange hover:text-bodhi-orange hover:bg-orange-50 py-1 px-3 h-auto"
+          <button
+            className="flex items-center gap-2 text-sm text-[#FF8433] border border-[#FF8433] rounded-full py-2 px-4"
             onClick={() => {
               const path = activeTab === 'temple'
                 ? `/search/temple/results?query=nearby`
@@ -104,34 +100,35 @@ export default function SearchHome() {
           >
             <MapPin className="w-4 h-4" />
             <span>내 주변에서 검색</span>
-          </Button>
+          </button>
         </div>
 
         {/* Regional Search Ranking */}
-        <div className="px-4">
-          <h2 className="text-base font-bold mb-4">
-            {activeTab === 'temple' ? '지역 검색 순위' : '인기 검색어'}
+        <div className="px-4 mb-6">
+          <h2 className="text-base font-bold mb-4 text-[#333333]">
+            {activeTab === 'temple' ? '많이 찾는 사찰' : '인기 검색어'}
           </h2>
 
-          <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-4">
             {regionSearchRankings.map((location) => (
               <div
                 key={location.id}
                 className="flex items-center cursor-pointer"
                 onClick={() => handleRegionClick(location.query)}
               >
-                <span className="text-bodhi-orange font-bold w-6">{location.id}</span>
+                <span className="text-[#FF8433] font-bold w-6">{location.id}</span>
                 <span className="font-medium">{location.name}</span>
               </div>
             ))}
           </div>
         </div>
         
-        {/* Available locations info */}
-        <div className="px-4 mt-8 text-sm text-gray-500">
-          <p>검색 가능한 사찰: {allTemples.length}개</p>
-          <p>검색 가능한 템플스테이: {allTempleStays.length}개</p>
-        </div>
+        {/* Additional info for Temple Stay tab */}
+        {activeTab === 'templeStay' && (
+          <div className="px-4 py-2 bg-gray-50">
+            <p className="text-xs text-gray-500">* 템플스테이는 예약 가능 일자와 인원을 선택해주세요.</p>
+          </div>
+        )}
       </div>
       
       <BottomNav />

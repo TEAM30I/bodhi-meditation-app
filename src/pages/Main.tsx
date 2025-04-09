@@ -29,35 +29,6 @@ const Main = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Icon menu items with updated order
-  const iconMenuItems = [
-    {
-      label: "경전읽기",
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/a2f87545372fe9582fde4b5e3604644d1ec5ec5d",
-      onClick: () => navigate('/scripture')
-    },
-    {
-      label: "사찰 찾기",
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/a2f87545372fe9582fde4b5e3604644d1ec5ec5d",
-      onClick: () => navigate('/search/temple')
-    },
-    {
-      label: "템플 스테이",
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/ec3def58b7540a2b54f8f5fdcdea89b6f0e64824",
-      onClick: () => navigate('/search/temple-stay')
-    },
-    {
-      label: "선명상",
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/d3d60511456bf29305fe928345308ba6f90cace3",
-      onClick: () => navigate('/meditation')
-    },
-    {
-      label: "오늘의 운세",
-      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/f9634e0cca626d9a904e87a56fa4b9e54f423808",
-      onClick: () => navigate('/fortune')
-    }
-  ];
-
   // 로딩 중일 때 표시
   if (loading) {
     return (
@@ -67,138 +38,173 @@ const Main = () => {
     );
   }
   
-  // 홈 화면에 표시할 대표 경전 목록 (최대 3개)
+  // 홈 화면에 표시할 대표 경전 목록
   const featuredScriptures = readingSchedule.slice(0, 3);
+  
+  // 추천 사찰 목록
+  const recommendedTemples = temples.slice(0, 3);
+  
+  // 추천 템플스테이 목록
+  const recommendedTempleStays = templeStays.slice(0, 3);
 
   return (
-    <div className="w-full min-h-screen bg-white">
-      <div className="flex flex-col items-center">
-        <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px] pb-[80px]">
-          {/* Header */}
-          <div className="flex justify-between items-center px-[24px] py-[15px]">
-            <BodhiLogo />
-            <div className="flex items-center gap-4">
-              <button onClick={() => navigate('/search')}>
-                <Search className="w-5 h-5 text-gray-700" />
-              </button>
-              <button onClick={() => navigate('/notifications')}>
-                <Bell className="w-5 h-5 text-gray-700" />
-              </button>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div className="flex items-center px-[24px] mb-[15px]">
-            <MapPin className="w-5 h-5 text-bodhi-orange mr-1" />
-            <span className="text-sm font-medium text-gray-700">한남동/용산구</span>
-            <ChevronRight className="w-4 h-4 text-gray-500" />
-          </div>
-
-          {/* Banner */}
-          <div className="w-full px-[24px] mb-[20px]">
-            <div className="w-full h-[130px] rounded-[10px] bg-gray-200 relative overflow-hidden">
-              <img 
-                src={imageRepository.templeBanner.default} 
-                alt="메인 배너" 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-                1/3
+    <div className="w-full min-h-screen bg-[#F1F3F5]">
+      {/* 상단 상태바 - 디자인에 있지만 요청에 따라 삭제 */}
+      
+      {/* 헤더 */}
+      <div className="w-full bg-white border-b border-[#E5E5EC]">
+        <div className="flex justify-between items-center px-5 py-[13px] max-w-[480px] mx-auto">
+          <div className="flex items-center gap-2">
+            <span className="text-[#DE7834] text-sm font-mono leading-[140%] tracking-[-0.35px] font-bold">Bodhi</span>
+            <div className="flex items-center bg-[rgba(229,233,237,0.87)] rounded-[32px] px-[10px] py-2">
+              <div className="flex items-center gap-[6px]">
+                <Search className="w-[15px] h-[15px] stroke-[#999999]" />
+                <span className="text-[#767676] text-[11px] leading-[140%] tracking-[-0.275px]">검색어를 입력하세요</span>
               </div>
             </div>
           </div>
+          
+          <button 
+            className="relative"
+            onClick={() => navigate('/notifications')}
+          >
+            <Bell className="w-7 h-7" />
+            <span className="absolute top-0 right-0 w-[10px] h-[10px] bg-[#DA0000] rounded-full"></span>
+          </button>
+        </div>
+      </div>
 
-          {/* Temple Section */}
-          <div className="px-[24px] mb-[25px]">
+      <div className="w-full max-w-[480px] mx-auto pb-[80px] bg-white">
+        <div className="px-5 pt-4 pb-4">
+          {/* 사찰 지도 섹션 */}
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin className="w-5 h-5 stroke-[#111111]" />
+            <span className="font-semibold text-lg text-[#111111] tracking-[-0.45px]">사찰 지도</span>
+          </div>
+          
+          <p className="text-[#767676] text-sm mb-4 tracking-[-0.35px]">
+            지도로 사찰을 둘러보고, 관심 사찰로 저장해보세요
+          </p>
+          
+          <div 
+            className="w-full h-[150px] bg-[#C9C9C9] rounded-[16px] mb-8 overflow-hidden cursor-pointer"
+            onClick={() => navigate('/nearby')}
+          >
+            <img 
+              src={imageRepository.templeBanner.default} 
+              alt="사찰 지도" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* 사찰 섹션 */}
+          <div className="mb-8">
             <div 
-              className="flex justify-between items-center mb-[10px] cursor-pointer" 
+              className="flex items-center gap-[2px] mb-4 cursor-pointer" 
               onClick={() => navigate('/search/temple')}
             >
-              <h2 className="text-[15px] font-bold">자연이 깃든 사찰, 찾아볼까요?</h2>
-              <ChevronRight className="w-4 h-4 text-gray-500" />
+              <span className="font-semibold text-lg text-black tracking-[-0.45px]">자연이 깃든 사찰, 찾아볼까요?</span>
+              <ChevronRight className="w-5 h-5" />
             </div>
-
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-3">
-              {temples.slice(0, 3).map((temple, index) => (
+            
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {recommendedTemples.map((temple) => (
                 <div 
                   key={temple.id} 
-                  className="cursor-pointer"
+                  className="min-w-[100px] h-[100px] flex-shrink-0 rounded-[12px] overflow-hidden bg-[#656565] cursor-pointer"
                   onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
                 >
-                  <div className="aspect-square rounded-md overflow-hidden bg-gray-200">
-                    <img 
-                      src={temple.imageUrl} 
-                      alt={temple.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <img 
+                    src={temple.imageUrl} 
+                    alt={temple.name} 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               ))}
             </div>
           </div>
           
-          {/* Temple Stay Section */}
-          <div className="px-[24px] mb-[25px]">
+          {/* 템플스테이 섹션 */}
+          <div className="mb-8">
             <div 
-              className="flex justify-between items-center mb-[10px] cursor-pointer" 
+              className="flex items-center gap-[2px] mb-4 cursor-pointer"
               onClick={() => navigate('/search/temple-stay')}
             >
-              <h2 className="text-[15px] font-bold">쉼이 필요한 당신께, 템플스테이</h2>
-              <ChevronRight className="w-4 h-4 text-gray-500" />
+              <span className="font-semibold text-lg text-black tracking-[-0.45px]">쉼이 필요한 당신께, 템플스테이</span>
+              <ChevronRight className="w-5 h-5" />
             </div>
-
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-3">
-              {templeStays.slice(0, 3).map((templeStay, index) => (
+            
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {recommendedTempleStays.map((templeStay) => (
                 <div 
-                  key={`stay-${templeStay.id}`} 
-                  className="cursor-pointer"
+                  key={templeStay.id} 
+                  className="min-w-[100px] h-[100px] flex-shrink-0 rounded-[12px] overflow-hidden bg-[#656565] cursor-pointer"
                   onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
                 >
-                  <div className="aspect-square rounded-md overflow-hidden bg-gray-200">
-                    <img 
-                      src={templeStay.imageUrl} 
-                      alt={templeStay.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <img 
+                    src={templeStay.imageUrl} 
+                    alt={templeStay.name} 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Scripture Reading Section */}
-          <div className="px-[24px] mb-[20px]">
+          
+          {/* 경전 섹션 */}
+          <div className="mb-8">
             <div 
-              className="flex justify-between items-center mb-[10px] cursor-pointer"
+              className="flex items-center gap-[2px] mb-4 cursor-pointer"
               onClick={() => navigate('/scripture')}
             >
-              <h2 className="text-[15px] font-bold">경전과 함께하는 하루</h2>
-              <ChevronRight className="w-4 h-4 text-gray-500" />
+              <span className="font-semibold text-lg text-black tracking-[-0.45px]">경전과 함께하는 하루</span>
+              <ChevronRight className="w-5 h-5" />
             </div>
-
+            
             <div className="flex flex-col gap-3">
-              {featuredScriptures.map((reading) => {
-                // 해당 카테고리에 맞는 경전 찾기
+              {featuredScriptures.map((reading, index) => {
+                const scriptureColors = [
+                  { bg: 'bg-[#21212F]', text: 'text-white' },
+                  { bg: 'bg-[#EF4223]', text: 'text-white' },
+                  { bg: 'bg-[#0080FF]', text: 'text-white' },
+                  { bg: 'bg-[#FFB23F]', text: 'text-white' },
+                  { bg: 'bg-[#4CAF50]', text: 'text-white' },
+                ];
+                
                 const matchingScripture = scriptures.find(s => s.categories.includes(reading.category));
                 
                 if (!matchingScripture) return null;
                 
+                const colorIndex = index % scriptureColors.length;
+                
                 return (
                   <div 
                     key={reading.id} 
-                    className="flex items-center p-3 rounded-lg cursor-pointer"
+                    className="w-full bg-white rounded-[32px] p-5 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.04)] cursor-pointer"
                     onClick={() => navigate(`/scripture/${matchingScripture.id}`)}
                   >
-                    <div className={`w-[60px] h-[60px] rounded-md ${reading.color} flex items-center justify-center ${reading.textColor}`}>
-                      <span className="text-sm font-bold">{reading.category}</span>
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <h3 className="text-sm font-bold">{reading.title}</h3>
-                      <p className="text-xs text-gray-500">{reading.chapter}</p>
-                    </div>
-                    <div className="text-gray-500">
-                      <span className="text-xs">자세히</span>
-                      <ChevronRight className="w-4 h-4 inline-block" />
+                    <div className="flex flex-col gap-3">
+                      <div className={`inline-flex px-2 py-2 ${scriptureColors[colorIndex].bg} rounded-[12px] w-fit`}>
+                        <span className={`text-xs font-medium ${scriptureColors[colorIndex].text} tracking-[-0.3px]`}>
+                          {reading.category}
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-col gap-[6px]">
+                        <h3 className="text-base font-semibold text-[#111] tracking-[-0.4px]">
+                          "{reading.title}"
+                        </h3>
+                        <p className="text-[#767676] text-base font-medium tracking-[-0.4px]">
+                          {reading.chapter}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center gap-[2px] justify-end">
+                        <span className="text-xs text-[#767676] font-medium tracking-[-0.3px]">
+                          시작하기
+                        </span>
+                        <ChevronRight className="w-3 h-3 stroke-[#767676]" />
+                      </div>
                     </div>
                   </div>
                 );
