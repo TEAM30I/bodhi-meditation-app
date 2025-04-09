@@ -133,7 +133,7 @@ const Main = () => {
             onClick={() => navigate('/nearby')}
           >
             <img 
-              src={typedImageRepository.templeBanner?.default || typedImageRepository.temples.default} 
+              src={typedImageRepository.templeBanner.default} 
               alt="사찰 지도" 
               className="w-full h-full object-cover"
             />

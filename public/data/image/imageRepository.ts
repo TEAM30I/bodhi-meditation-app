@@ -18,6 +18,12 @@ interface ImageCollection {
   icons: {
     [key: string]: string;
   };
+  templeBanner: {
+    default: string;
+  };
+  logo: {
+    default: string;
+  };
 }
 
 export const imageRepository: ImageCollection = {
@@ -64,6 +70,12 @@ export const imageRepository: ImageCollection = {
     prayer: "https://source.unsplash.com/random/100x100/?prayer",
     temple: "https://source.unsplash.com/random/100x100/?temple",
     default: "https://source.unsplash.com/random/100x100/?icon"
+  },
+  templeBanner: {
+    default: "https://via.placeholder.com/1200x400/DE7834/FFFFFF/?text=Buddhist+Temple+Banner"
+  },
+  logo: {
+    default: "https://via.placeholder.com/200x200/DE7834/FFFFFF/?text=Logo"
   }
 };
 
