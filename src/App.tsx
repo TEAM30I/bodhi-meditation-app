@@ -24,8 +24,13 @@ import TermsAgreement from "./pages/login/TermsAgreement";
 // Configure Amplify with the aws-config
 try {
   console.log("Attempting to configure Amplify...");
-  Amplify.configure(awsConfig);
-  console.log("Amplify configuration successful");
+  // Make sure global is defined before configuring Amplify
+  if (typeof window !== 'undefined' && window.global) {
+    Amplify.configure(awsConfig);
+    console.log("Amplify configuration successful");
+  } else {
+    console.error("Global object not available for Amplify configuration");
+  }
 } catch (error) {
   console.error("Error configuring Amplify:", error);
 }
