@@ -190,22 +190,25 @@ const TempleDetail = () => {
         <div className="bg-white px-5 py-6 mt-2">
           <h3 className="font-semibold text-lg mb-4">주변 사찰</h3>
           <div className="flex space-x-4 overflow-x-auto pb-2">
-            {nearbyTemples.map((nearbyTemple) => (
-              <div 
-                key={nearbyTemple.id}
-                className="flex flex-col items-center"
-                onClick={() => navigate(`/search/temple/detail/${nearbyTemple.id}`)}
-              >
-                <div className="w-16 h-16 rounded-full overflow-hidden mb-2">
-                  <img 
-                    src={nearbyTemple.imageUrl} 
-                    alt={nearbyTemple.name} 
-                    className="w-full h-full object-cover" 
-                  />
+            {nearbyTemples.map((nearbyTemple) => {
+              const typedNearbyTemple = castRepository<Temple>(nearbyTemple);
+              return (
+                <div 
+                  key={typedNearbyTemple.id}
+                  className="flex flex-col items-center"
+                  onClick={() => navigate(`/search/temple/detail/${typedNearbyTemple.id}`)}
+                >
+                  <div className="w-16 h-16 rounded-full overflow-hidden mb-2">
+                    <img 
+                      src={typedNearbyTemple.imageUrl} 
+                      alt={typedNearbyTemple.name} 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  <span className="text-xs text-center">{typedNearbyTemple.name}</span>
                 </div>
-                <span className="text-xs text-center">{nearbyTemple.name}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
