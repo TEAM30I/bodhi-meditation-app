@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, MapPin, Calendar, Users, X } from 'lucide-react';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
-import { regionSearchRankings, templeStaySearchRankings } from '/public/data/searchRankingRepository';
+import { regionSearchRankings, templeStaySearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { typedData } from '@/utils/typeUtils';
@@ -86,6 +85,10 @@ const SearchHome = () => {
     return '날짜 선택';
   };
 
+  const activeSearchRankings = activeTab === 'temple' 
+    ? typedData<SearchRanking[]>(regionSearchRankings)
+    : typedData<SearchRanking[]>(templeStaySearchRankings);
+
   return (
     <div className="bg-[#F8F8F8] min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
@@ -114,7 +117,6 @@ const SearchHome = () => {
       </div>
 
       <div className="max-w-[480px] mx-auto px-5 py-6">
-        {/* Search Input */}
         <div className="mb-6">
           <div className="relative">
             <Input
@@ -185,7 +187,6 @@ const SearchHome = () => {
           </Button>
         </div>
 
-        {/* Nearby Search Button */}
         <button 
           className="flex items-center gap-2 bg-white rounded-full px-4 py-2 border border-[#DE7834] mb-6"
           onClick={handleNearbySearch}
@@ -194,16 +195,12 @@ const SearchHome = () => {
           <span className="text-sm text-[#DE7834] font-medium">내 주변에서 검색</span>
         </button>
 
-        {/* Popular Searches */}
         <div>
           <h2 className="text-base font-bold mb-4">
             {activeTab === 'temple' ? '많이 둘러본 사찰' : '많이 찾는 지역'}
           </h2>
           <div className="grid grid-cols-2 gap-y-3">
-            {(activeTab === 'temple' ? 
-              typedData(regionSearchRankings) : 
-              typedData(templeStaySearchRankings)
-            ).slice(0, 8).map((item, index) => (
+            {activeSearchRankings.slice(0, 8).map((item, index) => (
               <div key={item.id} className="flex items-center">
                 <span className="text-[#DE7834] font-bold w-6">{index + 1}</span>
                 <span 
