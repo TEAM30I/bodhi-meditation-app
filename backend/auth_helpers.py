@@ -10,7 +10,7 @@ import json
 config = {
     "aws_project_region": "ap-northeast-2",
     "aws_cognito_region": "ap-northeast-2",
-    "aws_user_pools_id": "ap-northeast-2_w9Vdmj15X",
+    "aws_user_pools_id": "ap-northeast-2_asbht9MBG",
     "aws_user_pools_web_client_id": "3bmg89p73cggqdhpc35v35g2fo"
 }
 
@@ -25,16 +25,22 @@ def generate_verification_code():
     return ''.join(random.choices(string.digits, k=4))
 
 def send_verification_code(phone_number):
-    """
-    Send a verification code via SMS
-    In a real implementation, you'd use SNS or a third-party SMS service
-    """
     code = generate_verification_code()
-    # Store the code in a database or cache with the phone number and expiration
-    # In a real implementation, you would use a database like DynamoDB
     
-    # For demo purposes, just return the code
-    return code
+    # SNS 클라이언트 생성
+    sns_client = boto3.client('sns', region_name=config['aws_cognito_region'])
+    
+    try:
+        response = sns_client.publish(
+            PhoneNumber=phone_number,
+            Message=f"Your verification code is: {code}"
+        )
+        # 코드와 response를 데이터베이스나 캐시에 저장하여 나중에 검증할 수 있도록 함
+        return code
+    except ClientError as e:
+        print(f"Error sending SMS: {e}")
+        return None
+
 
 def verify_phone_number(phone_number, code):
     """Verify the phone number with the provided code"""

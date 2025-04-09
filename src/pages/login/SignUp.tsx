@@ -9,6 +9,7 @@ import CheckboxField from '@/components/CheckboxField';
 import AuthButton from '@/components/AuthButton';
 import { useToast } from '@/hooks/use-toast';
 
+
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -36,6 +37,7 @@ const SignUp: React.FC = () => {
       if (timer) clearTimeout(timer);
     };
   }, [timeLeft]);
+  
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -81,7 +83,7 @@ const SignUp: React.FC = () => {
     }
   };
   
-  const sendVerificationCode = () => {
+  const sendVerificationCode = async () => {
     if (!phone) {
       toast({
         title: "오류",
@@ -89,18 +91,44 @@ const SignUp: React.FC = () => {
         variant: "destructive"
       });
       return;
+
+      
     }
-    
-    // Start countdown timer for 3 minutes (180 seconds)
-    setTimeLeft(180);
-    
-    toast({
-      title: "인증번호 발송",
-      description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
-    });
-    
-    setShowVerification(true);
+  
+    try {
+      const response = await fetch('/api/send-sms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ phone_number: phone })
+      });
+      const data = await response.json();
+  
+      if (data.success) {
+        // Start countdown timer for 3 minutes (180 seconds)
+        setTimeLeft(180);
+        toast({
+          title: "인증번호 발송",
+          description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
+        });
+        setShowVerification(true);
+      } else {
+        toast({
+          title: "오류",
+          description: "SMS 전송에 실패했습니다.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "네트워크 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    }
   };
+  
   
   const handleSignUp = async () => {
     if (!username || !phone || !password) {

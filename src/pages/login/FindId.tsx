@@ -40,11 +40,15 @@ const FindId: React.FC = () => {
   
   const sendVerificationCode = () => {
     if (!phone) {
-      toast({
-        title: "오류",
-        description: "전화번호를 입력해주세요.",
-        variant: "destructive"
-      });
+      <InputField
+          type="tel"
+          label="전화번호"
+          placeholder="전화번호를 입력해 주세요"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          icon="phone"
+          rightElement={<SendCodeButton />}
+        />
       return;
     }
     
