@@ -2,7 +2,7 @@
 /// <reference types="vite/client" />
 
 // Type declarations for data from public directory
-declare module '../../public/data/searchRankingRepository' {
+declare module '../public/data/searchRankingRepository' {
   export interface SearchRanking {
     id: string;
     term: string;
@@ -14,7 +14,7 @@ declare module '../../public/data/searchRankingRepository' {
   export const templeStaySearchRankings: SearchRanking[];
 }
 
-declare module '../../public/data/templeData/templeRepository' {
+declare module '../public/data/templeData/templeRepository' {
   export interface NewsItem {
     id: string;
     temple: string;
@@ -64,7 +64,7 @@ declare module '../../public/data/templeData/templeRepository' {
   export function searchTemples(query: string): Temple[];
 }
 
-declare module '../../public/data/templeStayData/templeStayRepository' {
+declare module '../public/data/templeStayData/templeStayRepository' {
   export interface TempleStay {
     id: string;
     templeName: string;
@@ -92,7 +92,7 @@ declare module '../../public/data/templeStayData/templeStayRepository' {
   export function filterTempleStaysByTag(tag: string): TempleStay[];
 }
 
-declare module '../../public/data/scriptureData/scriptureRepository' {
+declare module '../public/data/scriptureData/scriptureRepository' {
   export interface ScriptureColorScheme {
     bg: string;
     text: string;
@@ -155,7 +155,7 @@ declare module '../../public/data/scriptureData/scriptureRepository' {
   export function addBookmark(userId: string, scriptureId: string, chapterId: string, pageIndex: number, title: string): Bookmark;
 }
 
-declare module '../../public/data/imageRepository' {
+declare module '../public/data/imageRepository' {
   export const imageRepository: {
     templeBanner: {
       default: string;
@@ -164,6 +164,66 @@ declare module '../../public/data/imageRepository' {
       default: string;
     };
   };
+}
+
+declare module '../../public/data/searchRankingRepository' {
+  export * from '../public/data/searchRankingRepository';
+}
+
+declare module '../../public/data/templeData/templeRepository' {
+  export * from '../public/data/templeData/templeRepository';
+}
+
+declare module '../../public/data/templeStayData/templeStayRepository' {
+  export * from '../public/data/templeStayData/templeStayRepository';
+}
+
+declare module '../../public/data/scriptureData/scriptureRepository' {
+  export * from '../public/data/scriptureData/scriptureRepository';
+}
+
+declare module '../../public/data/imageRepository' {
+  export * from '../public/data/imageRepository';
+}
+
+declare module '../../../public/data/searchRankingRepository' {
+  export * from '../public/data/searchRankingRepository';
+}
+
+declare module '../../../public/data/templeData/templeRepository' {
+  export * from '../public/data/templeData/templeRepository';
+}
+
+declare module '../../../public/data/templeStayData/templeStayRepository' {
+  export * from '../public/data/templeStayData/templeStayRepository';
+}
+
+declare module '../../../public/data/scriptureData/scriptureRepository' {
+  export * from '../public/data/scriptureData/scriptureRepository';
+}
+
+declare module '../../../public/data/imageRepository' {
+  export * from '../public/data/imageRepository';
+}
+
+declare module '../../../../public/data/searchRankingRepository' {
+  export * from '../public/data/searchRankingRepository';
+}
+
+declare module '../../../../public/data/templeData/templeRepository' {
+  export * from '../public/data/templeData/templeRepository';
+}
+
+declare module '../../../../public/data/templeStayData/templeStayRepository' {
+  export * from '../public/data/templeStayData/templeStayRepository';
+}
+
+declare module '../../../../public/data/scriptureData/scriptureRepository' {
+  export * from '../public/data/scriptureData/scriptureRepository';
+}
+
+declare module '../../../../public/data/imageRepository' {
+  export * from '../public/data/imageRepository';
 }
 
 interface ImportMetaEnv {

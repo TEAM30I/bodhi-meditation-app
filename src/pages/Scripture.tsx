@@ -1,17 +1,22 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { scriptures, readingSchedule } from '/public/data/scriptureData/scriptureRepository';
+import { scriptures, readingSchedule } from '../public/data/scriptureData/scriptureRepository';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
 import BookmarkList from '@/components/scripture/BookmarkList';
 import ShareOptions from '@/components/scripture/ShareOptions';
 import SettingsPanel from '@/components/scripture/SettingsPanel';
+import { typedData } from '@/utils/typeUtils';
 
 const Scripture = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'reading' | 'calendar' | 'bookmark' | 'share' | 'settings'>('reading');
+
+  const typedScriptures = typedData<typeof scriptures>(scriptures);
+  const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
 
   const handleTabChange = (tab: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings') => {
     setActiveTab(tab);
@@ -38,9 +43,9 @@ const Scripture = () => {
 
           {/* 읽을 경전 목록 */}
           <div className="space-y-4 mb-8">
-            {readingSchedule.map((schedule) => {
+            {typedReadingSchedule.map((schedule) => {
               // Find the scripture by scriptureId
-              const matchingScripture = Object.values(scriptures).find(
+              const matchingScripture = Object.values(typedScriptures).find(
                 s => s.id === schedule.scriptureId
               );
               
@@ -64,9 +69,9 @@ const Scripture = () => {
           <div className="mb-8">
             <h2 className="text-lg font-medium mb-4">다른 경전 읽기</h2>
             <div className="space-y-4">
-              {Object.values(scriptures).map((scripture) => {
+              {Object.values(typedScriptures).map((scripture) => {
                 // Check if this scripture is already in readingSchedule
-                const alreadyIncluded = readingSchedule.some(
+                const alreadyIncluded = typedReadingSchedule.some(
                   schedule => schedule.scriptureId === scripture.id
                 );
                 

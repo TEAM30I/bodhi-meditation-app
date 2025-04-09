@@ -2,8 +2,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
-import { TempleStay } from '/public/data/templeStayData/templeStayRepository';
-import { castRepository } from '@/utils/typeAssertions';
+import { typedData } from '@/utils/typeUtils';
+
+// Update import path to use relative imports
+import { TempleStay } from '../../../public/data/templeStayData/templeStayRepository';
 
 interface TempleStayItemProps {
   templeStay: TempleStay;
@@ -12,7 +14,7 @@ interface TempleStayItemProps {
 
 const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) => {
   const navigate = useNavigate();
-  const typedTempleStay = castRepository<TempleStay>(templeStay);
+  const typedTempleStay = typedData<TempleStay>(templeStay);
 
   return (
     <div 

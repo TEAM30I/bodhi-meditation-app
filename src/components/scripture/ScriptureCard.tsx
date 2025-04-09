@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
-// Use relative import instead of absolute path
+// Use relative import
 import { regionSearchRankings } from '../../../public/data/searchRankingRepository';
 
 // Define type based on the scripture repository

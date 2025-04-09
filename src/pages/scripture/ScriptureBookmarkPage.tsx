@@ -1,16 +1,24 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { bookmarks, scriptures } from '/public/data/scriptureData/scriptureRepository';
+import { typedData } from '@/utils/typeUtils';
+
+// Use relative imports
+import { bookmarks, scriptures } from '../../public/data/scriptureData/scriptureRepository';
 
 const ScriptureBookmarkPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeScripture, setActiveScripture] = useState<string | null>(null);
 
+  // Type our data properly
+  const typedBookmarks = typedData<typeof bookmarks>(bookmarks);
+  const typedScriptures = typedData<typeof scriptures>(scriptures);
+
   // Get unique scripture IDs from bookmarks
-  const scriptureIds = [...new Set(bookmarks.map(bookmark => bookmark.scriptureId))];
+  const scriptureIds = [...new Set(typedBookmarks.map(bookmark => bookmark.scriptureId))];
   const scriptureOptions = scriptureIds.map(id => {
-    const scripture = Object.values(scriptures).find(s => s.id === id);
+    const scripture = Object.values(typedScriptures).find(s => s.id === id);
     return {
       id,
       title: scripture?.title || '',
@@ -20,8 +28,8 @@ const ScriptureBookmarkPage: React.FC = () => {
 
   // Filter bookmarks by active scripture
   const filteredBookmarks = activeScripture 
-    ? bookmarks.filter(bookmark => bookmark.scriptureId === activeScripture)
-    : bookmarks;
+    ? typedBookmarks.filter(bookmark => bookmark.scriptureId === activeScripture)
+    : typedBookmarks;
 
   return (
     <div className="bg-[#F5F5F5] min-h-screen">
@@ -58,7 +66,7 @@ const ScriptureBookmarkPage: React.FC = () => {
           {filteredBookmarks.length > 0 ? (
             <div className="space-y-3">
               {filteredBookmarks.map((bookmark) => {
-                const scripture = Object.values(scriptures).find(s => s.id === bookmark.scriptureId);
+                const scripture = Object.values(typedScriptures).find(s => s.id === bookmark.scriptureId);
                 const colorScheme = scripture?.colorScheme || {
                   bg: "bg-gray-800",
                   text: "text-white"

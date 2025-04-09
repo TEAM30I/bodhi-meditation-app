@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { calendarData, readingSchedule, scriptures } from '/public/data/scriptureData/scriptureRepository';
+import { typedData } from '@/utils/typeUtils';
+
+import { calendarData, readingSchedule, scriptures } from '../../public/data/scriptureData/scriptureRepository';
 
 const ScriptureCalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  const typedCalendarData = typedData<typeof calendarData>(calendarData);
+  const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
+  const typedScriptures = typedData<typeof scriptures>(scriptures);
   
   const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
@@ -56,7 +62,7 @@ const ScriptureCalendarPage: React.FC = () => {
   
   const getProgressForDate = (date: number) => {
     const fullDate = new Date(year, month, date);
-    const matchingData = calendarData.find(item => 
+    const matchingData = typedCalendarData.find(item => 
       item.date.getFullYear() === fullDate.getFullYear() &&
       item.date.getMonth() === fullDate.getMonth() &&
       item.date.getDate() === fullDate.getDate()
@@ -65,8 +71,8 @@ const ScriptureCalendarPage: React.FC = () => {
     return matchingData;
   };
   
-  const readingItems = readingSchedule.slice(0, 2).map(schedule => {
-    const matchingScripture = Object.values(scriptures).find(s => s.id === schedule.scriptureId);
+  const readingItems = typedReadingSchedule.slice(0, 2).map(schedule => {
+    const matchingScripture = Object.values(typedScriptures).find(s => s.id === schedule.scriptureId);
     return {
       id: schedule.id,
       title: matchingScripture?.title || '',

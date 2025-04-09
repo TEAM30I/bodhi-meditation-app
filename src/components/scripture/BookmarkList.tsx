@@ -4,139 +4,81 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
-// Mock data for the bookmarks and scriptures
-const bookmarks = [
-  {
-    id: "bm1",
-    scriptureId: "diamond-sutra",
-    chapterId: "ch1",
-    pageIndex: 1,
-    title: "금강경 제1장",
-    date: "2025-03-15",
-    note: "중요한 구절"
-  },
-  {
-    id: "bm2",
-    scriptureId: "heart-sutra",
-    chapterId: "ch2",
-    pageIndex: 3,
-    title: "반야심경 제2장",
-    date: "2025-03-20"
-  }
-];
+// Use relative import
+import { bookmarks, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
 
-const scriptures = {
-  "diamond-sutra": {
-    id: "diamond-sutra",
-    title: "금강경",
-    categories: ["불경"],
-    colorScheme: {
-      bg: "bg-amber-100",
-      text: "text-amber-800",
-      progressBg: "#F59E0B"
-    },
-    content: "금강경 내용...",
-    chapters: [
-      { id: "ch1", title: "제1장", original: "원문...", explanation: "해설..." }
-    ],
-    progress: 35,
-    hasStarted: true,
-    lastReadChapter: "ch1",
-    lastPageIndex: 1
-  },
-  "heart-sutra": {
-    id: "heart-sutra",
-    title: "반야심경",
-    categories: ["불경"],
-    colorScheme: {
-      bg: "bg-blue-100",
-      text: "text-blue-800",
-      progressBg: "#3B82F6"
-    },
-    content: "반야심경 내용...",
-    chapters: [
-      { id: "ch1", title: "제1장", original: "원문...", explanation: "해설..." },
-      { id: "ch2", title: "제2장", original: "원문...", explanation: "해설..." }
-    ],
-    progress: 50,
-    hasStarted: true,
-    lastReadChapter: "ch2",
-    lastPageIndex: 3
-  }
-};
-
-const BookmarkList: React.FC = () => {
+const BookmarkList = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = React.useState('diamond-sutra');
   
-  const tabs = [
-    { id: 'diamond-sutra', label: '반야심경' },
-    { id: 'heart-sutra', label: '법화경' },
-    { id: 'lotus-sutra', label: '금강경' },
-    { id: 'all', label: '법화경' },
-    { id: 'recent', label: '반야심경' },
-  ];
-  
-  // Type the repository data
   const typedBookmarks = typedData<typeof bookmarks>(bookmarks);
   const typedScriptures = typedData<typeof scriptures>(scriptures);
-  
-  if (typedBookmarks.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl">
-        <h3 className="text-gray-500 mb-2">저장된 북마크가 없습니다</h3>
-        <p className="text-sm text-gray-400">경전을 읽는 중 북마크를 추가해보세요</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
-      {/* Tab navigation */}
-      <div className="flex overflow-x-auto pb-2 border-b whitespace-nowrap">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`px-3 py-2 text-sm font-medium ${activeTab === tab.id ? 'text-[#DE7834] border-b-2 border-[#DE7834]' : 'text-gray-500'}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <h2 className="text-lg font-medium">북마크</h2>
       
-      {/* Bookmarks */}
-      <div className="space-y-3">
-        {typedBookmarks.filter(b => activeTab === 'all' || b.scriptureId === activeTab).map((bookmark) => {
-          const scripture = Object.values(typedScriptures).find(s => s.id === bookmark.scriptureId);
-          if (!scripture) return null;
-          
-          const chapter = scripture.chapters.find(ch => ch.id === bookmark.chapterId);
-          
-          return (
-            <div 
-              key={bookmark.id}
-              className="bg-white rounded-xl p-4 flex items-center"
-              onClick={() => navigate(`/scripture/${bookmark.scriptureId}`)}
-            >
-              <div className="flex-1">
-                <div className={`inline-flex px-3 py-1 ${scripture.colorScheme.bg || 'bg-[#DE7834]'} rounded-full mb-2`}>
-                  <span className={`text-xs font-medium ${scripture.colorScheme.text || 'text-white'}`}>
-                    {scripture.title}
-                  </span>
+      {typedBookmarks.length > 0 ? (
+        <div>
+          {typedBookmarks.map((bookmark) => {
+            // Find the scripture by id
+            const scripture = Object.values(typedScriptures).find(
+              s => s.id === bookmark.scriptureId
+            );
+            
+            // Find the chapter by id
+            const chapter = scripture?.chapters.find(
+              c => c.id === bookmark.chapterId
+            );
+            
+            if (!scripture) return null;
+            
+            return (
+              <div 
+                key={bookmark.id}
+                className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-3"
+                onClick={() => navigate(`/scripture/${scripture.id}`)}
+              >
+                <div className="flex items-center mb-2">
+                  <div className={`${scripture.colorScheme.bg} h-8 w-8 rounded-full flex items-center justify-center mr-3`}>
+                    <span className={`${scripture.colorScheme.text} text-xs font-medium`}>{scripture.title.substring(0, 1)}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium">{bookmark.title}</h3>
+                    <p className="text-xs text-gray-500">{chapter?.title || scripture.title}</p>
+                  </div>
                 </div>
                 
-                <h3 className="font-medium text-sm mb-1">{bookmark.title}</h3>
-                <p className="text-xs text-gray-500">
-                  {bookmark.date} 저장됨
-                </p>
+                <p className="text-xs text-gray-500 mb-2">저장일: {bookmark.date}</p>
+                
+                {bookmark.note && (
+                  <p className="text-sm bg-gray-50 p-2 rounded mb-2">{bookmark.note}</p>
+                )}
+                
+                <div className="flex justify-end">
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </div>
               </div>
-              
-              <ChevronRight className="text-gray-400" size={20} />
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+          
+          <button 
+            className="w-full py-2 text-center text-sm text-blue-600"
+            onClick={() => navigate('/scripture/bookmark')}
+          >
+            모든 북마크 보기
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white p-4 rounded-lg text-center">
+          <p className="text-gray-500 mb-3">저장된 북마크가 없습니다.</p>
+          <button 
+            className="text-sm text-blue-600"
+            onClick={() => navigate('/scripture')}
+          >
+            경전 읽기로 돌아가기
+          </button>
+        </div>
+      )}
     </div>
   );
 };

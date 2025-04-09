@@ -1,15 +1,17 @@
+
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BodhiLogo from '@/components/BodhiLogo';
 import BottomNav from '@/components/BottomNav';
 import { Search, MapPin, Bell, ChevronRight, CalendarDays } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getTempleList } from '/public/data/templeData/templeRepository';
-import { getTempleStayList } from '/public/data/templeStayData/templeStayRepository';
+import { getTempleList } from '../public/data/templeData/templeRepository';
+import { getTempleStayList } from '../public/data/templeStayData/templeStayRepository';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule, scriptures } from '/public/data/scriptureData/scriptureRepository';
-import { imageRepository } from '/public/data/imageRepository';
+import { readingSchedule, scriptures } from '../public/data/scriptureData/scriptureRepository';
+import { imageRepository } from '../public/data/imageRepository';
+import { typedData } from '@/utils/typeUtils';
 
 const Main = () => {
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ const Main = () => {
   const [loading, setLoading] = React.useState(true);
 
   useEffect(() => {
+    // Simulate loading data
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
@@ -35,10 +38,16 @@ const Main = () => {
   }
 
   const templeList = getTempleList();
-  const recommendedTemples = templeList.slice(0, 3);
+  const typedTempleList = typedData<typeof templeList>(templeList);
+  const recommendedTemples = typedTempleList.slice(0, 3);
   
   const templeStayList = getTempleStayList();
-  const recommendedTempleStays = templeStayList.slice(0, 3);
+  const typedTempleStayList = typedData<typeof templeStayList>(templeStayList);
+  const recommendedTempleStays = typedTempleStayList.slice(0, 3);
+
+  const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
+  const typedScriptures = typedData<typeof scriptures>(scriptures);
+  const typedImageRepository = typedData<typeof imageRepository>(imageRepository);
 
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
   const today = new Date();
@@ -110,7 +119,7 @@ const Main = () => {
             onClick={() => navigate('/nearby')}
           >
             <img 
-              src={imageRepository.templeBanner.default} 
+              src={typedImageRepository.templeBanner.default} 
               alt="사찰 지도" 
               className="w-full h-full object-cover"
             />
@@ -179,14 +188,14 @@ const Main = () => {
           </div>
           
           <div className="space-y-3">
-            {readingSchedule.slice(0, 2).map((reading, index) => {
+            {typedReadingSchedule.slice(0, 2).map((reading, index) => {
               const scriptureColors = [
                 { bg: 'bg-[#DE7834]', text: 'text-white' },
                 { bg: 'bg-[#FFA94D]', text: 'text-white' }
               ];
               
               const colorIndex = index % scriptureColors.length;
-              const matchingScripture = Object.values(scriptures).find(s => s.id === reading.scriptureId);
+              const matchingScripture = Object.values(typedScriptures).find(s => s.id === reading.scriptureId);
               
               if (!matchingScripture) return null;
               

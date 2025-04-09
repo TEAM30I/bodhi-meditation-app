@@ -3,19 +3,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { typedData } from '@/utils/typeUtils';
 
-// Use relative import instead of absolute path
+// Use relative import with `public` at the beginning
+import { imageRepository } from '../../public/data/imageRepository';
 import { regionSearchRankings } from '../../public/data/searchRankingRepository';
 
 const TempleBanner = () => {
   const navigate = useNavigate();
-  
-  // Mock image repository data for now
-  const imageRepository = {
-    templeBanner: {
-      default: "https://via.placeholder.com/600x300"
-    }
-  };
-  
   const typedImageRepo = typedData<typeof imageRepository>(imageRepository);
 
   return (

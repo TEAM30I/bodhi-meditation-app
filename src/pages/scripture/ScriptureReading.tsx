@@ -2,7 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
-import { scriptures } from '/public/data/scriptureData/scriptureRepository';
+import { typedData } from '@/utils/typeUtils';
+
+// Use relative imports
+import { scriptures } from '../../public/data/scriptureData/scriptureRepository';
 import { Badge } from '@/components/ui/badge';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
@@ -17,8 +20,11 @@ const ScriptureReading = () => {
   const [activeCategory, setActiveCategory] = useState('original');
   const [fontSize, setFontSize] = useState(16);
   
+  // Type our data correctly
+  const typedScriptures = typedData<typeof scriptures>(scriptures);
+  
   // 경전 데이터 찾기
-  const scripture = id ? Object.values(scriptures).find(s => s.id === id) : null;
+  const scripture = id ? Object.values(typedScriptures).find(s => s.id === id) : null;
   
   useEffect(() => {
     // 스크롤을 최상단으로 이동

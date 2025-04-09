@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bookmark, Share2, Settings, Search, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
-import { getScriptureById, updateReadingProgress, addBookmark, Scripture } from '/public/data/scriptureData/scriptureRepository';
+import { typedData } from '@/utils/typeUtils';
+
+import { getScriptureById, updateReadingProgress, addBookmark, Scripture } from '../../public/data/scriptureData/scriptureRepository';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -20,12 +21,15 @@ const ScriptureReader = () => {
   
   const contentRef = useRef<HTMLDivElement>(null);
   
-  const scripture: Scripture | undefined = id ? getScriptureById(id) : undefined;
+  const typedGetScriptureById = typedData<typeof getScriptureById>(getScriptureById);
+  const typedUpdateReadingProgress = typedData<typeof updateReadingProgress>(updateReadingProgress);
+  const typedAddBookmark = typedData<typeof addBookmark>(addBookmark);
+  
+  const scripture: Scripture | undefined = id ? typedGetScriptureById(id) : undefined;
   
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    // Load the last read position if available
     if (scripture && scripture.hasStarted) {
       const lastChapterIndex = scripture.chapters.findIndex(ch => ch.id === scripture.lastReadChapter);
       if (lastChapterIndex !== -1) {
@@ -35,13 +39,12 @@ const ScriptureReader = () => {
     }
   }, [scripture]);
 
-  // Save reading progress
   useEffect(() => {
     if (scripture) {
       const progress = ((currentChapterIndex * 100) / scripture.chapters.length) + 
                       ((currentPageIndex * 100) / 10) / scripture.chapters.length;
       
-      updateReadingProgress(
+      typedUpdateReadingProgress(
         scripture.id, 
         Math.min(100, progress), 
         scripture.chapters[currentChapterIndex].id,
@@ -61,7 +64,6 @@ const ScriptureReader = () => {
   const currentChapter = scripture.chapters[currentChapterIndex];
   const content = currentChapter ? (activeTab === 'original' ? currentChapter.original : currentChapter.explanation) : '';
   
-  // Simulate page content
   const pageContent = content.split('\n');
   
   const handleBackClick = () => {
@@ -73,12 +75,12 @@ const ScriptureReader = () => {
       setCurrentPageIndex(currentPageIndex - 1);
     } else if (currentChapterIndex > 0) {
       setCurrentChapterIndex(currentChapterIndex - 1);
-      setCurrentPageIndex(4); // Assume 5 pages per chapter
+      setCurrentPageIndex(4);
     }
   };
 
   const handleNextPage = () => {
-    if (currentPageIndex < 4) { // Assume 5 pages per chapter
+    if (currentPageIndex < 4) {
       setCurrentPageIndex(currentPageIndex + 1);
     } else if (currentChapterIndex < scripture.chapters.length - 1) {
       setCurrentChapterIndex(currentChapterIndex + 1);
@@ -91,8 +93,8 @@ const ScriptureReader = () => {
   };
 
   const handleBookmark = () => {
-    addBookmark(
-      'user1', // Default user ID
+    typedAddBookmark(
+      'user1',
       scripture.id,
       currentChapter.id,
       currentPageIndex,
@@ -105,7 +107,6 @@ const ScriptureReader = () => {
       className={`min-h-screen ${darkMode ? 'bg-[#1E1E1E]' : 'bg-white'}`}
       onClick={toggleControls}
     >
-      {/* Header - Only show when controls are visible */}
       {showControls && (
         <div className={`fixed top-0 left-0 right-0 z-10 w-full h-[56px] flex items-center px-5 ${darkMode ? 'bg-[#1E1E1E] border-gray-800' : 'bg-white border-b border-gray-200'}`}>
           <button onClick={handleBackClick} className="mr-2">
@@ -133,7 +134,6 @@ const ScriptureReader = () => {
         </div>
       )}
       
-      {/* Tab switcher - Only show when controls are visible */}
       {showControls && (
         <div className={`fixed top-[56px] left-0 right-0 z-10 w-full flex ${darkMode ? 'bg-[#1E1E1E]' : 'bg-white'}`}>
           <button
@@ -165,7 +165,6 @@ const ScriptureReader = () => {
         </div>
       )}
       
-      {/* Content with proper padding for fixed headers/footers */}
       <div 
         ref={contentRef}
         className={`${darkMode ? 'bg-[#1E1E1E] text-white' : 'bg-white text-black'} pt-[120px] pb-[100px] px-5`}
@@ -192,7 +191,6 @@ const ScriptureReader = () => {
         )}
       </div>
       
-      {/* Page navigation buttons - Only show when controls are visible */}
       {showControls && (
         <div className="fixed bottom-20 left-0 right-0 flex justify-between items-center px-5">
           <button 
@@ -223,7 +221,6 @@ const ScriptureReader = () => {
         </div>
       )}
       
-      {/* Settings panel */}
       {showSettings && (
         <div 
           className={`fixed inset-0 z-50 ${darkMode ? 'bg-black/80' : 'bg-black/50'}`} 
@@ -240,7 +237,6 @@ const ScriptureReader = () => {
               경전 설정
             </h3>
             
-            {/* Settings content */}
             <div className="space-y-6">
               <div className="space-y-3">
                 <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -306,7 +302,6 @@ const ScriptureReader = () => {
         </div>
       )}
       
-      {/* Bottom Navigation - Only show when controls are visible */}
       {showControls && (
         <div className={`fixed bottom-0 left-0 right-0 h-16 ${darkMode ? 'bg-gray-900' : 'bg-white'} border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'} flex items-center justify-around px-6 z-10`}>
           <button 

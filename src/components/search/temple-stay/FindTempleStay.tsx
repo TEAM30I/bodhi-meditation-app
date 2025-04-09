@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
-import { templeStaySearchRankings } from '/public/data/searchRankingRepository';
-import { locations } from '/public/data/templeStayData/templeStayRepository';
 import { typedData } from '@/utils/typeUtils';
+
+// Update import paths to use relative imports
+import { templeStaySearchRankings } from '../../../../public/data/searchRankingRepository';
+import { locations } from '../../../../public/data/templeStayData/templeStayRepository';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();

@@ -3,8 +3,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Navigation, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Temple } from '/public/data/templeData/templeRepository';
-import { castRepository } from '@/utils/typeAssertions';
+import { typedData } from '@/utils/typeUtils';
+
+// Update import path to use relative imports
+import { Temple } from '../../../public/data/templeData/templeRepository';
 
 interface TempleItemProps {
   temple: Temple;
@@ -13,7 +15,7 @@ interface TempleItemProps {
 
 const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
   const navigate = useNavigate();
-  const typedTemple = castRepository<Temple>(temple);
+  const typedTemple = typedData<Temple>(temple);
 
   return (
     <div 
