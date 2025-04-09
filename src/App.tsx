@@ -25,13 +25,22 @@ import TermsAgreement from "./pages/login/TermsAgreement";
 try {
   console.log("Attempting to configure Amplify...");
   
-  // Verify the polyfills have been correctly applied
-  if (typeof global !== 'undefined') {
+  // Double check that global and window are properly connected
+  if (typeof window !== 'undefined' && typeof window.global !== 'undefined') {
     console.log("Global object is available, configuring Amplify");
     Amplify.configure(awsConfig);
     console.log("Amplify configuration successful");
   } else {
     console.error("Global object not available for Amplify configuration - polyfills may not be working");
+    // Attempt a fallback configuration
+    if (typeof window !== 'undefined') {
+      console.log("Trying fallback global polyfill...");
+      // @ts-ignore - required for AWS Amplify
+      window.global = window;
+      // Now attempt to configure Amplify again
+      Amplify.configure(awsConfig);
+      console.log("Fallback Amplify configuration attempted");
+    }
   }
 } catch (error) {
   console.error("Error configuring Amplify:", error);
