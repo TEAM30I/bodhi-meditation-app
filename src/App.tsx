@@ -25,12 +25,13 @@ import TermsAgreement from "./pages/login/TermsAgreement";
 try {
   console.log("Attempting to configure Amplify...");
   
-  // Check if polyfills are properly in place
-  if (typeof global !== 'undefined' || (typeof window !== 'undefined' && (window as any).global)) {
+  // Verify the polyfills have been correctly applied
+  if (typeof global !== 'undefined') {
+    console.log("Global object is available, configuring Amplify");
     Amplify.configure(awsConfig);
     console.log("Amplify configuration successful");
   } else {
-    console.error("Global object not available for Amplify configuration");
+    console.error("Global object not available for Amplify configuration - polyfills may not be working");
   }
 } catch (error) {
   console.error("Error configuring Amplify:", error);

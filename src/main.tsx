@@ -1,25 +1,22 @@
 
-// Polyfills for Node.js globals needed by AWS Amplify
-// These must be at the very top, before any imports
-if (typeof window !== 'undefined') {
-  // Create a proper global object that contains all window properties
-  const windowAsAny = window as any;
-  windowAsAny.global = windowAsAny;
-  
-  // Set global to window for AWS Amplify to work correctly
-  // This is technically not type-safe but is required for Amplify
-  (globalThis as any).global = windowAsAny;
-  
-  // Add process if it doesn't exist
-  if (typeof process === 'undefined') {
-    windowAsAny.process = { env: {} } as any;
+// Ensure global, process, and Buffer are defined before any imports
+(function setupPolyfills() {
+  if (typeof window !== 'undefined') {
+    // Create a proper global object
+    window.global = window;
+    global = window;
+
+    // Add process if needed
+    if (typeof process === 'undefined') {
+      window.process = { env: {} };
+    }
+
+    // Add Buffer if needed
+    if (typeof Buffer === 'undefined') {
+      window.Buffer = require('buffer/').Buffer;
+    }
   }
-  
-  // Add Buffer if it doesn't exist
-  if (typeof Buffer === 'undefined') {
-    windowAsAny.Buffer = require('buffer/').Buffer;
-  }
-}
+})();
 
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
