@@ -1,8 +1,8 @@
 
 /**
- * Helper utility to safely cast data to a specific type
- * This doesn't perform any runtime type checking, it's just a TypeScript helper
+ * A type utility function that preserves the type of repository data
+ * while making TypeScript happy
  */
-export function typedData<T>(data: unknown): T {
+export function typedData<T>(data: any): T {
   return data as T;
 }

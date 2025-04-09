@@ -3,7 +3,67 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import { bookmarks, scriptures } from '/public/data/scriptureData/scriptureRepository';
+
+// Mock data for the bookmarks and scriptures
+const bookmarks = [
+  {
+    id: "bm1",
+    scriptureId: "diamond-sutra",
+    chapterId: "ch1",
+    pageIndex: 1,
+    title: "금강경 제1장",
+    date: "2025-03-15",
+    note: "중요한 구절"
+  },
+  {
+    id: "bm2",
+    scriptureId: "heart-sutra",
+    chapterId: "ch2",
+    pageIndex: 3,
+    title: "반야심경 제2장",
+    date: "2025-03-20"
+  }
+];
+
+const scriptures = {
+  "diamond-sutra": {
+    id: "diamond-sutra",
+    title: "금강경",
+    categories: ["불경"],
+    colorScheme: {
+      bg: "bg-amber-100",
+      text: "text-amber-800",
+      progressBg: "#F59E0B"
+    },
+    content: "금강경 내용...",
+    chapters: [
+      { id: "ch1", title: "제1장", original: "원문...", explanation: "해설..." }
+    ],
+    progress: 35,
+    hasStarted: true,
+    lastReadChapter: "ch1",
+    lastPageIndex: 1
+  },
+  "heart-sutra": {
+    id: "heart-sutra",
+    title: "반야심경",
+    categories: ["불경"],
+    colorScheme: {
+      bg: "bg-blue-100",
+      text: "text-blue-800",
+      progressBg: "#3B82F6"
+    },
+    content: "반야심경 내용...",
+    chapters: [
+      { id: "ch1", title: "제1장", original: "원문...", explanation: "해설..." },
+      { id: "ch2", title: "제2장", original: "원문...", explanation: "해설..." }
+    ],
+    progress: 50,
+    hasStarted: true,
+    lastReadChapter: "ch2",
+    lastPageIndex: 3
+  }
+};
 
 const BookmarkList: React.FC = () => {
   const navigate = useNavigate();

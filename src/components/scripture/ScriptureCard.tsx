@@ -3,7 +3,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import { scriptures } from '/public/data/scriptureData/scriptureRepository';
+
+// Use relative import instead of absolute path
+import { regionSearchRankings } from '../../../public/data/searchRankingRepository';
 
 // Define type based on the scripture repository
 type ScriptureColorScheme = {

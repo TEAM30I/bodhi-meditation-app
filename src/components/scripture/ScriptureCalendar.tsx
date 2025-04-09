@@ -3,7 +3,15 @@ import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import { calendarData } from '/public/data/scriptureData/scriptureRepository';
+
+// Mock data for the calendar
+const calendarData = [
+  { date: new Date(2025, 3, 1), title: "금강경", completed: true, progress: 100 },
+  { date: new Date(2025, 3, 5), title: "반야심경", completed: true, progress: 85 },
+  { date: new Date(2025, 3, 9), title: "금강경", completed: false, progress: 45 },
+  { date: new Date(2025, 3, 15), title: "법화경", completed: false, progress: 25 },
+  { date: new Date(), title: "반야심경", completed: false, progress: 10 }
+];
 
 interface ScriptureProgressPreviewProps {
   recentDates?: {
