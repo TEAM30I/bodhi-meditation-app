@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { bookmarks, scriptures } from '@/data/scriptureData';
+import { bookmarks, getScriptureById } from '@/data/scriptureData';
 
 const ScriptureBookmarkPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const ScriptureBookmarkPage: React.FC = () => {
   // Get unique scripture IDs from bookmarks
   const scriptureIds = [...new Set(bookmarks.map(bookmark => bookmark.scriptureId))];
   const scriptureOptions = scriptureIds.map(id => {
-    const scripture = scriptures.find(s => s.id === id);
+    const scripture = getScriptureById(id);
     return {
       id,
       title: scripture?.title || '',
@@ -59,11 +59,13 @@ const ScriptureBookmarkPage: React.FC = () => {
           {filteredBookmarks.length > 0 ? (
             <div className="space-y-3">
               {filteredBookmarks.map((bookmark) => {
-                const scripture = Object.values(scriptures).find(s => s.id === bookmark.scriptureId);
+                const scripture = getScriptureById(bookmark.scriptureId);
                 const colorScheme = scripture?.colorScheme || {
                   bg: "bg-gray-800",
                   text: "text-white"
                 };
+                
+                const chapter = scripture?.chapters.find(ch => ch.id === bookmark.chapterId);
                 
                 return (
                   <div
@@ -73,7 +75,7 @@ const ScriptureBookmarkPage: React.FC = () => {
                   >
                     <div className={`inline-flex px-3 py-1 ${colorScheme.bg} rounded-full mb-2`}>
                       <span className={`text-xs font-medium ${colorScheme.text}`}>
-                        {bookmark.chapter || scripture?.title}
+                        {chapter?.title || scripture?.title}
                       </span>
                     </div>
                     <h3 className="font-medium text-base mb-1">{bookmark.title}</h3>

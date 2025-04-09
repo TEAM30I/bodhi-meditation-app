@@ -1,75 +1,55 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Bookmark, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { bookmarks, Bookmark as BookmarkType } from '@/data/scriptureData';
+import { bookmarks, scriptures } from '@/data/scriptureData';
 
-// Modify the EnhancedBookmark interface to match Bookmark type
-interface EnhancedBookmark extends Omit<BookmarkType, 'date'> {
-  date?: string;
-}
-
-interface BookmarkListProps {
-  scriptureId?: string;
-}
-
-const BookmarkList: React.FC<BookmarkListProps> = ({ scriptureId }) => {
+const BookmarkList: React.FC = () => {
   const navigate = useNavigate();
-  const [bookmarkList, setBookmarkList] = useState(bookmarks);
-
-  const filteredBookmarks = scriptureId
-    ? bookmarkList.filter(bookmark => bookmark.scriptureId === scriptureId)
-    : bookmarkList;
-
-  const handleDeleteBookmark = (id: string) => {
-    // Implement delete logic here, e.g., update state or call an API
-    setBookmarkList(prevBookmarks => prevBookmarks.filter(bookmark => bookmark.id !== id));
-  };
+  
+  if (bookmarks.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl">
+        <h3 className="text-gray-500 mb-2">저장된 북마크가 없습니다</h3>
+        <p className="text-sm text-gray-400">경전을 읽는 중 북마크를 추가해보세요</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {filteredBookmarks.length > 0 ? (
-        filteredBookmarks.map((bookmark) => (
-          <div key={bookmark.id} className="bg-white rounded-lg shadow-sm p-4 mb-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-bold text-lg mb-2">{bookmark.title}</h3>
-                <p className="text-gray-500 text-sm mb-1">
-                  {format(bookmark.createdAt, 'yyyy.MM.dd')}
-                </p>
-                {bookmark.note && <p className="text-gray-700 text-sm">{bookmark.note}</p>}
-              </div>
-              <button
-                onClick={() => handleDeleteBookmark(bookmark.id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                <Trash2 size={20} />
-              </button>
+    <div className="space-y-4">
+      <h2 className="text-lg font-medium mb-4">북마크</h2>
+      
+      {bookmarks.map((bookmark) => {
+        const scripture = Object.values(scriptures).find(s => s.id === bookmark.scriptureId);
+        if (!scripture) return null;
+        
+        const chapter = scripture.chapters.find(ch => ch.id === bookmark.chapterId);
+        
+        return (
+          <div 
+            key={bookmark.id}
+            className="bg-white rounded-xl p-4 shadow-sm"
+            onClick={() => navigate(`/scripture/${bookmark.scriptureId}`)}
+          >
+            <div className={`inline-flex px-3 py-1 ${scripture.colorScheme.bg} rounded-full mb-2`}>
+              <span className={`text-xs font-medium ${scripture.colorScheme.text}`}>
+                {chapter?.title || scripture.title}
+              </span>
             </div>
-            <div className="flex justify-between items-center mt-4">
-              <div className="text-gray-500 text-sm">
-                위치: {bookmark.position}
-              </div>
-              <button
-                onClick={() => {
-                  // Navigate to the scripture reading page with the specific bookmark position
-                  navigate(`/scripture/${bookmark.scriptureId}`);
-                }}
-                className="flex items-center text-bodhi-orange hover:text-bodhi-orange-700"
-              >
-                <span className="mr-1">자세히 보기</span>
-                <ChevronRight size={20} />
-              </button>
-            </div>
+            
+            <h3 className="font-medium mb-1">{bookmark.title}</h3>
+            <p className="text-xs text-gray-500 mb-2">
+              {bookmark.date} 저장됨
+            </p>
+            
+            {bookmark.note && (
+              <p className="text-sm text-gray-700 border-t border-gray-100 pt-2 mt-2">
+                {bookmark.note}
+              </p>
+            )}
           </div>
-        ))
-      ) : (
-        <div className="flex flex-col items-center justify-center h-48">
-          <Bookmark size={48} className="text-gray-400 mb-2" />
-          <p className="text-gray-500">북마크가 없습니다.</p>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 };

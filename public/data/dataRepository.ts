@@ -9,8 +9,8 @@ import {
   bookmarks, 
   Scripture, 
   Bookmark,
-  ReadingProgress,
-  scriptureColorSchemes
+  scriptureColorSchemes,
+  ScriptureChapter
 } from './scriptureData/scriptureRepository';
 import { scriptureTexts } from './scriptureData';
 import { newsData, NewsItem } from './newsRepository';
@@ -49,6 +49,6 @@ export type {
   NewsItem,
   Scripture,
   Bookmark,
-  ReadingProgress,
+  ScriptureChapter,
   SearchRanking
 };

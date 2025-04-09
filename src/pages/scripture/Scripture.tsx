@@ -40,9 +40,9 @@ const Scripture = () => {
           {/* 읽을 경전 목록 */}
           <div className="space-y-4 mb-8">
             {readingSchedule.map((schedule) => {
-              // 해당 카테고리의 경전 찾기
-              const matchingScripture = scriptures.find(
-                s => s.categories.includes(schedule.category)
+              // Find the scripture by scriptureId
+              const matchingScripture = Object.values(scriptures).find(
+                s => s.id === schedule.scriptureId
               );
               
               if (!matchingScripture) return null;
@@ -54,7 +54,7 @@ const Scripture = () => {
                     id: matchingScripture.id,
                     title: matchingScripture.title,
                     progress: matchingScripture.progress || 0,
-                    colorScheme: matchingScripture.colorScheme || scriptureColorSchemes[schedule.category]
+                    colorScheme: matchingScripture.colorScheme
                   }}
                 />
               );
@@ -65,10 +65,10 @@ const Scripture = () => {
           <div className="mb-8">
             <h2 className="text-lg font-medium mb-4">다른 경전 읽기</h2>
             <div className="space-y-4">
-              {scriptures.map((scripture) => {
-                // readingSchedule에 이미 포함된 경전은 제외
+              {Object.values(scriptures).map((scripture) => {
+                // Check if this scripture is already in readingSchedule
                 const alreadyIncluded = readingSchedule.some(
-                  schedule => scripture.categories.includes(schedule.category)
+                  schedule => schedule.scriptureId === scripture.id
                 );
                 
                 if (alreadyIncluded) return null;
@@ -80,7 +80,7 @@ const Scripture = () => {
                       id: scripture.id,
                       title: scripture.title,
                       progress: scripture.progress || 0,
-                      colorScheme: scripture.colorScheme || scriptureColorSchemes[scripture.categories[0]]
+                      colorScheme: scripture.colorScheme
                     }}
                   />
                 );
