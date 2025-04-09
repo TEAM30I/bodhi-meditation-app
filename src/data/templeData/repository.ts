@@ -1,6 +1,4 @@
 
-// We're moving the temple repository directly into our src directory for easier access
-
 export interface Temple {
   id: string;
   name: string;
@@ -76,64 +74,72 @@ export const temples: Record<string, Temple> = {
       facebook: "https://facebook.com/haeinsa"
     }
   },
-  "mireuksa": {
-    id: "mireuksa",
-    name: "미륵사",
-    location: "전북 익산시 금마면 미륵사지로 362",
-    direction: "익산역에서 시내버스 41번 이용 약 30분",
-    description: "백제 문화의 정수",
-    likeCount: 745,
-    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
-    websiteUrl: "http://www.mireuksaji.org",
-    tags: ["백제", "문화재", "석탑"],
-    openingHours: "09:00 ~ 18:00",
-    hasParkingLot: true,
-    hasTempleStay: false,
-    facilities: ["주차장", "화장실", "안내소"],
-    nearbyAttractions: ["익산 국립박물관", "왕궁리 유적"],
-    contact: {
-      phone: "063-830-0900"
-    }
-  },
-  "songgwangsa": {
-    id: "songgwangsa",
-    name: "송광사",
-    location: "전남 순천시 송광면 송광사안길 100",
-    direction: "순천역에서 버스 이용 약 40분",
-    description: "승보사찰의 명성",
-    likeCount: 830,
-    imageUrl: "https://images.unsplash.com/photo-1501854140801-50d01698950b?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
-    websiteUrl: "https://www.songgwangsa.org",
-    tags: ["승보사찰", "산사", "템플스테이"],
-    openingHours: "08:00 ~ 18:00",
+  "jogyesa": {
+    id: "jogyesa",
+    name: "조계사",
+    location: "서울 종로구 우정국로 55",
+    direction: "지하철 3호선 안국역 6번 출구에서 도보 5분",
+    description: "서울 도심에 위치한 대한불교 조계종의 총본산",
+    likeCount: 1120,
+    imageUrl: "https://images.unsplash.com/photo-1472396961693-142e6e269027?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    websiteUrl: "http://www.jogyesa.kr",
+    tags: ["도심속", "템플스테이운영", "문화재"],
+    openingHours: "04:00 ~ 21:00",
     hasParkingLot: true,
     hasTempleStay: true,
     facilities: ["주차장", "화장실", "법당", "템플스테이"],
-    nearbyAttractions: ["조계산", "순천만 국가정원"],
+    nearbyAttractions: ["인사동", "경복궁", "청계천"],
     contact: {
-      phone: "061-755-0107"
+      phone: "02-768-8600"
     },
     social: {
-      facebook: "https://facebook.com/songgwangsa"
+      instagram: "https://www.instagram.com/jogyesa_official",
+      facebook: "https://www.facebook.com/jogyesa"
     }
   },
-  "beopjusa": {
-    id: "beopjusa",
-    name: "법주사",
-    location: "충북 보은군 속리산면 법주사로 379",
-    direction: "청주고속버스터미널에서 보은행 버스 이용 약 1시간",
-    description: "속리산의 아름다운 사찰",
-    likeCount: 660,
-    imageUrl: "https://images.unsplash.com/photo-1527576539890-dfa815648363?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
-    websiteUrl: "http://www.beopjusa.org",
-    tags: ["속리산", "철확대불", "템플스테이운영"],
-    openingHours: "08:30 ~ 18:00",
+  "bongeunsa": {
+    id: "bongeunsa",
+    name: "봉은사",
+    location: "서울 강남구 봉은사로 531",
+    direction: "지하철 9호선 봉은사역 1번 출구에서 도보 5분",
+    description: "현대적인 도시와 조화를 이루는 천년고찰",
+    likeCount: 920,
+    imageUrl: "https://images.unsplash.com/photo-1466442929976-97f336a657be?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    websiteUrl: "https://www.bongeunsa.org",
+    tags: ["강남", "도심속", "템플스테이운영"],
+    openingHours: "04:30 ~ 21:00",
     hasParkingLot: true,
     hasTempleStay: true,
-    facilities: ["주차장", "화장실", "법당", "팔상전"],
-    nearbyAttractions: ["속리산 국립공원", "정이품송"],
+    facilities: ["주차장", "화장실", "법당", "템플스테이"],
+    nearbyAttractions: ["코엑스", "스타필드", "한강공원"],
     contact: {
-      phone: "043-543-3615"
+      phone: "02-3218-4800"
+    },
+    social: {
+      instagram: "https://instagram.com/bongeunsa_official",
+      facebook: "https://facebook.com/bongeunsa"
+    }
+  },
+  "tongdosa": {
+    id: "tongdosa",
+    name: "통도사",
+    location: "경상남도 양산시 하북면 통도사로 108",
+    direction: "양산역에서 버스 이용 약 30분",
+    description: "삼보사찰 중 하나로 불보사찰로 불리는 통도사",
+    likeCount: 830,
+    imageUrl: "https://images.unsplash.com/photo-1518005020951-eccb494ad742?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
+    websiteUrl: "https://tongdosa.or.kr",
+    tags: ["불보사찰", "양산", "템플스테이"],
+    openingHours: "08:00 ~ 18:00",
+    hasParkingLot: true,
+    hasTempleStay: true,
+    facilities: ["주차장", "화장실", "법당", "불교중앙박물관"],
+    nearbyAttractions: ["영축산", "통도환타지아", "양산 워터파크"],
+    contact: {
+      phone: "055-382-7182"
+    },
+    social: {
+      instagram: "https://instagram.com/tongdosa_official"
     }
   }
 };

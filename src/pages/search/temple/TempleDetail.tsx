@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { temples, Temple } from '@/data/templeData';
+import { getTempleById, Temple } from '@/data/templeData';
 
 const TempleDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +27,7 @@ const TempleDetail = () => {
   useEffect(() => {
     if (id) {
       // Find temple by ID
-      const foundTemple = temples[id];
+      const foundTemple = getTempleById(id);
       if (foundTemple) {
         setTemple(foundTemple);
       }

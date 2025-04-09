@@ -1,5 +1,5 @@
 
-import { templeStays, TempleStay } from '../public/data/templeStayData/templeStayRepository';
+import { templeStays, TempleStay } from './templeStayData/templeStayRepository';
 
 // Function to get temple stay by ID
 export const getTempleStayById = (id: string): TempleStay | undefined => {
@@ -14,7 +14,7 @@ export {
   searchTempleStays,
   filterTempleStaysByTag,
   locations
-} from '../public/data/templeStayData/templeStayRepository';
+} from './templeStayData/templeStayRepository';
 
 // Export TempleStay interface
-export type { TempleStay } from '../public/data/templeStayData/templeStayRepository';
+export type { TempleStay } from './templeStayData/templeStayRepository';

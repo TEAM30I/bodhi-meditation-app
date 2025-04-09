@@ -6,7 +6,7 @@ import {
   filterTemplesByTag,
   searchTemples,
   regionTags 
-} from '../../public/data/templeData/templeRepository';
+} from './repository';
 
 // Export everything from templeRepository
 export {
@@ -19,7 +19,7 @@ export {
 };
 
 // Export Temple interface
-export type { Temple } from '../../public/data/templeData/templeRepository';
+export type { Temple } from './repository';
 
 // Additional utility function - get temple by ID
 export const getTempleById = (id: string) => {
