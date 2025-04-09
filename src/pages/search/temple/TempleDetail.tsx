@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Globe, Heart, Share, PhoneCall, Instagram, Facebook } from 'lucide-react';
@@ -39,7 +40,18 @@ const TempleDetail = () => {
       {/* Main Content */}
       <div className="max-w-[480px] mx-auto">
         {/* Temple Banner */}
-        <TempleBanner imageUrl={temple.imageUrl} />
+        <div className="w-full px-[24px] mb-[20px]">
+          <div className="w-full h-[130px] rounded-[10px] bg-gray-200 relative overflow-hidden">
+            <img 
+              src={temple.imageUrl} 
+              alt={temple.name} 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
+              1/3
+            </div>
+          </div>
+        </div>
 
         {/* Temple Info */}
         <div className="bg-white px-5 pt-4 pb-6">
@@ -63,11 +75,32 @@ const TempleDetail = () => {
           </div>
 
           <div className="flex items-center space-x-4 mb-6">
-            <IconMenu icon={Clock} text={temple.openingHours || '09:00 - 18:00'} />
-            <IconMenu icon={Globe} text={<a href={temple.websiteUrl} target="_blank" rel="noopener noreferrer">웹사이트</a>} />
-            {temple.contact?.phone && <IconMenu icon={PhoneCall} text={temple.contact.phone} />}
-            {temple.social?.instagram && <IconMenu icon={Instagram} text={<a href={temple.social.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>} />}
-            {temple.social?.facebook && <IconMenu icon={Facebook} text={<a href={temple.social.facebook} target="_blank" rel="noopener noreferrer">Facebook</a>} />}
+            <div className="flex flex-col items-center">
+              <Clock className="w-4 h-4 text-gray-500 mb-1" />
+              <span className="text-xs text-gray-500">{temple.openingHours || '09:00 - 18:00'}</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <Globe className="w-4 h-4 text-gray-500 mb-1" />
+              <a href={temple.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500">웹사이트</a>
+            </div>
+            {temple.contact?.phone && (
+              <div className="flex flex-col items-center">
+                <PhoneCall className="w-4 h-4 text-gray-500 mb-1" />
+                <span className="text-xs text-gray-500">{temple.contact.phone}</span>
+              </div>
+            )}
+            {temple.social?.instagram && (
+              <div className="flex flex-col items-center">
+                <Instagram className="w-4 h-4 text-gray-500 mb-1" />
+                <a href={temple.social.instagram} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500">Instagram</a>
+              </div>
+            )}
+            {temple.social?.facebook && (
+              <div className="flex flex-col items-center">
+                <Facebook className="w-4 h-4 text-gray-500 mb-1" />
+                <a href={temple.social.facebook} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500">Facebook</a>
+              </div>
+            )}
           </div>
 
           <p className="text-gray-700 leading-relaxed">{temple.description}</p>
@@ -117,10 +150,20 @@ const TempleDetail = () => {
           <h3 className="font-semibold text-lg mb-4">주변 사찰</h3>
           <div className="flex space-x-4 overflow-x-auto">
             {nearbyTemples.map((nearbyTemple) => (
-              <TempleCircle
+              <div 
                 key={nearbyTemple.id}
-                temple={nearbyTemple}
-              />
+                className="flex flex-col items-center"
+                onClick={() => navigate(`/search/temple/detail/${nearbyTemple.id}`)}
+              >
+                <div className="w-16 h-16 rounded-full overflow-hidden mb-2">
+                  <img 
+                    src={nearbyTemple.imageUrl} 
+                    alt={nearbyTemple.name} 
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
+                <span className="text-xs text-center">{nearbyTemple.name}</span>
+              </div>
             ))}
           </div>
         </div>

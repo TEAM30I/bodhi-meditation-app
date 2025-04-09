@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Globe, Heart, Share, PhoneCall } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Globe, Heart, Share, PhoneCall, Instagram as InstagramIcon, Facebook as FacebookIcon } from 'lucide-react';
 import { temples } from '/public/data/templeStayData/templeStayRepository';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -124,7 +125,7 @@ const TempleDetail = () => {
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">인스타그램</h3>
                 <a href={temple.social.instagram} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                  <Instagram className="inline-block w-4 h-4 mr-1 align-middle" />
+                  <InstagramIcon className="inline-block w-4 h-4 mr-1 align-middle" />
                   {temple.name} 인스타그램
                 </a>
               </div>
@@ -133,7 +134,7 @@ const TempleDetail = () => {
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">페이스북</h3>
                 <a href={temple.social.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                  <Facebook className="inline-block w-4 h-4 mr-1 align-middle" />
+                  <FacebookIcon className="inline-block w-4 h-4 mr-1 align-middle" />
                   {temple.name} 페이스북
                 </a>
               </div>

@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { imageRepository } from '../data/imageRepository';
+import { imageRepository } from '/public/data/imageRepository';
 
 const TempleBanner = () => {
   const navigate = useNavigate();

@@ -1,3 +1,4 @@
+
 /* ------------------------------------------------------------------
  * 📦 centralRepository.ts
  *  - 각 도메인 모듈의 데이터를 한곳에 모아 재‑export
@@ -33,11 +34,13 @@ import {
   type Scripture,
   type Bookmark,
   type ReadingProgress,
+  type ScriptureColorScheme,
 } from "./scriptureData/scriptureRepository";
 
 import {
   // 검색 순위 & 이미지 레포
   regionSearchRankings,
+  templeStaySearchRankings,
   type SearchRanking,
 } from "./searchRankingRepository";
 
@@ -74,6 +77,7 @@ export {
 
   // 기타 공용
   regionSearchRankings,
+  templeStaySearchRankings,
   imageRepository,
 };
 
@@ -88,4 +92,5 @@ export type {
   Bookmark,
   ReadingProgress,
   SearchRanking,
+  ScriptureColorScheme,
 };
