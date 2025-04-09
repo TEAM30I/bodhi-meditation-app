@@ -28,11 +28,11 @@ const SettingsPanel: React.FC = () => {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full font-['Pretendard']">
       <div className="flex justify-center">
         <div className="w-12 h-1 bg-[#E5E6EB] rounded-full mb-3"></div>
       </div>
-      <div className="bg-white rounded-3xl p-5 shadow-lg">
+      <div className="bg-white rounded-3xl p-5">
         <h2 className="text-xl font-bold text-[#111]">환경 설정</h2>
         <p className="text-xs text-[#767676] mt-1">나에게 맞는 설정으로 경전 읽기를 시작해보세요</p>
         

@@ -1,15 +1,13 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-
-// Use relative imports with the correct path
 import { bookmarks, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
 
 const ScriptureBookmarkPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeScripture, setActiveScripture] = useState<string | null>(null);
+  const [activeScripture, setActiveScripture] = useState<string | null>('heart-sutra');
 
   // Type our data properly
   const typedBookmarks = typedData<typeof bookmarks>(bookmarks);
@@ -26,85 +24,108 @@ const ScriptureBookmarkPage: React.FC = () => {
     };
   });
 
+  // Add all scripture titles from repository
+  const allScriptureOptions = Object.values(typedScriptures).map(scripture => ({
+    id: scripture.id,
+    title: scripture.title,
+    colorScheme: scripture.colorScheme
+  }));
+
   // Filter bookmarks by active scripture
   const filteredBookmarks = activeScripture 
     ? typedBookmarks.filter(bookmark => bookmark.scriptureId === activeScripture)
     : typedBookmarks;
 
-  return (
-    <div className="bg-[#F5F5F5] min-h-screen">
-      <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center border-b border-[#E5E5EC] px-5">
-        <button 
-          onClick={() => navigate('/scripture')}
-          className="mr-4"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="text-lg font-bold text-center flex-1">북마크</h1>
-      </div>
+  const handleScriptureSelect = (id: string) => {
+    setActiveScripture(activeScripture === id ? null : id);
+  };
 
-      <div className="px-5 pt-4">
+  return (
+    <div className="bg-white min-h-screen font-['Pretendard']">
+      <div className="flex flex-col w-full max-w-[360px] mx-auto">
+        {/* Status Bar */}
+        <div className="h-11 px-5 flex items-center justify-between">
+          <span className="text-base">9:41</span>
+        </div>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between h-14 px-5 border-b border-[#EAECEE]">
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/scripture')}>
+              <ArrowLeft size={28} />
+            </button>
+            <span className="font-bold text-xl text-[#111]">북마크</span>
+          </div>
+        </div>
+        
         {/* Scripture tabs */}
-        <div className="flex overflow-x-auto gap-2 pb-4">
-          {scriptureOptions.map((option) => (
+        <div className="flex overflow-x-auto gap-0 px-5 py-2 border-b border-[#EAECEE]">
+          {allScriptureOptions.map((option) => (
             <button
               key={option.id}
-              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm ${
+              className={`h-8 px-3 mx-0 flex items-center border-2 ${
                 activeScripture === option.id
-                  ? `${option.colorScheme?.bg || 'bg-gray-800'} ${option.colorScheme?.text || 'text-white'}`
-                  : 'bg-white text-gray-800 border border-gray-200'
+                  ? 'border-[#DE7834] text-[#DE7834]'
+                  : 'border-[#76767680] text-[#767676]'
               }`}
-              onClick={() => setActiveScripture(activeScripture === option.id ? null : option.id)}
+              onClick={() => handleScriptureSelect(option.id)}
             >
-              {option.title}
+              <span className="text-sm font-bold whitespace-nowrap">
+                {option.title}
+              </span>
             </button>
           ))}
         </div>
 
         {/* Bookmark list */}
-        <div className="pb-20">
+        <div className="p-5">
+          <h2 className="text-xl font-bold text-[#111] mb-4">
+            {filteredBookmarks.length}개의 북마크가 있습니다
+          </h2>
+          
           {filteredBookmarks.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {filteredBookmarks.map((bookmark) => {
                 const scripture = Object.values(typedScriptures).find(s => s.id === bookmark.scriptureId);
-                const colorScheme = scripture?.colorScheme || {
-                  bg: "bg-gray-800",
-                  text: "text-white"
-                };
-                
                 const chapter = scripture?.chapters.find(ch => ch.id === bookmark.chapterId);
+                
+                if (!scripture) return null;
+                
+                let badgeColor = "#EF4223";
+                if (scripture.id === "heart-sutra") {
+                  badgeColor = "#EF4223";
+                } else if (scripture.id === "diamond-sutra") {
+                  badgeColor = "#21212F";
+                } else if (scripture.id === "lotus-sutra") {
+                  badgeColor = "#0080FF";
+                }
                 
                 return (
                   <div
                     key={bookmark.id}
-                    className="bg-white rounded-xl p-4 shadow-sm"
+                    className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center cursor-pointer"
                     onClick={() => navigate(`/scripture/${bookmark.scriptureId}`)}
                   >
-                    <div className={`inline-flex px-3 py-1 ${colorScheme.bg} rounded-full mb-2`}>
-                      <span className={`text-xs font-medium ${colorScheme.text}`}>
-                        {chapter?.title || scripture?.title}
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="px-2 py-2 rounded-xl" style={{ backgroundColor: badgeColor }}>
+                        <span className="text-xs text-white">
+                          {scripture.title}
+                        </span>
+                      </div>
+                      <span className="text-lg font-bold text-[#111]">
+                        제1권 1장
                       </span>
                     </div>
-                    <h3 className="font-medium text-base mb-1">{bookmark.title}</h3>
-                    <p className="text-xs text-gray-500 mb-2">
-                      {bookmark.date} 저장됨
-                    </p>
-                    {bookmark.note && (
-                      <p className="text-sm text-gray-700 border-t border-gray-100 pt-2">
-                        {bookmark.note}
-                      </p>
-                    )}
-                    <div className="flex justify-end">
-                      <button className="text-sm text-orange-500">
-                        자세히 &gt;
-                      </button>
+                    <div className="flex items-center">
+                      <span className="text-xs text-[#767676]">시작하기</span>
+                      <ChevronRight size={12} className="text-[#767676]" />
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-48 bg-white rounded-xl">
+            <div className="flex flex-col items-center justify-center h-48 bg-white rounded-xl border border-gray-100">
               <p className="text-gray-500">북마크가 없습니다.</p>
             </div>
           )}

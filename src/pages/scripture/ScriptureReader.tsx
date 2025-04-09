@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bookmark, Search, Share2, ChevronLeft, ChevronRight, ChevronDown, Calendar } from 'lucide-react';
+import { ArrowLeft, Search, Share2, ChevronLeft, ChevronRight, ChevronDown, Calendar } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { getScriptureById, updateReadingProgress, addBookmark, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
 import SettingsPanel from '@/components/scripture/SettingsPanel';
@@ -109,7 +110,7 @@ const ScriptureReader = () => {
   };
 
   const handleNavigateToBookmark = () => {
-    navigate('/scripture/bookmark');
+    navigate('/scripture/bookmarks');
   };
 
   return (
@@ -136,9 +137,6 @@ const ScriptureReader = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            <button onClick={handleBookmark}>
-              <Bookmark size={24} />
-            </button>
             <button>
               <Search size={24} />
             </button>
@@ -150,7 +148,7 @@ const ScriptureReader = () => {
           <button
             className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
               activeTab === 'original' 
-                ? 'bg-white border border-[#EDEDED]' 
+                ? 'bg-white border border-[#EDEDED] text-[#111]' 
                 : 'bg-[#21212F] text-white font-bold'
             }`}
             onClick={(e) => {
@@ -164,7 +162,7 @@ const ScriptureReader = () => {
             className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
               activeTab === 'explanation' 
                 ? 'bg-[#21212F] text-white font-bold' 
-                : 'bg-white border border-[#EDEDED]'
+                : 'bg-white border border-[#EDEDED] text-[#111]'
             }`}
             onClick={(e) => {
               e.stopPropagation();
@@ -251,7 +249,9 @@ const ScriptureReader = () => {
                 handleNavigateToBookmark();
               }}
             >
-              <Bookmark size={28} />
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M25.8334 23.1C25.8334 21.1398 25.8334 20.1597 26.2149 19.411C26.5504 18.7525 27.0858 18.217 27.7444 17.8815C28.4931 17.5 29.4732 17.5 31.4334 17.5H36.5667C38.5269 17.5 39.507 17.5 40.2557 17.8815C40.9142 18.217 41.4497 18.7525 41.7852 19.411C42.1667 20.1597 42.1667 21.1398 42.1667 23.1V38.5L34 33.8333L25.8334 38.5V23.1Z" stroke="#111111" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
             
             <button 
