@@ -20,8 +20,9 @@ import FindPassword from "./pages/login/FindPassword";
 import ProfileSetup from "./pages/login/ProfileSetup";
 import TermsAgreement from "./pages/login/TermsAgreement";
 
-// Configure Amplify using our helper function
-initializeAmplify();
+// Initialize Amplify before creating the React app
+const amplifyInitialized = initializeAmplify();
+console.log("Amplify initialization status:", amplifyInitialized ? "success" : "failed");
 
 const queryClient = new QueryClient();
 

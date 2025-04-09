@@ -16,6 +16,7 @@ if (!window.Buffer) {
 }
 
 // Add process if it doesn't exist
+// @ts-ignore - simplified process object for browser environment
 if (!window.process) {
   window.process = { env: {} };
 }

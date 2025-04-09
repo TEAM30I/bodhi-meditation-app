@@ -36,6 +36,13 @@ export const initializeAmplify = () => {
       }
     }
     
+    // Verify process polyfill
+    if (typeof process === 'undefined' && typeof window !== 'undefined') {
+      console.warn("Process polyfill not detected, applying emergency polyfill");
+      // @ts-ignore - simplified process object
+      window.process = { env: {} };
+    }
+    
     // Configure Amplify
     Amplify.configure(awsConfig);
     console.log("Amplify initialized successfully");
