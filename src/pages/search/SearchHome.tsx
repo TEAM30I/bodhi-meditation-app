@@ -63,6 +63,14 @@ export default function SearchHome() {
     }
   };
 
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+  };
+
+  const handleGuestChange = (value: number) => {
+    setAdults(value);
+  };
+
   return (
     <div className="bg-[#F5F5F5] min-h-screen w-full pb-20">
       <div className="w-full max-w-[480px] mx-auto bg-white">
@@ -123,18 +131,20 @@ export default function SearchHome() {
             <div className="flex-1 px-4 py-3 border-r border-[#E5E5EC]">
               <DateRangePicker 
                 dateRange={dateRange}
-                onChange={setDateRange}
+                onChange={handleDateRangeChange}
                 onDateRangeChange={setDateRange}
+                onClose={() => {}}
               />
             </div>
             <div className="flex-1 px-4 py-3">
               <GuestSelector 
                 value={adults}
-                onChange={setAdults}
+                onChange={handleGuestChange}
                 adults={adults}
                 children={children}
                 onAdultsChange={setAdults}
                 onChildrenChange={setChildren}
+                onClose={() => {}}
               />
             </div>
           </div>

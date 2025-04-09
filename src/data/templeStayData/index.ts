@@ -1,6 +1,7 @@
 
-// This file re-exports everything from the public/data folder
-// Import from templeStayRepository for consistency
+// This file re-exports everything from the public data repository
+
+// Import from templeStayRepository
 import { 
   templeStays,
   getTempleStayList,
@@ -10,7 +11,7 @@ import {
   locations
 } from '../../../public/data/templeStayData/templeStayRepository';
 
-// Export everything from templeStayRepository
+// Export all the functions and data
 export {
   templeStays,
   getTempleStayList,
@@ -22,3 +23,8 @@ export {
 
 // Export TempleStay interface
 export type { TempleStay } from '../../../public/data/templeStayData/templeStayRepository';
+
+// Function to get temple stay by ID
+export const getTempleStayById = (id: string) => {
+  return templeStays[id];
+};

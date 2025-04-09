@@ -47,13 +47,13 @@ const TempleDetail = () => {
   const defaultImage = "https://images.unsplash.com/photo-1624456735729-03594a40c5fb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80";
   
   // Safely access images or use default
-  const images = temple.images || [defaultImage];
+  const images = temple.imageUrl ? [temple.imageUrl] : [defaultImage];
   
   // Phone fallback
   const phoneNumber = temple.contact?.phone || '정보 없음';
   
   // Website fallback
-  const website = temple.contact?.website || '';
+  const website = temple.websiteUrl || '';
   
   // Social media fallbacks
   const instagram = temple.social?.instagram || '';

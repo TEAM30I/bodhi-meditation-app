@@ -2,25 +2,34 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, Heart, Share, MapPin, Globe, Calendar } from 'lucide-react';
-import { getTempleStayList } from '@/data/templeStayData';
+import { getTempleStayList, getTempleStayById, TempleStay } from '@/data/templeStayData';
 import BottomNav from '@/components/BottomNav';
 
 const TempleStayDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  const allTempleStays = getTempleStayList();
-  const [templeStay, setTempleStay] = useState(allTempleStays.find(t => t.id === id));
+  const [templeStay, setTempleStay] = useState<TempleStay | undefined>();
   const [isFavorite, setIsFavorite] = useState(false);
   
   useEffect(() => {
-    if (!templeStay) {
-      // If temple stay not found, navigate back to search
-      navigate('/search/temple-stay/results');
+    if (id) {
+      const foundTempleStay = getTempleStayById(id);
+      if (foundTempleStay) {
+        setTempleStay(foundTempleStay);
+      } else {
+        // Try to find by id in the list
+        const allTempleStays = getTempleStayList();
+        const alternativeStay = allTempleStays.find(t => t.id === id);
+        if (alternativeStay) {
+          setTempleStay(alternativeStay);
+        }
+      }
     }
+    
     // Scroll to top when page loads
     window.scrollTo(0, 0);
-  }, [templeStay, navigate]);
+  }, [id]);
 
   if (!templeStay) {
     return <div className="flex items-center justify-center h-screen">로딩 중...</div>;
