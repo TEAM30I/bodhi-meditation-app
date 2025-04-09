@@ -1,3 +1,4 @@
+
 export interface Temple {
   id: string;
   name: string;
@@ -93,3 +94,33 @@ export const temples: Temple[] = [
     tags: ["강남", "도심속", "템플스테이운영"]
   }
 ];
+
+// Add the nearbyTemples export that's missing
+export const nearbyTemples: Temple[] = [
+  {
+    id: "bulguksa-nearby",
+    name: "불국사",
+    location: "경북 경주시",
+    distance: "도보 10분",
+    imageUrl: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80"
+  },
+  {
+    id: "haeinsa-nearby",
+    name: "해인사",
+    location: "경남 합천군",
+    distance: "도보 10분",
+    imageUrl: "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80"
+  }
+];
+
+// Add regionTags that might be needed elsewhere
+export const regionTags = [
+  { id: "all", name: "전체", active: false },
+  { id: "seoul", name: "서울", active: true },
+  { id: "incheon", name: "인천", active: false },
+  { id: "busan", name: "부산", active: false },
+  { id: "jeju", name: "제주", active: false },
+  { id: "daegu", name: "대구", active: false },
+  { id: "ulsan", name: "울산", active: false }
+];
+

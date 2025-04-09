@@ -1,4 +1,3 @@
-
 // Interface for Scripture data model
 export interface Scripture {
   id: string;
@@ -104,5 +103,34 @@ export const bookmarks: Bookmark[] = [
     position: 50,
     title: '심경의 핵심',
     createdAt: new Date('2025-03-22')
+  }
+];
+
+// Add calendarData for ScriptureCalendar component
+export const calendarData = [
+  {
+    date: new Date(2025, 3, 1),
+    title: "금강경",
+    completed: true
+  },
+  {
+    date: new Date(2025, 3, 2),
+    title: "반야심경",
+    completed: true
+  },
+  {
+    date: new Date(2025, 3, 3),
+    title: "법화경",
+    completed: false
+  },
+  {
+    date: new Date(2025, 3, 8),
+    title: "금강경",
+    completed: false
+  },
+  {
+    date: new Date(2025, 3, 15),
+    title: "반야심경",
+    completed: false
   }
 ];

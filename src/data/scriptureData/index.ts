@@ -3,11 +3,16 @@
 // Export only what we need and avoid duplicate exports
 export { scriptureTexts } from '../../../public/data/scriptureData';
 export { 
-  Scripture,
-  Bookmark,
-  ReadingProgress,
   scriptureCategories,
   readingSchedule,
   bookmarks,
   scriptures
 } from '../../../public/data/scriptureData/scriptureRepository';
+
+// Use "export type" for type declarations to fix TS1205 errors
+export type { 
+  Scripture,
+  Bookmark,
+  ReadingProgress
+} from '../../../public/data/scriptureData/scriptureRepository';
+

@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { TempleStayItem } from '@/components/search/TempleStayItem';
+import TempleStayItem from '@/components/search/TempleStayItem';
 import { Badge } from "@/components/ui/badge";
 import { locations, nearbyTempleStays } from "@/data/templeStayData";
 
