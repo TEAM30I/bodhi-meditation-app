@@ -1,52 +1,141 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Home, Bookmark } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import { scriptures } from '../../../public/data/scriptureData/scriptureRepository';
-import ScriptureBottomNav from '@/components/ScriptureBottomNav';
+import { scriptures, readingSchedule } from '../../../public/data/scriptureData/scriptureRepository';
 
 const Scripture = () => {
   const navigate = useNavigate();
-  
-  // Type our data properly
+  const [loading, setLoading] = useState(true);
+
+  // Type our data correctly
   const typedScriptures = typedData<typeof scriptures>(scriptures);
+  const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
+
+  useEffect(() => {
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Calendar days for the week
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+  const today = new Date();
+  
+  // Generate dates for the calendar
+  const dates = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() + i - today.getDay()); // Show days from Sunday to Saturday
+    return {
+      day: weekDays[date.getDay()],
+      date: date.getDate(),
+      active: i === today.getDay(), // Today is active
+      isPrayer: i === 0, // Sunday has prayer icon
+    };
+  });
+
+  const handleBackClick = () => {
+    navigate('/main');
+  };
+
+  const handleNavigateToCalendar = () => {
+    navigate('/scripture/calendar');
+  };
+
+  const handleNavigateToBookmark = () => {
+    navigate('/scripture/bookmarks');
+  };
 
   // Group scriptures by read status
   const startedScriptures = Object.values(typedScriptures).filter(s => s.hasStarted);
   const notStartedScriptures = Object.values(typedScriptures).filter(s => !s.hasStarted);
 
-  return (
-    <div className="bg-[#F1F3F5] min-h-screen pb-20 font-['Pretendard']">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center border-b border-[#E5E5EC] px-5">
-        <button 
-          onClick={() => navigate('/main')}
-          className="mr-4"
-        >
-          <Home size={24} />
-        </button>
-        <h1 className="text-lg font-bold text-center flex-1">경전 읽기</h1>
-        <button
-          onClick={() => navigate('/scripture/bookmarks')}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 7.8C5 6.11984 5 5.27976 5.32698 4.63803C5.6146 4.07354 6.07354 3.6146 6.63803 3.32698C7.27976 3 8.11984 3 9.8 3H14.2C15.8802 3 16.7202 3 17.362 3.32698C17.9265 3.6146 18.3854 4.07354 18.673 4.63803C19 5.27976 19 6.11984 19 7.8V21L12 17L5 21V7.8Z" stroke="#111111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF4D00]"></div>
       </div>
+    );
+  }
 
-      <div className="px-5 py-4">
+  return (
+    <div className="bg-[#F1F3F5] min-h-screen font-['Pretendard']">
+      <div className="flex flex-col w-full max-w-[360px] mx-auto">
+        {/* Status Bar */}
+        <div className="h-11 px-5 flex items-center justify-between">
+          <span className="text-base">9:41</span>
+        </div>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between h-14 px-5">
+          <div className="flex items-center gap-4">
+            <button onClick={handleBackClick}>
+              <Home size={28} />
+            </button>
+            <div className="font-bold text-lg text-[#111]">경전 읽기</div>
+          </div>
+          
+          <button onClick={handleNavigateToBookmark}>
+            <Bookmark size={24} />
+          </button>
+        </div>
+        
+        {/* Calendar Section */}
+        <div className="px-5 mt-4">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-bold text-black">경전 캘린더</h2>
+            <button 
+              onClick={handleNavigateToCalendar}
+              className="flex items-center gap-0.5 text-xs text-[#767676]"
+            >
+              더보기
+              <ChevronRight size={12} className="text-[#767676]" />
+            </button>
+          </div>
+          
+          <div className="bg-white rounded-3xl p-4 shadow-sm">
+            <div className="flex gap-0.5">
+              {dates.map((date, index) => (
+                <div 
+                  key={index}
+                  className={`flex flex-col items-center w-[43px] h-[69px] p-3 ${
+                    date.active ? 'bg-[#F1F3F5] rounded-full' : ''
+                  }`}
+                >
+                  <span className={`text-xs mb-2 ${
+                    date.active ? 'font-bold text-[#111]' : 'text-[#767676]'
+                  }`}>
+                    {date.day}
+                  </span>
+                  
+                  {date.isPrayer ? (
+                    <div className="w-[18px] h-[18px] flex items-center justify-center">
+                      <span role="img" aria-label="prayer">🙏</span>
+                    </div>
+                  ) : (
+                    <div className={`text-sm ${date.active ? 'font-bold text-[#111]' : 'text-[#111]'}`}>
+                      {date.date}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
         {/* Continue Reading Section */}
-        <div className="mb-6">
-          <h2 className="text-lg font-bold mb-4">이어보기</h2>
-          <div className="space-y-2">
-            {startedScriptures.length > 0 ? (
-              startedScriptures.map((scripture) => {
+        <div className="px-5 mt-6">
+          <h2 className="text-lg font-bold text-black mb-4">이어보기</h2>
+          {startedScriptures.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {startedScriptures.map((scripture) => {
                 const badgeColor = scripture.id === "heart-sutra" ? "#EF4223" :
                                 scripture.id === "diamond-sutra" ? "#21212F" :
                                 scripture.id === "lotus-sutra" ? "#0080FF" :
-                                scripture.id === "sixpatriarch-sutra" ? "#4CAF50" :
-                                scripture.id === "avatamsaka-sutra" ? "#FFB23F" : "#DE7834";
+                                scripture.id === "sixpatriarch-sutra" ? "#4CAF50" : "#DE7834";
                 
                 return (
                   <div
@@ -79,26 +168,25 @@ const Scripture = () => {
                     </div>
                   </div>
                 );
-              })
-            ) : (
-              <div className="bg-white p-6 rounded-3xl shadow-sm text-center">
-                <p className="text-gray-500">아직 시작한 경전이 없습니다.</p>
-              </div>
-            )}
-          </div>
+              })}
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-3xl shadow-sm text-center">
+              <p className="text-gray-500">아직 시작한 경전이 없습니다.</p>
+            </div>
+          )}
         </div>
-
+        
         {/* Other Scriptures Section */}
-        <div className="mb-6">
-          <h2 className="text-lg font-bold mb-4">아직 펼치지 않은 이야기</h2>
-          <div className="space-y-2">
-            {notStartedScriptures.length > 0 ? (
-              notStartedScriptures.map((scripture) => {
+        <div className="px-5 mt-6 pb-10">
+          <h2 className="text-lg font-bold text-black mb-4">아직 펼치지 않은 이야기</h2>
+          {notStartedScriptures.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {notStartedScriptures.map((scripture) => {
                 const badgeColor = scripture.id === "heart-sutra" ? "#EF4223" :
                                 scripture.id === "diamond-sutra" ? "#21212F" :
                                 scripture.id === "lotus-sutra" ? "#0080FF" :
-                                scripture.id === "sixpatriarch-sutra" ? "#4CAF50" :
-                                scripture.id === "avatamsaka-sutra" ? "#FFB23F" : "#DE7834";
+                                scripture.id === "sixpatriarch-sutra" ? "#4CAF50" : "#DE7834";
                 
                 return (
                   <div
@@ -123,26 +211,15 @@ const Scripture = () => {
                     </div>
                   </div>
                 );
-              })
-            ) : (
-              <div className="bg-white p-6 rounded-3xl shadow-sm text-center">
-                <p className="text-gray-500">모든 경전을 시작했습니다.</p>
-              </div>
-            )}
-          </div>
+              })}
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-3xl shadow-sm text-center">
+              <p className="text-gray-500">모든 경전을 시작했습니다.</p>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Scripture Bottom Navigation */}
-      <ScriptureBottomNav 
-        activeTab="reading"
-        onTabChange={(tab) => {
-          if (tab === 'calendar') navigate('/scripture/calendar');
-          else if (tab === 'bookmark') navigate('/scripture/bookmarks');
-          else if (tab === 'share') navigate('/scripture/share');
-          else if (tab === 'settings') navigate('/scripture/settings');
-        }}
-      />
     </div>
   );
 };

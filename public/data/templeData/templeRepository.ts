@@ -15,7 +15,6 @@ export interface Temple {
   name: string;
   location: string;
   imageUrl: string;
-  region: string; // Add this property to fix errors
   distance?: string;
   rating?: number;
   reviews?: number;
@@ -78,7 +77,6 @@ export const temples: Record<string, Temple> = {
     id: "bulguksa",
     name: "불국사",
     location: "경주시",
-    region: "경주",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bulguksa",
     description: "불국사는 경상북도 경주시 불국로에 있는 대한불교 조계종 제11교구 본사 직영 사찰이다.",
     direction: "경주시 불국로 385",
@@ -95,7 +93,6 @@ export const temples: Record<string, Temple> = {
     id: "haeinsa",
     name: "해인사",
     location: "합천군",
-    region: "합천",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Haeinsa",
     description: "해인사는 경상남도 합천군 가야면 해인사길에 있는 대한불교 조계종 제12교구 본사이다.",
     direction: "합천군 가야면 해인사길 122",
@@ -112,7 +109,6 @@ export const temples: Record<string, Temple> = {
     id: "tongdosa",
     name: "통도사",
     location: "양산시",
-    region: "양산",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Tongdosa",
     description: "통도사는 경상남도 양산시 하북면에 있는 대한불교 조계종 제16교구 본사이다.",
     direction: "양산시 하북면 통도사로 108",
@@ -129,7 +125,6 @@ export const temples: Record<string, Temple> = {
     id: "songgwangsa",
     name: "송광사",
     location: "순천시",
-    region: "순천",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Songgwangsa",
     description: "송광사는 전라남도 순천시 송광면에 있는 대한불교 조계종 제21교구 본사이다.",
     direction: "순천시 송광면 송광사길 100",
@@ -146,7 +141,6 @@ export const temples: Record<string, Temple> = {
     id: "jogyesa",
     name: "조계사",
     location: "서울시",
-    region: "서울",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Jogyesa",
     description: "조계사는 서울특별시 종로구 우정국로에 있는 대한불교 조계종 본사이다.",
     direction: "서울시 종로구 우정국로 55",
@@ -163,7 +157,6 @@ export const temples: Record<string, Temple> = {
     id: "bongeunsa",
     name: "봉은사",
     location: "서울시",
-    region: "서울",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bongeunsa",
     description: "봉은사는 서울특별시 강남구 삼성동에 있는 대한불교 조계종 사찰이다.",
     direction: "서울시 강남구 봉은사로 531",
@@ -183,7 +176,6 @@ export const nearbyTemples: Temple[] = [
     id: "bulguksa",
     name: "불국사",
     location: "경주시",
-    region: "경주",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bulguksa",
     distance: "3.5km",
     likeCount: 4.8
@@ -192,7 +184,6 @@ export const nearbyTemples: Temple[] = [
     id: "haeinsa",
     name: "해인사",
     location: "합천군",
-    region: "합천",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Haeinsa",
     distance: "15km",
     likeCount: 4.6
@@ -201,7 +192,6 @@ export const nearbyTemples: Temple[] = [
     id: "tongdosa",
     name: "통도사",
     location: "양산시",
-    region: "양산",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Tongdosa",
     distance: "8.2km",
     likeCount: 4.7
@@ -210,20 +200,10 @@ export const nearbyTemples: Temple[] = [
     id: "jogyesa",
     name: "조계사",
     location: "서울시",
-    region: "서울",
     imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Jogyesa",
     distance: "1.2km",
     likeCount: 4.3
   }
-];
-
-export const regions = [
-  { id: "seoul", name: "서울", active: true },
-  { id: "gyeongju", name: "경주", active: false },
-  { id: "busan", name: "부산", active: false },
-  { id: "hapcheon", name: "합천", active: false },
-  { id: "yangsan", name: "양산", active: false },
-  { id: "suncheon", name: "순천", active: false }
 ];
 
 export const regionTags = [
