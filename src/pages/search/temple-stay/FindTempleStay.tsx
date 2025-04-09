@@ -1,197 +1,177 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, X, Search, Calendar, Users, ChevronDown } from 'lucide-react';
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { DateRange } from "react-day-picker";
-import { Button } from '@/components/ui/button';
-import DateRangePicker from '@/components/search/DateRangePicker';
+import { Search, Calendar, Users, MapPin, ArrowLeft, X } from 'lucide-react';
+import { DateRange } from 'react-day-picker';
+import { DateRangePicker } from '@/components/search/DateRangePicker';
 import GuestSelector from '@/components/search/GuestSelector';
-
-type RegionType = {
-  name: string;
-  active: boolean;
-};
+import { regionSearchRankings } from '@/data/searchRankingRepository';
+import { regions } from '@/data/templeStayData/templeStayRepository';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [openDatePicker, setOpenDatePicker] = useState(false);
-  const [openGuestSelector, setOpenGuestSelector] = useState(false);
-  const [activeRegion, setActiveRegion] = useState<string>("전체");
-  const [dateRange, setDateRange] = useState<DateRange>({
-    from: new Date(),
-    to: new Date(new Date().setDate(new Date().getDate() + 1))
-  });
-  const [guestCount, setGuestCount] = useState(2);
-
-  // 정의된 지역 목록
-  const regions: RegionType[] = [
-    { name: "전체", active: true },
-    { name: "서울/경기", active: false },
-    { name: "강원", active: false },
-    { name: "경상", active: false },
-    { name: "전라", active: false },
-    { name: "충청", active: false },
-    { name: "제주", active: false }
-  ];
-
-  // 테마 필터
-  const themes: RegionType[] = [
-    { name: "전체", active: true },
-    { name: "사찰 체험", active: false },
-    { name: "명상", active: false },
-    { name: "템플스테이", active: false },
-    { name: "불교 문화", active: false }
-  ];
-
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showGuestSelector, setShowGuestSelector] = useState(false);
+  const [date, setDate] = useState<DateRange | undefined>(undefined);
+  const [guests, setGuests] = useState<{ adults: number; children: number }>({ adults: 2, children: 0 });
+  
+  const handleGuestsChange = (newValue: { adults: number; children: number }) => {
+    setGuests(newValue);
+  };
+  
   const handleSearch = () => {
+    // Navigate to search results
     navigate('/search/temple-stay/results', { 
       state: { 
-        query: searchQuery,
-        dateRange,
-        guestCount,
-        region: activeRegion
+        searchTerm, 
+        date, 
+        guests 
       } 
     });
   };
-
+  
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+  
+  // Get the popular search regions for temple stays
+  const popularRegions = regionSearchRankings
+    .filter(r => regions.some(region => region.toLowerCase().includes(r.keyword.toLowerCase())))
+    .slice(0, 10);
+  
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 bg-white w-full px-5 py-4 flex items-center border-b">
+    <div className="bg-white min-h-screen pb-20">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-4 flex items-center">
         <button 
-          onClick={() => navigate(-1)}
-          className="mr-4"
+          className="mr-3"
+          onClick={() => navigate('/search')}
         >
           <ArrowLeft size={24} />
         </button>
-        <div className="flex-1">
-          <h1 className="text-lg font-bold">템플스테이 찾기</h1>
-        </div>
+        <h1 className="text-xl font-semibold flex-1">템플스테이 찾기</h1>
       </div>
-
-      <div className="p-5 space-y-6">
-        {/* 검색창 */}
-        <div className="relative">
-          <Input
+      
+      <div className="px-4 py-4">
+        {/* Search Input */}
+        <div className="relative mb-6">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          
+          <input
             type="text"
-            placeholder="템플스테이 이름을 검색하세요"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 py-6 rounded-xl border-gray-300 w-full"
+            placeholder="템플스테이 이름 또는 지역"
+            className="pl-10 pr-4 py-3 w-full rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={handleKeyPress}
           />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          {searchQuery && (
+          
+          {searchTerm && (
             <button 
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-3 flex items-center"
+              onClick={() => setSearchTerm('')}
             >
-              <X size={18} />
+              <X className="h-5 w-5 text-gray-400" />
             </button>
           )}
         </div>
-
-        {/* 날짜 및 인원 선택 */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex-1 justify-between font-normal text-gray-700 border-gray-300 py-6"
-            onClick={() => setOpenDatePicker(true)}
+        
+        {/* Search Options */}
+        <div className="flex space-x-3 mb-6 overflow-x-auto pb-2">
+          <button 
+            className="flex items-center bg-gray-100 rounded-full px-4 py-2 whitespace-nowrap"
+            onClick={() => setShowDatePicker(true)}
           >
-            <div className="flex items-center">
-              <Calendar className="mr-2 h-4 w-4" />
-              <span>{dateRange.from ? 
-                `${dateRange.from.getMonth() + 1}/${dateRange.from.getDate()}` : 
-                "체크인"} - {dateRange.to ? 
-                `${dateRange.to.getMonth() + 1}/${dateRange.to.getDate()}` : 
-                "체크아웃"}</span>
-            </div>
-            <ChevronDown className="h-4 w-4 opacity-50" />
-          </Button>
+            <Calendar className="h-4 w-4 mr-2" />
+            <span className="text-sm">
+              {date 
+                ? `${date.from?.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'})} - ${date.to?.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'})}`
+                : '날짜'}
+            </span>
+          </button>
           
-          <Button
-            variant="outline"
-            className="flex-1 justify-between font-normal text-gray-700 border-gray-300 py-6"
-            onClick={() => setOpenGuestSelector(true)}
+          <button 
+            className="flex items-center bg-gray-100 rounded-full px-4 py-2 whitespace-nowrap"
+            onClick={() => setShowGuestSelector(true)}
           >
-            <div className="flex items-center">
-              <Users className="mr-2 h-4 w-4" />
-              <span>인원 {guestCount}명</span>
-            </div>
-            <ChevronDown className="h-4 w-4 opacity-50" />
-          </Button>
+            <Users className="h-4 w-4 mr-2" />
+            <span className="text-sm">
+              성인 {guests.adults}, 어린이 {guests.children}
+            </span>
+          </button>
         </div>
-
-        {/* 지역 필터 */}
-        <div>
-          <h3 className="mb-3 font-medium">지역</h3>
+        
+        {/* Popular Regions */}
+        <div className="mb-6">
+          <h2 className="text-lg font-medium mb-3">인기 지역</h2>
           <div className="flex flex-wrap gap-2">
-            {regions.map((region) => (
-              <button
-                key={region.name}
-                className={`px-4 py-2 rounded-full text-sm ${
-                  activeRegion === region.name
-                    ? "bg-black text-white" 
-                    : "bg-white text-gray-700 border border-gray-300"
-                }`}
-                onClick={() => setActiveRegion(region.name)}
+            {popularRegions.map((region, index) => (
+              <button 
+                key={index}
+                className="bg-gray-100 rounded-full px-4 py-2 text-sm"
+                onClick={() => {
+                  setSearchTerm(region.keyword);
+                  handleSearch();
+                }}
               >
-                {region.name}
+                {region.keyword}
               </button>
             ))}
           </div>
         </div>
-
-        {/* 테마 필터 */}
+        
+        {/* Top Temple Stay Regions */}
         <div>
-          <h3 className="mb-3 font-medium">테마</h3>
-          <div className="flex flex-wrap gap-2">
-            {themes.map((theme) => (
-              <button
-                key={theme.name} 
-                className={`px-4 py-2 rounded-full text-sm ${
-                  theme.active 
-                    ? "bg-black text-white" 
-                    : "bg-white text-gray-700 border border-gray-300"
-                }`}
+          <h2 className="text-lg font-medium mb-3">인기 템플스테이 지역</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {regions.slice(0, 6).map((region, index) => (
+              <button 
+                key={index}
+                className="bg-gray-100 rounded-lg p-4 flex items-center justify-center"
+                onClick={() => {
+                  setSearchTerm(region);
+                  handleSearch();
+                }}
               >
-                {theme.name}
+                <MapPin className="h-4 w-4 mr-2" />
+                <span>{region}</span>
               </button>
             ))}
           </div>
         </div>
-
-        {/* 검색 버튼 */}
-        <Button 
-          className="w-full bg-black hover:bg-gray-900 text-white py-6"
-          onClick={handleSearch}
-        >
-          검색하기
-        </Button>
       </div>
-
-      {/* Date Picker Dialog */}
-      <Dialog open={openDatePicker} onOpenChange={setOpenDatePicker}>
-        <DialogContent className="sm:max-w-[425px] p-0">
-          <DateRangePicker 
-            dateRange={dateRange}
-            onChange={setDateRange}
-            onClose={() => setOpenDatePicker(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Guest Selector Dialog */}
-      <Dialog open={openGuestSelector} onOpenChange={setOpenGuestSelector}>
-        <DialogContent className="sm:max-w-[425px] p-0">
-          <GuestSelector
-            value={guestCount}
-            onChange={setGuestCount}
-            onClose={() => setOpenGuestSelector(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      
+      {/* Date Picker Modal */}
+      {showDatePicker && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-4 w-full max-w-md mx-4">
+            <DateRangePicker 
+              date={date}
+              onDateChange={setDate}
+              onClose={() => setShowDatePicker(false)}
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Guest Selector Modal */}
+      {showGuestSelector && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg w-full max-w-md mx-4">
+            <GuestSelector 
+              value={guests}
+              onChange={handleGuestsChange}
+              onClose={() => setShowGuestSelector(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -174,6 +174,7 @@ const Main = () => {
                 ];
                 
                 const colorIndex = index % scriptureColors.length;
+                // Use Object.values to convert the object to an array before using find
                 const matchingScripture = Object.values(scriptures).find(s => s.id === reading.scriptureId);
                 
                 if (!matchingScripture) return null;
