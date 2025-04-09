@@ -6,7 +6,11 @@ import { typedData } from '@/utils/typeUtils';
 import { scriptures } from '/public/data/scriptureData/scriptureRepository';
 
 // Define type based on the scripture repository
-type ScriptureColorScheme = typeof scriptures[keyof typeof scriptures]['colorScheme'];
+type ScriptureColorScheme = {
+  bg: string;
+  text: string;
+  progressBg: string;
+};
 
 interface ScriptureCardProps {
   scripture: {

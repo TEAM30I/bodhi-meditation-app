@@ -1,6 +1,6 @@
 
 /* ------------------------------------------------------------------
- * 📦 centralRepository.ts
+ * 📦 dataRepository.ts
  *  - 각 도메인 모듈의 데이터를 한곳에 모아 재‑export
  *  - 타입도 함께 재‑export
  * ------------------------------------------------------------------*/
@@ -10,18 +10,22 @@
  * ────────────────────────────────────────────────────────────*/
 import {
   // Temple‑domain
-  templeData as temples,   // 병합·중복 제거가 끝난 최종 배열
+  temples,
   nearbyTemples,
   regionTags,
   newsData,
+  getTempleList,
+  searchTemples,
   type Temple,
   type NewsItem,
 } from "./templeData/templeRepository";
 
 import {
   // TempleStay‑domain
-  templeStays as templeStaysRecord, // Record<string, TempleStay>
+  templeStays,
   locations,
+  getTempleStayList,
+  searchTempleStays,
   type TempleStay,
 } from "./templeStayData/templeStayRepository";
 
@@ -31,6 +35,10 @@ import {
   scriptureCategories,
   readingSchedule,
   bookmarks,
+  calendarData,
+  getScriptureById,
+  updateReadingProgress,
+  addBookmark,
   type Scripture,
   type Bookmark,
   type ReadingProgress,
@@ -38,7 +46,7 @@ import {
 } from "./scriptureData/scriptureRepository";
 
 import {
-  // 검색 순위 & 이미지 레포
+  // 검색 순위
   regionSearchRankings,
   templeStaySearchRankings,
   type SearchRanking,
@@ -49,31 +57,39 @@ import { imageRepository } from "./imageRepository";
 /* ────────────────────────────────────────────────────────────
  * 2. 도메인 통합 컬렉션
  * ────────────────────────────────────────────────────────────*/
-/** 사찰 전체 목록(Temple) – templeData는 이미 병합 완료된 배열 */
-export const allTemples = temples;
+/** 사찰 전체 목록(Temple) */
+export const allTemples = getTempleList();
 
-/** 템플스테이 전체 목록(TempleStay) – Record → 배열 변환 */
-export const allTempleStays: TempleStay[] = Object.values(templeStaysRecord);
+/** 템플스테이 전체 목록(TempleStay) */
+export const allTempleStays = getTempleStayList();
 
 /* ────────────────────────────────────────────────────────────
  * 3. 하위 모듈 재‑export
  * ────────────────────────────────────────────────────────────*/
 export {
   // Temple‑domain
-  temples,          // alias for templeData
+  temples,
   nearbyTemples,
   regionTags,
   newsData,
+  getTempleList,
+  searchTemples,
 
   // TempleStay‑domain
-  templeStaysRecord as templeStays,
+  templeStays,
   locations,
+  getTempleStayList,
+  searchTempleStays,
 
   // Scripture‑domain
   scriptures,
   scriptureCategories,
   readingSchedule,
   bookmarks,
+  calendarData,
+  getScriptureById,
+  updateReadingProgress,
+  addBookmark,
 
   // 기타 공용
   regionSearchRankings,

@@ -26,6 +26,15 @@ declare module '/public/data/searchRankingRepository' {
 }
 
 declare module '/public/data/templeData/templeRepository' {
+  export interface NewsItem {
+    id: string;
+    temple: string;
+    source: string;
+    title: string;
+    link: string;
+    date: string;
+  }
+  
   export interface Temple {
     id: string;
     name: string;
@@ -43,6 +52,7 @@ declare module '/public/data/templeData/templeRepository' {
     websiteUrl?: string;
     likeCount?: number;
     facilities?: string[];
+    nearbyAttractions?: string[];
     contact?: {
       phone?: string;
     };
@@ -52,11 +62,16 @@ declare module '/public/data/templeData/templeRepository' {
     };
   }
   
-  export const temples: Record<string, Temple>;
+  export const newsData: NewsItem[];
   export const nearbyTemples: Temple[];
+  export const popularTemples: Temple[];
+  export const temples: Record<string, Temple>;
   export const regionTags: { id: string; name: string; active: boolean }[];
+  export const templeData: Temple[];
   
   export function getTempleList(): Temple[];
+  export function getTopLikedTemples(limit?: number): Temple[];
+  export function filterTemplesByTag(tag: string): Temple[];
   export function searchTemples(query: string): Temple[];
 }
 
@@ -72,18 +87,20 @@ declare module '/public/data/templeStayData/templeStayRepository' {
     duration: string;
     imageUrl: string;
     websiteUrl: string;
-    tags?: string[];
     schedule: {
       time: string;
       activity: string;
     }[];
+    tags?: string[];
   }
   
   export const templeStays: Record<string, TempleStay>;
   export const locations: { name: string; active: boolean }[];
   
   export function getTempleStayList(): TempleStay[];
+  export function getTopLikedTempleStays(limit?: number): TempleStay[];
   export function searchTempleStays(query: string): TempleStay[];
+  export function filterTempleStaysByTag(tag: string): TempleStay[];
 }
 
 declare module '/public/data/scriptureData/scriptureRepository' {
@@ -110,6 +127,13 @@ declare module '/public/data/scriptureData/scriptureRepository' {
     date: string;
   }
 
+  export interface ReadingProgress {
+    scriptureId: string;
+    chapterId: string;
+    pageIndex: number;
+    progress: number;
+  }
+
   export interface ReadingScheduleItem {
     id: number;
     scriptureId: string;
@@ -132,6 +156,7 @@ declare module '/public/data/scriptureData/scriptureRepository' {
   }
 
   export const scriptures: Record<string, Scripture>;
+  export const scriptureCategories: { id: string; name: string; active: boolean }[];
   export const readingSchedule: ReadingScheduleItem[];
   export const bookmarks: Bookmark[];
   export const calendarData: { date: Date; title: string; completed: boolean; progress: number }[];
@@ -139,6 +164,14 @@ declare module '/public/data/scriptureData/scriptureRepository' {
   export function getScriptureById(id: string): Scripture | undefined;
   export function updateReadingProgress(scriptureId: string, progress: number, chapterId: string, pageIndex: number): void;
   export function addBookmark(userId: string, scriptureId: string, chapterId: string, pageIndex: number, title: string): Bookmark;
+}
+
+declare module '/public/data/dataRepository' {
+  export * from '/public/data/templeData/templeRepository';
+  export * from '/public/data/templeStayData/templeStayRepository';
+  export * from '/public/data/scriptureData/scriptureRepository';
+  export * from '/public/data/searchRankingRepository';
+  export * from '/public/data/imageRepository';
 }
 
 interface ImportMetaEnv {
