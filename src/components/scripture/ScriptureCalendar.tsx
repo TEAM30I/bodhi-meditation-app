@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { calendarData, scriptureColorSchemes } from '@/data/scriptureData';
@@ -127,7 +127,7 @@ const ScriptureCalendar: React.FC = () => {
         <div className="flex items-center justify-center border-t border-gray-200 pt-4 mt-4">
           <button className="flex items-center text-sm text-gray-600">
             기록 더보기가 있어요
-            <CalendarDays size={16} className="ml-1" />
+            <CalendarIcon size={16} className="ml-1" />
           </button>
         </div>
       </div>

@@ -11,14 +11,16 @@ interface ScriptureCardProps {
     chapter: string;
     progress: number;
   };
+  color?: string;   // Add color prop
+  textColor?: string;  // Add textColor prop
 }
 
-const ScriptureCard: React.FC<ScriptureCardProps> = ({ scripture, schedule }) => {
+const ScriptureCard: React.FC<ScriptureCardProps> = ({ scripture, schedule, color, textColor }) => {
   const navigate = useNavigate();
   const progress = schedule?.progress || scripture.progress || 0;
   const colorScheme = scripture.colorScheme || {
-    bg: "bg-gray-500",
-    text: "text-white",
+    bg: color || "bg-gray-500",
+    text: textColor || "text-white",
     progressBg: "#CCCCCC"
   };
   
@@ -28,8 +30,8 @@ const ScriptureCard: React.FC<ScriptureCardProps> = ({ scripture, schedule }) =>
       onClick={() => navigate(`/scripture/${scripture.id}`)}
     >
       <div className="flex flex-col gap-3">
-        <div className={`inline-flex px-4 py-2 ${colorScheme.bg} rounded-[12px] w-fit`}>
-          <span className={`text-xs font-medium ${colorScheme.text} tracking-[-0.3px]`}>
+        <div className={`inline-flex px-4 py-2 ${color || colorScheme.bg} rounded-[12px] w-fit`}>
+          <span className={`text-xs font-medium ${textColor || colorScheme.text} tracking-[-0.3px]`}>
             {scripture.categories[0]}
           </span>
         </div>

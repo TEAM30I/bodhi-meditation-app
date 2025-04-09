@@ -245,4 +245,11 @@ export const bookmarks: Bookmark[] = [
   }
 ];
 
-export { scriptureTexts };
+// Import from public/data/scriptureData
+import { 금강경 } from './금강경';
+import { 반야심경 } from './반야심경';
+
+export const scriptureTexts = {
+  금강경,
+  반야심경,
+};

@@ -1,12 +1,13 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Bookmark, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { bookmarks, Bookmark as BookmarkType } from '@/data/scriptureData';
 
-// Extend the BookmarkType to include optional date property
-interface EnhancedBookmark extends BookmarkType {
-  date?: Date;
+// Modify the EnhancedBookmark interface to match Bookmark type
+interface EnhancedBookmark extends Omit<BookmarkType, 'date'> {
+  date?: string;
 }
 
 interface BookmarkListProps {
