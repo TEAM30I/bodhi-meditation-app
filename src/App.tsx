@@ -1,6 +1,7 @@
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
+import React from "react";
 
 // Pages
 import Index from "@/pages/Index";
@@ -45,7 +46,7 @@ import ResetPassword from "@/pages/login/ResetPassword";
 import ScriptureCalendarPage from "@/pages/scripture/ScriptureCalendarPage";
 import ScriptureBookmarkPage from "@/pages/scripture/ScriptureBookmarkPage";
 
-function App() {
+const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
@@ -106,6 +107,6 @@ function App() {
       <Toaster />
     </BrowserRouter>
   );
-}
+};
 
 export default App;

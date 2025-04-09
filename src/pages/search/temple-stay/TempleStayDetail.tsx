@@ -1,9 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, Heart, Share, MapPin, Globe, Calendar } from 'lucide-react';
-import { getTempleStayList, getTempleStayById, TempleStay } from '@/data/templeStayData';
+import { getTempleStayList, TempleStay } from '@/data/templeStayData';
 import BottomNav from '@/components/BottomNav';
+
+const getTempleStayById = (id: string): TempleStay | undefined => {
+  const allTempleStays = getTempleStayList();
+  return allTempleStays.find(stay => stay.id === id);
+};
 
 const TempleStayDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
