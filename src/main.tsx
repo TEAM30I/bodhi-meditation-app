@@ -4,17 +4,20 @@
 if (typeof window !== 'undefined') {
   // Create a proper global object that contains all window properties
   const windowAsAny = window as any;
-  window.global = windowAsAny;
-  global = windowAsAny;
+  windowAsAny.global = windowAsAny;
+  
+  // Set global to window for AWS Amplify to work correctly
+  // This is technically not type-safe but is required for Amplify
+  (globalThis as any).global = windowAsAny;
   
   // Add process if it doesn't exist
   if (typeof process === 'undefined') {
-    window.process = { env: {} };
+    windowAsAny.process = { env: {} } as any;
   }
   
   // Add Buffer if it doesn't exist
   if (typeof Buffer === 'undefined') {
-    window.Buffer = require('buffer/').Buffer;
+    windowAsAny.Buffer = require('buffer/').Buffer;
   }
 }
 

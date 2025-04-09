@@ -24,8 +24,9 @@ import TermsAgreement from "./pages/login/TermsAgreement";
 // Configure Amplify with the aws-config
 try {
   console.log("Attempting to configure Amplify...");
-  // Make sure global is defined before configuring Amplify
-  if (typeof window !== 'undefined' && window.global) {
+  
+  // Check if polyfills are properly in place
+  if (typeof global !== 'undefined' || (typeof window !== 'undefined' && (window as any).global)) {
     Amplify.configure(awsConfig);
     console.log("Amplify configuration successful");
   } else {
