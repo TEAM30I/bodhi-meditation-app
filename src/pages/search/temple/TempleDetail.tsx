@@ -228,7 +228,11 @@ const TempleDetail = () => {
         <Button 
           className="w-full bg-black hover:bg-gray-800"
           disabled={!phoneNumber || phoneNumber === '정보 없음'}
-          onClick={() => phoneNumber && phoneNumber !== '정보 없음' && window.location.href = `tel:${phoneNumber}`}
+          onClick={() => {
+            if (phoneNumber && phoneNumber !== '정보 없음') {
+              window.location.href = `tel:${phoneNumber}`;
+            }
+          }}
         >
           전화 문의하기
         </Button>
