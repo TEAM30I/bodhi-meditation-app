@@ -14,7 +14,7 @@ const Login: React.FC = () => {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   
   const handleLogin = () => {
     if (!email || !password) {
@@ -57,6 +57,7 @@ const Login: React.FC = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           icon="lock"
+          highlightFocus={true}
         />
         
         <div className="flex justify-between mb-10 mt-2">
@@ -67,21 +68,21 @@ const Login: React.FC = () => {
           />
           <button 
             className="text-app-gray-text text-sm"
-            onClick={() => navigate('/find-credentials')}
+            onClick={() => navigate('/find-credentials-choice')}
           >
             아이디/비밀번호 찾기
           </button>
         </div>
         
         <AuthButton 
-          label="회원가입" 
+          label="로그인" 
           onClick={handleLogin}
           className="mb-10"
         />
         
         <div className="mt-auto text-center">
           <p className="text-app-gray-text text-sm">
-            이미 계정이 있으신가요? <button className="text-app-orange" onClick={() => navigate('/signup')}>로그인</button>
+            아직 계정이 없으신가요? <button className="text-app-orange" onClick={() => navigate('/signup')}>회원가입</button>
           </p>
         </div>
       </div>

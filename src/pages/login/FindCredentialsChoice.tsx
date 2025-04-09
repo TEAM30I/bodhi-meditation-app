@@ -5,12 +5,8 @@ import StatusBar from '@/components/StatusBar';
 import BackButton from '@/components/BackButton';
 import AuthButton from '@/components/AuthButton';
 
-const FindCredentials: React.FC = () => {
+const FindCredentialsChoice: React.FC = () => {
   const navigate = useNavigate();
-  
-  const handleFindCredentials = () => {
-    navigate('/find-credentials-choice');
-  };
   
   return (
     <div className="min-h-screen bg-app-dark flex flex-col p-5">
@@ -24,8 +20,14 @@ const FindCredentials: React.FC = () => {
         </p>
         
         <AuthButton 
-          label="아이디/비밀번호 찾기" 
-          onClick={handleFindCredentials}
+          label="아이디 찾기" 
+          onClick={() => navigate('/find-id')}
+          className="mb-4 w-full"
+        />
+        
+        <AuthButton 
+          label="비밀번호 찾기" 
+          onClick={() => navigate('/find-password')}
           className="w-full"
         />
       </div>
@@ -33,4 +35,4 @@ const FindCredentials: React.FC = () => {
   );
 };
 
-export default FindCredentials;
+export default FindCredentialsChoice;

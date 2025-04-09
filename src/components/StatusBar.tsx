@@ -7,7 +7,7 @@ interface StatusBarProps {
 
 const StatusBar: React.FC<StatusBarProps> = ({ time = "9:41" }) => {
   return (
-    <div className="fixed top-0 left-0 right-0 flex justify-between items-center px-5 py-2 z-50">
+    <div className="fixed top-0 left-0 right-0 flex justify-between items-center px-5 py-2 z-50 opacity-0">
       <div className="text-white font-semibold">{time}</div>
       <div className="flex items-center space-x-1">
         <div className="w-4 h-3">

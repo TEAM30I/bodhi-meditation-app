@@ -15,21 +15,50 @@ const SignUp: React.FC = () => {
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [showVerification, setShowVerification] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<'default' | 'error' | 'success'>('default');
   const [usernameMessage, setUsernameMessage] = useState('');
   const [verification, setVerification] = useState(false);
   
   const checkUsername = () => {
+    if (!username) {
+      toast({
+        title: "오류",
+        description: "아이디를 입력해주세요.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (username === 'bodhi4') {
       setUsernameStatus('error');
       setUsernameMessage('사용 불가능한 아이디입니다');
     } else if (username.length > 3) {
       setUsernameStatus('success');
-      setUsernameMessage('');
+      setUsernameMessage('사용 가능한 아이디입니다');
     } else {
-      setUsernameStatus('default');
-      setUsernameMessage('');
+      setUsernameStatus('error');
+      setUsernameMessage('아이디는 3글자 이상이어야 합니다');
     }
+  };
+  
+  const sendVerificationCode = () => {
+    if (!phone) {
+      toast({
+        title: "오류",
+        description: "전화번호를 입력해주세요.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "인증번호 발송",
+      description: "인증번호가 발송되었습니다. 2분 안에 입력해주세요.",
+    });
+    
+    setShowVerification(true);
   };
   
   const handleSignUp = () => {
@@ -51,10 +80,19 @@ const SignUp: React.FC = () => {
       return;
     }
     
-    if (!verification) {
+    if (usernameStatus !== 'success') {
       toast({
         title: "회원가입 실패",
-        description: "중복확인이 필요합니다.",
+        description: "아이디 중복확인이 필요합니다.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (showVerification && !verificationCode) {
+      toast({
+        title: "회원가입 실패",
+        description: "인증번호를 입력해주세요.",
         variant: "destructive"
       });
       return;
@@ -67,6 +105,26 @@ const SignUp: React.FC = () => {
     });
     navigate('/');
   };
+  
+  // Check button component for username verification
+  const CheckButton = () => (
+    <button
+      onClick={checkUsername}
+      className="text-white text-sm bg-app-orange px-4 py-1 rounded-md"
+    >
+      중복확인
+    </button>
+  );
+  
+  // Send code button component for phone verification
+  const SendCodeButton = () => (
+    <button
+      onClick={sendVerificationCode}
+      className="text-white text-sm bg-app-orange px-4 py-1 rounded-md"
+    >
+      인증코드 발송
+    </button>
+  );
   
   return (
     <div className="min-h-screen bg-app-dark flex flex-col p-5">
@@ -87,6 +145,7 @@ const SignUp: React.FC = () => {
           icon="user"
           state={usernameStatus}
           errorMessage={usernameMessage}
+          rightElement={<CheckButton />}
         />
         
         {usernameStatus === 'error' && (
@@ -96,7 +155,7 @@ const SignUp: React.FC = () => {
               <line x1="15" y1="9" x2="9" y2="15"></line>
               <line x1="9" y1="9" x2="15" y2="15"></line>
             </svg>
-            <span className="ml-2">사용 불가능한 아이디입니다</span>
+            <span className="ml-2">{usernameMessage}</span>
           </div>
         )}
         
@@ -117,16 +176,19 @@ const SignUp: React.FC = () => {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           icon="phone"
+          rightElement={<SendCodeButton />}
         />
         
-        <InputField
-          type="text"
-          label="인증코드"
-          placeholder="인증코드를 입력해 주세요"
-          value=""
-          onChange={() => {}}
-          className="mb-8"
-        />
+        {showVerification && (
+          <InputField
+            type="text"
+            label="인증코드"
+            placeholder="인증코드를 입력해 주세요"
+            value={verificationCode}
+            onChange={(e) => setVerificationCode(e.target.value)}
+            className="mb-8"
+          />
+        )}
         
         <InputField
           type="password"
@@ -135,11 +197,12 @@ const SignUp: React.FC = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           icon="lock"
+          highlightFocus={true}
         />
         
         <div className="mb-10 mt-4">
           <CheckboxField
-            label="중복확인"
+            label="약관 동의"
             checked={verification}
             onChange={setVerification}
           />

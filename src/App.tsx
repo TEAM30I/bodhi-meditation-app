@@ -13,7 +13,9 @@ import Onboarding2 from "./pages/login/Onboarding2";
 import AuthChoice from "./pages/login/AuthChoice";
 import Login from "./pages/login/Login";
 import SignUp from "./pages/login/SignUp";
-import FindCredentials from "./pages/login/FindCredentials";
+import FindCredentialsChoice from "./pages/login/FindCredentialsChoice";
+import FindId from "./pages/login/FindId";
+import FindPassword from "./pages/login/FindPassword";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +31,9 @@ const App = () => (
           <Route path="/auth-choice" element={<AuthChoice />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/find-credentials" element={<FindCredentials />} />
+          <Route path="/find-credentials-choice" element={<FindCredentialsChoice />} />
+          <Route path="/find-id" element={<FindId />} />
+          <Route path="/find-password" element={<FindPassword />} />
           <Route path="/home" element={<Index />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

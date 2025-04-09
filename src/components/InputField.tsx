@@ -13,6 +13,8 @@ interface InputFieldProps {
   state?: 'default' | 'error' | 'success';
   errorMessage?: string;
   className?: string;
+  highlightFocus?: boolean;
+  rightElement?: React.ReactNode;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -24,9 +26,12 @@ const InputField: React.FC<InputFieldProps> = ({
   icon = 'none',
   state = 'default',
   errorMessage,
-  className
+  className,
+  highlightFocus = false,
+  rightElement
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   
   const renderIcon = () => {
     switch (icon) {
@@ -42,6 +47,7 @@ const InputField: React.FC<InputFieldProps> = ({
   };
   
   const borderColor = () => {
+    if (isFocused && highlightFocus) return 'border-app-orange bg-app-orange bg-opacity-10';
     switch (state) {
       case 'error':
         return 'border-red-500';
@@ -67,11 +73,14 @@ const InputField: React.FC<InputFieldProps> = ({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           className={cn(
             "app-input",
             icon !== 'none' && "pl-10",
             type === 'password' && "pr-10",
-            borderColor()
+            borderColor(),
+            isFocused && highlightFocus ? "text-app-orange" : ""
           )}
         />
         
@@ -83,6 +92,12 @@ const InputField: React.FC<InputFieldProps> = ({
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
+        )}
+
+        {rightElement && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            {rightElement}
+          </div>
         )}
       </div>
       
