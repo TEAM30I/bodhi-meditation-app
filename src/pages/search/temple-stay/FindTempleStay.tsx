@@ -1,20 +1,34 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronRight, Home } from 'lucide-react';
+import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { locations, templeStays, TempleStay } from '/public/data/templeStayData/templeStayRepository';
 import { templeStaySearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
 import { typedData } from '@/utils/typeUtils';
+import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
+import { GuestSelector } from '@/components/search/GuestSelector';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
   const [activeRegion, setActiveRegion] = useState('서울');
   const [guestCount, setGuestCount] = useState(1);
-  const [dateRange, setDateRange] = useState({ from: '5.10(금)', to: '5.11(토)' });
+  
+  // Set default dates to tomorrow and day after tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const dayAfterTomorrow = new Date();
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  
+  const [dateRange, setDateRange] = useState<DateRange>({ 
+    from: tomorrow, 
+    to: dayAfterTomorrow 
+  });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGuestSelector, setShowGuestSelector] = useState(false);
   
@@ -32,7 +46,23 @@ const FindTempleStay = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/search/temple-stay/results?query=${searchValue}&guests=${guestCount}&from=${dateRange.from}&to=${dateRange.to}`);
+    handleSearch();
+  };
+
+  const handleSearch = () => {
+    let queryParams = `query=${searchValue}`;
+    
+    if (dateRange.from) {
+      queryParams += `&from=${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })}`;
+    }
+    
+    if (dateRange.to) {
+      queryParams += `&to=${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
+    }
+    
+    queryParams += `&guests=${guestCount}`;
+    
+    navigate(`/search/temple-stay/results?${queryParams}`);
   };
 
   const handleRegionClick = (region: string) => {
@@ -67,16 +97,27 @@ const FindTempleStay = () => {
     setShowGuestSelector(false);
   };
 
+  const formatDateRange = () => {
+    if (dateRange.from && dateRange.to) {
+      return `${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })} - ${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
+    }
+    return '날짜 선택';
+  };
+
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+    if (range.from && range.to) {
+      setShowDatePicker(false);
+    }
+  };
+
   return (
     <div className="bg-white min-h-screen">
       <div className="sticky top-0 z-10 bg-white px-5 py-3 flex items-center border-b border-[#E5E5EC]">
-        <button onClick={() => navigate('/search')} className="mr-4">
+        <button onClick={() => navigate('/main')} className="mr-4">
           <ArrowLeft className="h-6 w-6" />
         </button>
         <h1 className="text-lg font-bold flex-1 text-center">템플스테이</h1>
-        <button onClick={() => navigate('/main')}>
-          <Home className="h-6 w-6" />
-        </button>
       </div>
 
       <div className="px-5 py-4">
@@ -97,7 +138,7 @@ const FindTempleStay = () => {
               onClick={handleDateSelection}
             >
               <Calendar className="h-5 w-5 text-gray-500" />
-              <span className="text-sm text-gray-700">{dateRange.from} - {dateRange.to}</span>
+              <span className="text-sm text-gray-700">{formatDateRange()}</span>
             </button>
             <button 
               className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-2 border border-gray-300"
@@ -109,59 +150,36 @@ const FindTempleStay = () => {
           </div>
 
           {showDatePicker && (
-            <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-medium">날짜 선택</h3>
-                <button onClick={() => setShowDatePicker(false)}>
-                  <X className="h-5 w-5 text-gray-500" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <button 
-                  className="p-2 border border-gray-200 rounded text-sm"
-                  onClick={() => setDateRange({ from: '5.10(금)', to: '5.11(토)' })}
-                >
-                  5.10(금) - 5.11(토)
-                </button>
-                <button 
-                  className="p-2 border border-gray-200 rounded text-sm"
-                  onClick={() => setDateRange({ from: '5.11(토)', to: '5.12(일)' })}
-                >
-                  5.11(토) - 5.12(일)
-                </button>
-              </div>
-            </div>
+            <DateRangePicker 
+              dateRange={dateRange} 
+              onChange={handleDateRangeChange} 
+            />
           )}
 
           {showGuestSelector && (
-            <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-medium">인원 선택</h3>
-                <button onClick={() => setShowGuestSelector(false)}>
-                  <X className="h-5 w-5 text-gray-500" />
-                </button>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>성인</span>
-                <div className="flex items-center gap-3">
-                  <button 
-                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full"
-                    onClick={() => guestCount > 1 && handleGuestCountChange(guestCount - 1)}
-                  >
-                    -
-                  </button>
-                  <span>{guestCount}</span>
-                  <button 
-                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full"
-                    onClick={() => handleGuestCountChange(guestCount + 1)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+            <div className="mt-3">
+              <GuestSelector 
+                value={guestCount} 
+                onChange={handleGuestCountChange} 
+              />
             </div>
           )}
+
+          <Button 
+            className="w-full mt-4 bg-[#DE7834] hover:bg-[#C56A2D]"
+            onClick={handleSearch}
+          >
+            검색하기
+          </Button>
         </div>
+
+        <Button 
+          className="flex items-center gap-2 rounded-full px-4 py-2 border border-[#DE7834] bg-white mb-6"
+          onClick={() => navigate('/search/temple-stay/results?nearby=true')}
+        >
+          <MapPin className="h-4 w-4 text-[#DE7834]" />
+          <span className="text-sm text-[#DE7834] font-medium">내 주변에서 검색</span>
+        </Button>
 
         {/* 최신 템플스테이 */}
         <div className="mb-6">

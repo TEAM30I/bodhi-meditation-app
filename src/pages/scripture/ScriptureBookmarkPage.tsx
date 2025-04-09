@@ -44,6 +44,12 @@ const ScriptureBookmarkPage = () => {
     );
   }
 
+  // Get a list of all scripture titles from the typedScriptures object
+  const scriptureList = Object.values(typedScriptures).map(scripture => ({
+    id: scripture.id,
+    title: scripture.title
+  }));
+
   return (
     <div className="bg-[#F1F3F5] min-h-screen pb-20 font-['Pretendard']">
       {/* Header */}
@@ -60,24 +66,19 @@ const ScriptureBookmarkPage = () => {
       {/* Scripture Filter Tabs */}
       <div className="bg-white w-full overflow-x-auto px-5 py-3 border-b border-[#E5E5EC]">
         <div className="flex space-x-3">
-          {scriptureIds.map(id => {
-            const scripture = typedScriptures[id];
-            if (!scripture) return null;
-            
-            return (
-              <button
-                key={id}
-                className={`px-3 py-2 rounded-xl whitespace-nowrap ${
-                  activeScriptureId === id 
-                    ? 'border-2 border-[#DE7834] text-[#DE7834] font-bold'
-                    : 'border-2 border-gray-300 text-gray-500'
-                }`}
-                onClick={() => setActiveScriptureId(id)}
-              >
-                {scripture.title}
-              </button>
-            );
-          })}
+          {scriptureList.map(scripture => (
+            <button
+              key={scripture.id}
+              className={`px-3 py-2 whitespace-nowrap ${
+                activeScriptureId === scripture.id 
+                  ? 'border-2 border-[#DE7834] text-[#DE7834] font-bold'
+                  : 'border-2 border-gray-300 text-gray-500'
+              }`}
+              onClick={() => setActiveScriptureId(scripture.id)}
+            >
+              {scripture.title}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -107,10 +108,8 @@ const ScriptureBookmarkPage = () => {
               >
                 <div className="flex items-center">
                   <div className="flex-1">
-                    <div 
-                      className="inline-flex px-2 py-2 rounded-xl mb-3"
-                      style={{ backgroundColor: badgeColor }}
-                    >
+                    <div className="inline-flex items-center justify-center px-2 py-2 rounded-xl mb-3"
+                         style={{ backgroundColor: badgeColor }}>
                       <span className="text-xs font-medium text-white">
                         {scripture.title}
                       </span>

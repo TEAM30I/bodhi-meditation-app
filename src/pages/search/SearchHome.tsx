@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, MapPin, Calendar, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
 import { regionSearchRankings, templeStaySearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
@@ -94,7 +93,7 @@ const SearchHome = () => {
     <div className="bg-[#F8F8F8] min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
         <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
-          <button onClick={() => navigate(-1)}>
+          <button onClick={() => navigate('/main')}>
             <ArrowLeft className="h-6 w-6" />
           </button>
           
@@ -163,12 +162,10 @@ const SearchHome = () => {
           )}
           
           {showDatePicker && (
-            <div className="mt-2">
-              <DateRangePicker 
-                dateRange={dateRange} 
-                onChange={handleDateRangeChange} 
-              />
-            </div>
+            <DateRangePicker 
+              dateRange={dateRange} 
+              onChange={handleDateRangeChange} 
+            />
           )}
           
           {showGuestSelector && (
