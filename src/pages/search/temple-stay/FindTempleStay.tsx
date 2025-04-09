@@ -1,20 +1,30 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowLeft, Home } from 'lucide-react';
+import { templeStays, locations, nearbyTempleStays } from '@/data/templeStayData';
 import BottomNav from "@/components/BottomNav";
-import { templeStays, locations } from '../../../data/templeStayData';
 
-interface Location {
+interface LocationTag {
   id: string;
   name: string;
+  active: boolean;
 }
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+
+  // Convert locations to have id property
+  const locationTags: LocationTag[] = locations.map(loc => ({
+    id: loc.name.toLowerCase(),
+    name: loc.name,
+    active: loc.active
+  }));
 
   const handleLocationClick = (locationId: string) => {
     if (selectedLocations.includes(locationId)) {
@@ -82,7 +92,7 @@ const FindTempleStay = () => {
       {/* Location Tags */}
       <div className="px-6 mb-6 overflow-x-auto">
         <div className="flex gap-2 flex-wrap">
-          {locations.map(location => (
+          {locationTags.map(location => (
             <Badge
               key={location.id}
               variant={selectedLocations.includes(location.id) ? "default" : "outline"}

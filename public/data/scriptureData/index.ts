@@ -8,4 +8,3 @@ export const scriptureTexts = {
 };
 
 export * from './scriptureRepository';
-export { scriptureTexts };

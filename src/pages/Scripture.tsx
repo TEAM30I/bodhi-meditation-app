@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { scriptures, readingSchedule } from '@/data/scriptureRepository';
+import { scriptures, readingSchedule } from '@/data/scriptureData';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import ScriptureCalendar from '@/components/scripture/ScriptureCalendar';

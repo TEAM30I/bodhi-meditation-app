@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen } from 'lucide-react';
-import { bookmarks } from '@/data/scriptureRepository';
+import { bookmarks } from '@/data/scriptureData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const BookmarkList: React.FC<{ scriptureId?: string }> = ({ scriptureId }) => {

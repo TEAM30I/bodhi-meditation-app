@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
-import { scriptures, scriptureCategories } from '@/data/scriptureRepository';
+import { scriptures, scriptureCategories } from '@/data/scriptureData';
 import { Badge } from '@/components/ui/badge';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import ScriptureCalendar from '@/components/scripture/ScriptureCalendar';

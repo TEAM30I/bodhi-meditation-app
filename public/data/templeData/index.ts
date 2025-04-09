@@ -1,3 +1,3 @@
 
-export * from './templeData';
 export * from './templeRepository';
+export * from './templeData';

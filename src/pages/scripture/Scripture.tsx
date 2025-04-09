@@ -1,11 +1,13 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { scriptures, readingSchedule } from '@/data/scriptureRepository';
+import { scriptures, readingSchedule } from '@/data/scriptureData';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
-import BottomNav from '@/components/BottomNav';
-import { Calendar } from '@/components/ui/calendar';
+import ScriptureBottomNav from '@/components/ScriptureBottomNav';
+import ScriptureCalendar from '@/components/scripture/ScriptureCalendar';
+import BookmarkList from '@/components/scripture/BookmarkList';
+import ShareOptions from '@/components/scripture/ShareOptions';
+import SettingsPanel from '@/components/scripture/SettingsPanel';
 
 const Scripture = () => {
   const navigate = useNavigate();
@@ -97,7 +99,7 @@ const Scripture = () => {
         <div className="mt-10">
           <h2 className="text-lg font-medium mb-4">경전 읽기 캘린더</h2>
           <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <Calendar
+            <ScriptureCalendar
               mode="single"
               selected={date}
               onSelect={setDate}
@@ -142,7 +144,7 @@ const Scripture = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNav />
+      <ScriptureBottomNav />
     </div>
   );
 };

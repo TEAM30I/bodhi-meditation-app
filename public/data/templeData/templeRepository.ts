@@ -1,4 +1,3 @@
-
 export interface Temple {
   id: string;
   name: string;
@@ -9,6 +8,9 @@ export interface Temple {
   distance?: string;
   imageUrl: string;
   tags?: string[];
+  openingHours?: string;
+  hasParkingLot?: boolean;
+  hasTempleStay?: boolean;
 }
 
 export const temples: Temple[] = [
@@ -20,7 +22,10 @@ export const temples: Temple[] = [
     rating: 4.8,
     reviews: 120,
     imageUrl: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
-    tags: ["문화재", "역사", "관광명소"]
+    tags: ["문화재", "역사", "관광명소"],
+    openingHours: "08:00 ~ 18:00",
+    hasParkingLot: true,
+    hasTempleStay: true
   },
   {
     id: "haeinsa",
@@ -30,7 +35,10 @@ export const temples: Temple[] = [
     rating: 4.7,
     reviews: 95,
     imageUrl: "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
-    tags: ["문화재", "장경판전", "가야산"]
+    tags: ["문화재", "장경판전", "가야산"],
+    openingHours: "08:30 ~ 18:00",
+    hasParkingLot: true,
+    hasTempleStay: true
   },
   {
     id: "mireuksa",
