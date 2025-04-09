@@ -1,7 +1,8 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import React from "react";
+import { QueryClientProvider, QueryClient } from 'react-query';
+import { AuthProvider } from "@/context/AuthContext";
 
 // Pages
 import Index from "@/pages/Index";
@@ -24,12 +25,12 @@ import Wishlist from "@/pages/wishlist";
 import SearchHome from "@/pages/search/SearchHome";
 
 // Temple Module
-import FindTemple from "@/pages/search/temple/FindTemple";
-import TempleSearchResults from "@/pages/search/temple/SearchResults";
-import TempleDetail from "@/pages/search/temple/TempleDetail";
+import FindTemple from './pages/search/temple/FindTemple';
+import FindTempleStay from './pages/search/temple-stay/FindTempleStay';
 
 // Temple Stay Module
-import FindTempleStay from "@/pages/search/temple-stay/FindTempleStay";
+import TempleSearchResults from "@/pages/search/temple/SearchResults";
+import TempleDetail from "@/pages/search/temple/TempleDetail";
 import TempleStaySearchResults from "@/pages/search/temple-stay/SearchResults";
 import TempleStayDetail from "@/pages/search/temple-stay/TempleStayDetail";
 
@@ -46,66 +47,72 @@ import ResetPassword from "@/pages/login/ResetPassword";
 import ScriptureCalendarPage from "@/pages/scripture/ScriptureCalendarPage";
 import ScriptureBookmarkPage from "@/pages/scripture/ScriptureBookmarkPage";
 
+const queryClient = new QueryClient();
+
 const App: React.FC = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login/onboarding1" />} />
-        <Route path="/index" element={<Index />} />
-        <Route path="/main" element={<Main />} />
-        
-        {/* Scripture routes */}
-        <Route path="/scripture" element={<Scripture />} />
-        <Route path="/scripture/:id" element={<ScriptureReader />} />
-        <Route path="/scripture/calendar" element={<ScriptureCalendarPage />} />
-        <Route path="/scripture/bookmarks" element={<ScriptureBookmarkPage />} />
-        
-        {/* Wishlist routes */}
-        <Route path="/wishlist" element={<Wishlist />} />
-        
-        {/* Profile routes */}
-        <Route path="/profile" element={<Profile />} />
-        
-        <Route path="/fortune" element={<Fortune />} />
-        <Route path="/notifications" element={<Notifications />} />
-        
-        {/* Search Module Routes */}
-        <Route path="/search" element={<SearchHome />} />
-        
-        {/* Temple Search Routes */}
-        <Route path="/search/temple/results" element={<TempleSearchResults />} />
-        <Route path="/search/temple/detail/:id" element={<TempleDetail />} />
-        <Route path="/search/temple" element={<FindTemple />} />
-        
-        {/* Temple Stay Search Routes */}
-        <Route path="/search/temple-stay/results" element={<TempleStaySearchResults />} />
-        <Route path="/search/temple-stay/detail/:id" element={<TempleStayDetail />} />
-        <Route path="/search/temple-stay" element={<FindTempleStay />} />
-        
-        {/* Legacy routes with redirects */}
-        <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
-        <Route path="/temple/:id" element={<Navigate to="/search/temple/detail/:id" replace />} />
-        <Route path="/find-temple" element={<Navigate to="/search/temple" />} />
-        <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
-        <Route path="/temple-stay/:id" element={<Navigate to="/search/temple-stay/detail/:id" replace />} />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Navigate to="/login/onboarding1" />} />
+            <Route path="/index" element={<Index />} />
+            <Route path="/main" element={<Main />} />
+            
+            {/* Scripture routes */}
+            <Route path="/scripture" element={<Scripture />} />
+            <Route path="/scripture/:id" element={<ScriptureReader />} />
+            <Route path="/scripture/calendar" element={<ScriptureCalendarPage />} />
+            <Route path="/scripture/bookmarks" element={<ScriptureBookmarkPage />} />
+            
+            {/* Wishlist routes */}
+            <Route path="/wishlist" element={<Wishlist />} />
+            
+            {/* Profile routes */}
+            <Route path="/profile" element={<Profile />} />
+            
+            <Route path="/fortune" element={<Fortune />} />
+            <Route path="/notifications" element={<Notifications />} />
+            
+            {/* Search Module Routes */}
+            <Route path="/search" element={<SearchHome />} />
+            
+            {/* Temple Search Routes */}
+            <Route path="/search/temple/results" element={<TempleSearchResults />} />
+            <Route path="/search/temple/detail/:id" element={<TempleDetail />} />
+            <Route path="/search/temple" element={<FindTemple />} />
+            
+            {/* Temple Stay Search Routes */}
+            <Route path="/search/temple-stay/results" element={<TempleStaySearchResults />} />
+            <Route path="/search/temple-stay/detail/:id" element={<TempleStayDetail />} />
+            <Route path="/search/temple-stay" element={<FindTempleStay />} />
+            
+            {/* Legacy routes with redirects */}
+            <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
+            <Route path="/temple/:id" element={<Navigate to="/search/temple/detail/:id" replace />} />
+            <Route path="/find-temple" element={<Navigate to="/search/temple" />} />
+            <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
+            <Route path="/temple-stay/:id" element={<Navigate to="/search/temple-stay/detail/:id" replace />} />
 
-        {/* Signup and Login */}
-        <Route path="/login/onboarding1" element={<Onboarding1 />} />
-        <Route path="/login/onboarding2" element={<Onboarding2 />} />
-        <Route path="/login/auth" element={<AuthSelection />} />
-        <Route path="/login/signup" element={<Signup />} />
-        <Route path="/login/login" element={<Login />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Navigate to="/login/signup" />} />
-        
-        {/* Account Recovery */}
-        <Route path="/login/find-account" element={<FindAccount />} />
-        <Route path="/login/reset-password" element={<ResetPassword />} />
-        
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Toaster />
-    </Router>
+            {/* Signup and Login */}
+            <Route path="/login/onboarding1" element={<Onboarding1 />} />
+            <Route path="/login/onboarding2" element={<Onboarding2 />} />
+            <Route path="/login/auth" element={<AuthSelection />} />
+            <Route path="/login/signup" element={<Signup />} />
+            <Route path="/login/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Navigate to="/login/signup" />} />
+            
+            {/* Account Recovery */}
+            <Route path="/login/find-account" element={<FindAccount />} />
+            <Route path="/login/reset-password" element={<ResetPassword />} />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster />
+        </Router>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 };
 

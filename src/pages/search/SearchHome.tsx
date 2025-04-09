@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, MapPin, Calendar, Users, X } from 'lucide-react';
@@ -33,7 +34,7 @@ const SearchHome = () => {
 
   const handleSearch = () => {
     if (activeTab === 'temple') {
-      navigate(`/search/temple/results?query=${searchValue}`);
+      navigate(`/search/temple/?query=${searchValue}`);
     } else {
       let queryParams = `query=${searchValue}`;
       
@@ -47,7 +48,7 @@ const SearchHome = () => {
       
       queryParams += `&guests=${guestCount}`;
       
-      navigate(`/search/temple-stay/results?${queryParams}`);
+      navigate(`/search/temple-stay/?${queryParams}`);
     }
   };
 
@@ -61,9 +62,9 @@ const SearchHome = () => {
 
   const handleNearbySearch = () => {
     if (activeTab === 'temple') {
-      navigate('/search/temple/results?nearby=true');
+      navigate('/search/temple/?nearby=true');
     } else {
-      navigate('/search/temple-stay/results?nearby=true');
+      navigate('/search/temple-stay/?nearby=true');
     }
   };
 

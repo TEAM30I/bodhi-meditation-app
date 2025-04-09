@@ -1,6 +1,4 @@
 
-// Search ranking data
-
 export interface SearchRanking {
   id: string;
   term: string;
@@ -9,23 +7,27 @@ export interface SearchRanking {
 }
 
 export const regionSearchRankings: SearchRanking[] = [
-  { id: "1", term: "경주 불국사", count: 10560, trend: 'up' },
-  { id: "2", term: "합천 해인사", count: 9280, trend: 'down' },
-  { id: "3", term: "양산 통도사", count: 7650, trend: 'same' },
-  { id: "4", term: "순천 송광사", count: 6540, trend: 'up' },
-  { id: "5", term: "서울 조계사", count: 5980, trend: 'new' },
-  { id: "6", term: "봉은사", count: 5420, trend: 'down' },
-  { id: "7", term: "법주사", count: 4860, trend: 'same' },
-  { id: "8", term: "bulguksa", count: 4250, trend: 'up' }
+  { id: "r1", term: "경주", count: 8452, trend: 'up' },
+  { id: "r2", term: "서울", count: 7123, trend: 'same' },
+  { id: "r3", term: "불국사", count: 5678, trend: 'up' },
+  { id: "r4", term: "해인사", count: 4521, trend: 'down' },
+  { id: "r5", term: "통도사", count: 3987, trend: 'up' },
+  { id: "r6", term: "부산", count: 3654, trend: 'down' },
+  { id: "r7", term: "양산", count: 2987, trend: 'new' },
+  { id: "r8", term: "조계사", count: 2854, trend: 'up' },
+  { id: "r9", term: "봉은사", count: 2753, trend: 'same' },
+  { id: "r10", term: "속초", count: 2541, trend: 'down' }
 ];
 
 export const templeStaySearchRankings: SearchRanking[] = [
-  { id: "1", term: "불국사 체험", count: 4280, trend: 'up' },
-  { id: "2", term: "해인사 템플스테이", count: 3950, trend: 'new' },
-  { id: "3", term: "송광사 명상", count: 3210, trend: 'down' },
-  { id: "4", term: "수도권 템플스테이", count: 2870, trend: 'up' },
-  { id: "5", term: "산사체험", count: 2540, trend: 'same' },
-  { id: "6", term: "주말 템플스테이", count: 2190, trend: 'down' },
-  { id: "7", term: "당일 템플스테이", count: 1860, trend: 'up' },
-  { id: "8", term: "명상 프로그램", count: 1520, trend: 'same' }
+  { id: "ts1", term: "서울", count: 9876, trend: 'same' },
+  { id: "ts2", term: "경주", count: 8765, trend: 'up' },
+  { id: "ts3", term: "명상", count: 7654, trend: 'up' },
+  { id: "ts4", term: "참선", count: 6543, trend: 'down' },
+  { id: "ts5", term: "불국사", count: 5432, trend: 'up' },
+  { id: "ts6", term: "당일", count: 4321, trend: 'new' },
+  { id: "ts7", term: "해인사", count: 3210, trend: 'down' },
+  { id: "ts8", term: "통도사", count: 2987, trend: 'same' },
+  { id: "ts9", term: "1박2일", count: 2876, trend: 'up' },
+  { id: "ts10", term: "송광사", count: 2654, trend: 'new' }
 ];
