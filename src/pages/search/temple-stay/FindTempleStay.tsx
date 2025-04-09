@@ -173,9 +173,9 @@ const FindTempleStay = () => {
         <div className="mb-6">
           <h2 className="text-base font-bold mb-3">지역</h2>
           <div className="flex flex-wrap gap-2">
-            {typedLocations.map((location, index) => (
+            {typedLocations.map((location) => (
               <button
-                key={index}
+                key={location.name}
                 onClick={() => handleRegionClick(location.name)}
                 className={`px-3 py-1.5 rounded-full text-sm ${
                   location.active 

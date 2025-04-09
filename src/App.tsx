@@ -2,7 +2,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import React from "react";
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from "@/context/AuthContext";
 
 // Pages
@@ -48,9 +48,11 @@ import ResetPassword from "@/pages/login/ResetPassword";
 import ScriptureCalendarPage from "@/pages/scripture/ScriptureCalendarPage";
 import ScriptureBookmarkPage from "@/pages/scripture/ScriptureBookmarkPage";
 
-const queryClient = new QueryClient();
-
+// Create a new QueryClient instance inside the component
 const App: React.FC = () => {
+  // Initialize QueryClient inside the component
+  const queryClient = new QueryClient();
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
