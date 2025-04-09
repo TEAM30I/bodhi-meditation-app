@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Book, Calendar, Bookmark, Share2, Settings } from 'lucide-react';
+import { Calendar, Bookmark, Share2, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface NavItemProps {

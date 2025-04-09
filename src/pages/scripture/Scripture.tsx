@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Home, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { scriptures, readingSchedule } from '../../../public/data/scriptureData/scriptureRepository';
-import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
 import BookmarkList from '@/components/scripture/BookmarkList';
 import ShareOptions from '@/components/scripture/ShareOptions';
@@ -11,7 +10,7 @@ import SettingsPanel from '@/components/scripture/SettingsPanel';
 
 const Scripture = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'reading' | 'calendar' | 'bookmark' | 'share' | 'settings'>('reading');
+  const [activeTab, setActiveTab] = useState<'calendar' | 'bookmark' | 'share' | 'settings' | null>('calendar');
 
   // Type our data properly
   const typedScriptures = typedData<typeof scriptures>(scriptures);
@@ -80,7 +79,7 @@ const Scripture = () => {
       </div>
 
       <div className="px-5 py-4">
-        {activeTab === 'reading' ? (
+        {activeTab === null ? (
           <>
             {/* Calendar Section */}
             <div className="mb-6">
@@ -226,12 +225,6 @@ const Scripture = () => {
           </div>
         )}
       </div>
-
-      {/* Scripture Bottom Navigation */}
-      <ScriptureBottomNav 
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-      />
     </div>
   );
 };
