@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search, X, Calendar, Users, Home } from 'lucide-react';
+import { ArrowLeft, Search, X, Calendar, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleStayItem from '@/components/search/TempleStayItem';
-import { searchTempleStays, TempleStay } from '/public/data/templeStayData/templeStayRepository';
+import { searchTempleStays, getTempleStayList, type TempleStay } from '@/utils/repository';
 import { typedData } from '@/utils/typeUtils';
 
 const SearchResults = () => {
@@ -54,10 +54,8 @@ const SearchResults = () => {
       setTempleStays(typedData<TempleStay[]>(results));
     } else {
       // If no search term, get all temple stays
-      import('/public/data/templeStayData/templeStayRepository').then(({ getTempleStayList }) => {
-        const allTempleStays = getTempleStayList();
-        setTempleStays(typedData<TempleStay[]>(allTempleStays));
-      });
+      const allTempleStays = getTempleStayList();
+      setTempleStays(typedData<TempleStay[]>(allTempleStays));
     }
     setLoading(false);
   }, [query, region]);
@@ -83,7 +81,7 @@ const SearchResults = () => {
     <div className="bg-[#F8F8F8] min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
         <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
-          <button onClick={() => navigate(-1)}>
+          <button onClick={() => navigate('/main')}>
             <ArrowLeft className="h-6 w-6" />
           </button>
           
@@ -105,15 +103,6 @@ const SearchResults = () => {
               </button>
             )}
           </form>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/main')}
-            className="p-1"
-          >
-            <Home className="h-5 w-5" />
-          </Button>
         </div>
       </div>
 

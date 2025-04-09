@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search, X, SlidersHorizontal, Home } from 'lucide-react';
+import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleItem from '@/components/search/TempleItem';
-import { searchTemples, Temple } from '/public/data/templeData/templeRepository';
+import { searchTemples, type Temple } from '@/utils/repository';
 import { typedData } from '@/utils/typeUtils';
 
 const SearchResults = () => {
@@ -60,7 +60,7 @@ const SearchResults = () => {
     <div className="bg-[#F8F8F8] min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
         <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
-          <button onClick={() => navigate(-1)}>
+          <button onClick={() => navigate('/main')}>
             <ArrowLeft className="h-6 w-6" />
           </button>
           
@@ -82,15 +82,6 @@ const SearchResults = () => {
               </button>
             )}
           </form>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/main')}
-            className="p-1"
-          >
-            <Home className="h-5 w-5" />
-          </Button>
         </div>
       </div>
 

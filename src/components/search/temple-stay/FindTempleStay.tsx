@@ -1,17 +1,14 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, MapPin, Calendar, Users, X } from 'lucide-react';
+import { ArrowLeft, Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
 import { typedData } from '@/utils/typeUtils';
-
-// Update import paths to use relative imports
-import { templeStaySearchRankings } from '../../../../public/data/searchRankingRepository';
-import { locations } from '../../../../public/data/templeStayData/templeStayRepository';
+import { templeStaySearchRankings, locations } from '@/utils/repository';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
@@ -46,7 +43,7 @@ const FindTempleStay = () => {
     <div className="bg-[#F5F5F5] min-h-screen pb-16">
       <div className="sticky top-0 z-10 bg-white px-5 py-3 border-b border-[#E5E5EC]">
         <div className="flex items-center space-x-4">
-          <button onClick={() => navigate(-1)}>
+          <button onClick={() => navigate('/main')}>
             <ArrowLeft className="h-6 w-6" />
           </button>
           <h1 className="text-lg font-bold flex-1">템플스테이 찾기</h1>
@@ -113,7 +110,6 @@ const FindTempleStay = () => {
         <div className="mt-6">
           <h2 className="text-base font-semibold mb-3">날짜</h2>
           <div className="flex items-center space-x-2 bg-white p-3 rounded-lg border border-gray-200">
-            <Calendar className="text-gray-400" />
             <span className="text-gray-600">날짜 선택</span>
           </div>
           <DateRangePicker 
@@ -125,7 +121,6 @@ const FindTempleStay = () => {
         <div className="mt-6">
           <h2 className="text-base font-semibold mb-3">인원</h2>
           <div className="flex items-center space-x-2 bg-white p-3 rounded-lg border border-gray-200">
-            <Users className="text-gray-400" />
             <span className="text-gray-600">{guestCount}명</span>
           </div>
           <GuestSelector 

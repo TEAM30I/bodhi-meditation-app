@@ -4,12 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
 import { Search, Bell, ChevronRight, Home, Book, UserCircle, Heart } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getTempleList } from '/public/data/templeData/templeRepository';
-import { getTempleStayList } from '/public/data/templeStayData/templeStayRepository';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule, scriptures } from '/public/data/scriptureData/scriptureRepository';
-import { imageRepository } from '/public/data/imageRepository';
 import { typedData } from '@/utils/typeUtils';
+import { 
+  imageRepository, 
+  getTempleList, 
+  getTempleStayList, 
+  readingSchedule, 
+  scriptures 
+} from '@/utils/repository';
 
 const Main = () => {
   const navigate = useNavigate();
