@@ -22,7 +22,12 @@ import ProfileSetup from "./pages/login/ProfileSetup";
 import TermsAgreement from "./pages/login/TermsAgreement";
 
 // Configure Amplify with the aws-config
-Amplify.configure(awsConfig);
+try {
+  Amplify.configure(awsConfig);
+  console.log("Amplify configuration successful");
+} catch (error) {
+  console.error("Error configuring Amplify:", error);
+}
 
 const queryClient = new QueryClient();
 

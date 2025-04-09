@@ -1,14 +1,19 @@
 
-// Polyfill for global needed by AWS Amplify
-// This must be the very first line, before any imports
-if (typeof window !== 'undefined' && !window.global) {
+// Polyfills for Node.js globals needed by AWS Amplify
+// These must be at the very top, before any imports
+if (typeof window !== 'undefined') {
+  // Add global to window
   window.global = window;
-}
-
-// Add polyfills for other Node.js globals that Amplify might use
-if (typeof process === 'undefined') {
-  // Create a minimal process object with just the properties Amplify needs
-  window.process = { env: {} } as unknown as NodeJS.Process;
+  
+  // Add process if it doesn't exist
+  if (typeof process === 'undefined') {
+    window.process = { env: {} } as any;
+  }
+  
+  // Add Buffer if it doesn't exist
+  if (typeof window.Buffer === 'undefined') {
+    window.Buffer = {} as any;
+  }
 }
 
 import { createRoot } from 'react-dom/client'
