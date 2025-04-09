@@ -47,14 +47,14 @@ const TempleStaySearchResults = () => {
     <div className="bg-[#F5F5F5] min-h-screen pb-20">
       <div className="w-full max-w-[480px] mx-auto bg-white">
         {/* Header */}
-        <div className="flex items-center h-[56px] px-5 border-b border-gray-100">
+        <div className="flex items-center h-[56px] px-5 border-b border-[#E5E5EC]">
           <button 
             onClick={() => navigate('/search')}
             className="mr-4"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-bold flex-1 text-center">템플스테이</h1>
+          <h1 className="text-lg font-semibold flex-1 text-center">템플스테이</h1>
           <button 
             onClick={() => navigate('/main')}
           >
@@ -63,7 +63,7 @@ const TempleStaySearchResults = () => {
         </div>
 
         {/* Search Box */}
-        <div className="px-4 py-4 border-b border-gray-100">
+        <div className="px-4 py-4 border-b border-[#E5E5EC]">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input 
@@ -77,8 +77,8 @@ const TempleStaySearchResults = () => {
         </div>
         
         {/* Date and Guest Selection */}
-        <div className="flex border-b border-gray-100">
-          <button className="flex items-center justify-between flex-1 px-4 py-3 border-r border-gray-100">
+        <div className="flex border-b border-[#E5E5EC]">
+          <button className="flex items-center justify-between flex-1 px-4 py-3 border-r border-[#E5E5EC]">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-gray-500" />
               <span className="text-sm">{selectedDate}</span>
@@ -93,7 +93,7 @@ const TempleStaySearchResults = () => {
         </div>
 
         {/* Sort Options */}
-        <div className="flex px-4 py-3 gap-2 border-b border-gray-100">
+        <div className="flex px-4 py-3 gap-2 border-b border-[#E5E5EC]">
           {(['추천순', '최신순'] as SortOption[]).map((option) => (
             <button
               key={option}
