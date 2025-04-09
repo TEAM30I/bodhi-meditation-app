@@ -17,13 +17,17 @@ if (!window.Buffer) {
 
 // Add a minimal process object
 if (!window.process) {
-  // @ts-ignore - we use a simplified process object that's compatible with AWS Amplify requirements
+  // @ts-ignore - we use a simplified process object for compatibility with AWS Amplify
   window.process = { 
     env: {},
-    // Add minimal required properties to avoid type errors
+    // Using any type to avoid TypeScript errors with ProcessVersions
+    // @ts-ignore - simplified process implementation
     nextTick: (fn) => setTimeout(fn, 0),
+    // @ts-ignore - simplified process implementation
     version: '',
+    // @ts-ignore - simplified process implementation
     versions: {},
+    // @ts-ignore - simplified process implementation
     platform: 'browser'
   };
 }

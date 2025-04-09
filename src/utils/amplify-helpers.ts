@@ -38,9 +38,13 @@ export const initializeAmplify = () => {
         // @ts-ignore - simplified process object for browser
         window.process = { 
           env: {},
+          // @ts-ignore - simplified process implementation
           nextTick: (fn) => setTimeout(fn, 0),
+          // @ts-ignore - simplified process implementation
           version: '',
+          // @ts-ignore - simplified process implementation
           versions: {},
+          // @ts-ignore - simplified process implementation
           platform: 'browser'
         };
       }
@@ -53,6 +57,30 @@ export const initializeAmplify = () => {
     if (typeof global === 'undefined') {
       console.error("Global object still not defined after polyfill attempt");
       return false;
+    }
+    
+    // Force polyfill re-initialization in the AWS Amplify scope
+    try {
+      // This is a more aggressive approach to ensure the polyfills 
+      // are available within the AWS Amplify dependency scope
+      // @ts-ignore - runtime modification of global object
+      window.__forceGlobalPolyfill = function() {
+        // @ts-ignore - global assignment
+        if (typeof global === 'undefined') global = window;
+        // Re-apply Buffer if needed
+        // @ts-ignore - Buffer may not be defined
+        if (typeof Buffer === 'undefined' && typeof require === 'function') {
+          try {
+            // @ts-ignore - Buffer polyfill
+            Buffer = require('buffer/').Buffer;
+          } catch (e) {}
+        }
+      };
+      // Execute the function to ensure it runs immediately
+      // @ts-ignore - calling our custom function
+      window.__forceGlobalPolyfill();
+    } catch (e) {
+      console.warn("Could not apply aggressive polyfill:", e);
     }
     
     // Configure Amplify

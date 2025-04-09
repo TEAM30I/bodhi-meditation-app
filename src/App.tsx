@@ -22,6 +22,14 @@ import ProfileSetup from "./pages/login/ProfileSetup";
 import TermsAgreement from "./pages/login/TermsAgreement";
 
 // Initialize Amplify before creating the React app
+// Force polyfill re-initialization
+if (typeof window !== 'undefined' && window.global === undefined) {
+  // @ts-ignore - force global
+  window.global = window;
+  // @ts-ignore - force global
+  global = window;
+}
+
 const amplifyInitialized = initializeAmplify();
 console.log("Amplify initialization status:", amplifyInitialized ? "success" : "failed");
 
