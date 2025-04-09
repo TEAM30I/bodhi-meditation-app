@@ -4,7 +4,7 @@ import { lazy } from 'react';
 
 // Repository exports with consistent static imports
 export { 
-  imageRepository, 
+  imageRepository,
   getProfileImage, 
   getScriptureImage, 
   getTempleImage, 
