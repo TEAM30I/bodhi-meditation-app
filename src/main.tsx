@@ -7,9 +7,8 @@ if (typeof window !== 'undefined' && !window.global) {
 
 // Add polyfills for other Node.js globals that Amplify might use
 if (typeof process === 'undefined') {
-  window.process = {
-    env: {}
-  };
+  // Create a minimal process object with just the properties Amplify needs
+  window.process = { env: {} } as unknown as NodeJS.Process;
 }
 
 import { createRoot } from 'react-dom/client'
