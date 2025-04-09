@@ -21,7 +21,7 @@ import FindPassword from "./pages/login/FindPassword";
 import ProfileSetup from "./pages/login/ProfileSetup";
 import TermsAgreement from "./pages/login/TermsAgreement";
 
-// Configure Amplify
+// Configure Amplify - ensure this happens before any other AWS service is used
 Amplify.configure(awsConfig);
 
 const queryClient = new QueryClient();
