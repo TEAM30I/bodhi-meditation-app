@@ -31,19 +31,19 @@ const TempleDetail = () => {
         <button onClick={() => navigate(-1)} className="mr-4">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-lg font-bold text-center flex-1">{temple.name}</h1>
+        <h1 className="text-lg font-bold text-center flex-1">{temple.templeName}</h1>
       </div>
 
       {/* Banner */}
       <div className="relative">
         <img
           src={temple.imageUrl}
-          alt={temple.name}
+          alt={temple.templeName}
           className="w-full h-[200px] object-cover"
         />
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black to-transparent"></div>
         <div className="absolute bottom-4 left-4 text-white">
-          <h2 className="text-lg font-bold">{temple.name}</h2>
+          <h2 className="text-lg font-bold">{temple.templeName}</h2>
           <div className="flex items-center text-sm">
             <MapPin className="mr-1 w-4 h-4" />
             {temple.location}
@@ -59,7 +59,7 @@ const TempleDetail = () => {
         <div className="flex flex-col items-center">
           <Clock className="w-5 h-5 text-gray-500 mb-1" />
           <span className="text-xs text-gray-700">
-            {temple.openingHours || '09:00 - 18:00'}
+            {temple.duration || '09:00 - 18:00'}
           </span>
         </div>
         <div className="flex flex-col items-center">
@@ -101,45 +101,34 @@ const TempleDetail = () => {
               <h3 className="text-lg font-semibold">사찰 소개</h3>
               <p className="text-gray-700">{temple.description}</p>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">주요 시설</h3>
-              <div className="flex gap-2">
-                {temple.facilities?.map((facility, index) => (
-                  <Badge key={index}>{facility}</Badge>
-                ))}
+            {temple.tags && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">주요 태그</h3>
+                <div className="flex gap-2">
+                  {temple.tags.map((tag, index) => (
+                    <Badge key={index}>{tag}</Badge>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">오시는 길</h3>
               <p className="text-gray-700">{temple.direction}</p>
             </div>
-            {temple.contact?.phone && (
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">연락처</h3>
-                <p className="text-gray-700">
-                  <PhoneCall className="inline-block w-4 h-4 mr-1 align-middle" />
-                  {temple.contact.phone}
-                </p>
-              </div>
-            )}
-            {temple.social?.instagram && (
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">인스타그램</h3>
-                <a href={temple.social.instagram} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                  <InstagramIcon className="inline-block w-4 h-4 mr-1 align-middle" />
-                  {temple.name} 인스타그램
-                </a>
-              </div>
-            )}
-            {temple.social?.facebook && (
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">페이스북</h3>
-                <a href={temple.social.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                  <FacebookIcon className="inline-block w-4 h-4 mr-1 align-middle" />
-                  {temple.name} 페이스북
-                </a>
-              </div>
-            )}
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">연락처</h3>
+              <p className="text-gray-700">
+                <PhoneCall className="inline-block w-4 h-4 mr-1 align-middle" />
+                문의전화: {temple.price ? `${temple.price.toLocaleString()}원` : '가격정보없음'}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">웹사이트</h3>
+              <a href={temple.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                <Globe className="inline-block w-4 h-4 mr-1 align-middle" />
+                {temple.templeName} 웹사이트 방문하기
+              </a>
+            </div>
           </TabsContent>
           <TabsContent value="review">
             <div>리뷰 기능은 아직 준비 중입니다.</div>
