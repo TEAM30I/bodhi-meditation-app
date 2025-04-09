@@ -2,7 +2,8 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Globe, Heart, Share, PhoneCall, Instagram as InstagramIcon, Facebook as FacebookIcon } from 'lucide-react';
-import { temples } from '/public/data/templeStayData/templeStayRepository';
+import { typedData } from '@/utils/typeUtils';
+import { templeStays } from '../../../public/data/templeStayData/templeStayRepository';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -11,8 +12,8 @@ const TempleDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // 임시 데이터: id에 해당하는 템플 정보 가져오기
-  const temple = temples[id || ''];
+  // Use typedData to safely cast the temple stay data
+  const temple = typedData(templeStays[id || '']);
 
   if (!temple) {
     return <div>사찰 정보를 찾을 수 없습니다.</div>;
