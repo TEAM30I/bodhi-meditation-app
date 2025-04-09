@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
-// Use relative imports
-import { bookmarks, scriptures } from '../../public/data/scriptureData/scriptureRepository';
+// Use relative imports with the correct path
+import { bookmarks, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
 
 const ScriptureBookmarkPage: React.FC = () => {
   const navigate = useNavigate();
