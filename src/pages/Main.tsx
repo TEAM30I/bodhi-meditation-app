@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
@@ -22,7 +21,6 @@ const Main = () => {
   const [loading, setLoading] = React.useState(true);
 
   useEffect(() => {
-    // Simulate loading data
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
@@ -125,7 +123,7 @@ const Main = () => {
           </div>
           
           <p className="text-gray-500 text-sm mb-3">
-            지도로 사찰을 둘러보고, 관심 사찰로 저장해보세요
+            ���도로 사찰을 둘러보고, 관심 사찰로 저장해보세요
           </p>
           
           <div 
@@ -250,7 +248,6 @@ const Main = () => {
         </div>
       </div>
 
-      {/* New Bottom Nav */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white z-10">
         <div className="flex justify-around items-center h-16 max-w-screen-lg mx-auto">
           <button className="flex items-center justify-center w-14 h-14 text-[#DE7834]">

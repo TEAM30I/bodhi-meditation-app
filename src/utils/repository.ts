@@ -19,10 +19,8 @@ export {
 
 export {
   temples,
-  templeData,
   newsData,
   nearbyTemples,
-  popularTemples,
   regionTags,
   getTempleList,
   getTopLikedTemples,
