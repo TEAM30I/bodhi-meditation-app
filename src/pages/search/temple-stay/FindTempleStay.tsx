@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Calendar, Users, ChevronRight, Home } from 'lucide-react';
+import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronRight, Home } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { locations, templeStays, TempleStay } from '/public/data/templeStayData/templeStayRepository';
 import { templeStaySearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
 import { typedData } from '@/utils/typeUtils';
@@ -11,6 +13,10 @@ const FindTempleStay = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
   const [activeRegion, setActiveRegion] = useState('서울');
+  const [guestCount, setGuestCount] = useState(1);
+  const [dateRange, setDateRange] = useState({ from: '5.10(금)', to: '5.11(토)' });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showGuestSelector, setShowGuestSelector] = useState(false);
   
   // Properly type the data using the typedData utility
   const typedLocations = typedData<typeof locations>(locations);
@@ -18,6 +24,7 @@ const FindTempleStay = () => {
   
   // Get templestay data with proper typing
   const templeStayArray = typedData<TempleStay[]>(Object.values(templeStays));
+  const [filteredTempleStays, setFilteredTempleStays] = useState<TempleStay[]>(templeStayArray);
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
@@ -25,12 +32,16 @@ const FindTempleStay = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/search/temple-stay/results?query=${searchValue}`);
+    navigate(`/search/temple-stay/results?query=${searchValue}&guests=${guestCount}&from=${dateRange.from}&to=${dateRange.to}`);
   };
 
   const handleRegionClick = (region: string) => {
     setActiveRegion(region);
-    navigate(`/search/temple-stay/results?region=${region}`);
+    // Filter temples by region without navigating
+    const filtered = templeStayArray.filter(temple => 
+      temple.location.includes(region)
+    );
+    setFilteredTempleStays(filtered.length ? filtered : templeStayArray);
   };
 
   const handleTempleStayClick = (id: string) => {
@@ -42,13 +53,18 @@ const FindTempleStay = () => {
   };
 
   const handleDateSelection = () => {
-    // This would open a date picker in a real app
-    console.log('Opening date selection');
+    setShowDatePicker(!showDatePicker);
+    setShowGuestSelector(false);
   };
 
   const handleGuestSelection = () => {
-    // This would open a guest selector in a real app
-    console.log('Opening guest selection');
+    setShowGuestSelector(!showGuestSelector);
+    setShowDatePicker(false);
+  };
+
+  const handleGuestCountChange = (count: number) => {
+    setGuestCount(count);
+    setShowGuestSelector(false);
   };
 
   return (
@@ -81,16 +97,70 @@ const FindTempleStay = () => {
               onClick={handleDateSelection}
             >
               <Calendar className="h-5 w-5 text-gray-500" />
-              <span className="text-sm text-gray-700">날짜 선택</span>
+              <span className="text-sm text-gray-700">{dateRange.from} - {dateRange.to}</span>
             </button>
             <button 
               className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-2 border border-gray-300"
               onClick={handleGuestSelection}
             >
               <Users className="h-5 w-5 text-gray-500" />
-              <span className="text-sm text-gray-700">인원 선택</span>
+              <span className="text-sm text-gray-700">성인 {guestCount}명</span>
             </button>
           </div>
+
+          {showDatePicker && (
+            <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-medium">날짜 선택</h3>
+                <button onClick={() => setShowDatePicker(false)}>
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  className="p-2 border border-gray-200 rounded text-sm"
+                  onClick={() => setDateRange({ from: '5.10(금)', to: '5.11(토)' })}
+                >
+                  5.10(금) - 5.11(토)
+                </button>
+                <button 
+                  className="p-2 border border-gray-200 rounded text-sm"
+                  onClick={() => setDateRange({ from: '5.11(토)', to: '5.12(일)' })}
+                >
+                  5.11(토) - 5.12(일)
+                </button>
+              </div>
+            </div>
+          )}
+
+          {showGuestSelector && (
+            <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-medium">인원 선택</h3>
+                <button onClick={() => setShowGuestSelector(false)}>
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>성인</span>
+                <div className="flex items-center gap-3">
+                  <button 
+                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full"
+                    onClick={() => guestCount > 1 && handleGuestCountChange(guestCount - 1)}
+                  >
+                    -
+                  </button>
+                  <span>{guestCount}</span>
+                  <button 
+                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full"
+                    onClick={() => handleGuestCountChange(guestCount + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 최신 템플스테이 */}
@@ -122,7 +192,7 @@ const FindTempleStay = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {templeStayArray.slice(0, 2).map((templestay) => (
+            {filteredTempleStays.slice(0, 2).map((templestay) => (
               <div 
                 key={templestay.id} 
                 className="bg-gray-200 rounded-lg p-2 h-[120px] relative cursor-pointer"
@@ -171,7 +241,7 @@ const FindTempleStay = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {templeStayArray.slice(2, 6).map((templestay) => (
+            {filteredTempleStays.slice(0, 4).map((templestay) => (
               <div 
                 key={templestay.id} 
                 className="bg-gray-200 rounded-lg p-2 h-[120px] relative cursor-pointer"

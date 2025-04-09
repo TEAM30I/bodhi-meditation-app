@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { regionTags } from '/public/data/templeData/templeRepository';
 import { regionSearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
 import { typedData } from '@/utils/typeUtils';
-import TempleItem from '@/components/search/TempleItem';
 import { temples, Temple } from '/public/data/templeData/templeRepository';
 
 const FindTemple = () => {
@@ -19,7 +18,8 @@ const FindTemple = () => {
   const typedSearchRankings = typedData<SearchRanking[]>(regionSearchRankings);
   
   // Get temples and ensure they are properly typed
-  const popularTemples = typedData<Temple[]>(Object.values(temples));
+  const templeArray = typedData<Temple[]>(Object.values(temples));
+  const [filteredTemples, setFilteredTemples] = useState<Temple[]>(templeArray);
   
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
@@ -32,7 +32,12 @@ const FindTemple = () => {
 
   const handleRegionClick = (region: string) => {
     setActiveRegion(region);
-    // Update UI with filtered temples, but don't navigate
+    
+    // Filter temples by region without navigating
+    const filtered = templeArray.filter(temple => 
+      temple.location.includes(region)
+    );
+    setFilteredTemples(filtered.length ? filtered : templeArray);
   };
 
   const handleTempleClick = (id: string) => {
@@ -78,7 +83,7 @@ const FindTemple = () => {
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {popularTemples.slice(0, 2).map((temple) => (
+            {filteredTemples.slice(0, 2).map((temple) => (
               <div 
                 key={temple.id} 
                 className="bg-gray-200 rounded-lg p-2 h-[120px] cursor-pointer"
@@ -121,7 +126,7 @@ const FindTemple = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {popularTemples.slice(0, 4).map((temple) => (
+            {filteredTemples.slice(0, 4).map((temple) => (
               <div 
                 key={temple.id} 
                 className="bg-gray-200 rounded-lg p-2 h-[120px] relative cursor-pointer"
