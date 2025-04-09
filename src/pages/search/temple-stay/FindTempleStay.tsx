@@ -1,19 +1,20 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Calendar, Users, Home, ChevronRight, Star } from 'lucide-react';
+import { ArrowLeft, Search, X, Calendar, Users, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
-import { typedData } from '@/utils/typeUtils';
-import { templeStays, getTempleStayList } from '/public/data/templeStayData/templeStayRepository';
+import { locations } from '/public/data/templeStayData/templeStayRepository';
+import { templeStaySearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { typedData } from '@/utils/typeUtils';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchValue, setSearchValue] = useState('');
   
   // Set default dates to tomorrow and day after tomorrow
   const tomorrow = new Date();
@@ -29,18 +30,18 @@ const FindTempleStay = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGuestSelector, setShowGuestSelector] = useState(false);
   const [guestCount, setGuestCount] = useState(1);
-  
-  const allTempleStays = typedData(getTempleStayList());
-  const featuredTempleStays = allTempleStays.slice(0, 4);
-  const popularTempleStays = allTempleStays.slice(0, 4);
-  
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+
+  const typedLocations = typedData(locations);
+  const typedSearchRankings = typedData<SearchRanking[]>(templeStaySearchRankings);
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let queryParams = `query=${searchTerm}`;
+    
+    let queryParams = `query=${searchValue}`;
     
     if (dateRange.from) {
       queryParams += `&from=${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })}`;
@@ -54,7 +55,19 @@ const FindTempleStay = () => {
     
     navigate(`/search/temple-stay/results?${queryParams}`);
   };
-  
+
+  const handleNearbySearch = () => {
+    navigate('/search/temple-stay/results?nearby=true');
+  };
+
+  const handleClearSearch = () => {
+    setSearchValue('');
+  };
+
+  const handleRegionClick = (region: string) => {
+    navigate(`/search/temple-stay/results?region=${region}`);
+  };
+
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range);
     if (range.from && range.to) {
@@ -65,64 +78,66 @@ const FindTempleStay = () => {
   const handleGuestCountChange = (count: number) => {
     setGuestCount(count);
   };
-  
-  const handleTempleStayClick = (id: string) => {
-    navigate(`/search/temple-stay/TempleStayDetail?id=${id}`);
-  };
-  
+
   const formatDateRange = () => {
     if (dateRange.from && dateRange.to) {
       return `${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })} - ${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
     }
     return '날짜 선택';
   };
-  
+
   return (
     <div className="bg-[#F8F8F8] min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
-        <div className="flex items-center p-4 justify-between">
-          <div className="flex items-center">
-            <button onClick={() => navigate(-1)} className="mr-4">
-              <ArrowLeft className="h-6 w-6" />
-            </button>
-            <h1 className="text-lg font-semibold">템플스테이</h1>
-          </div>
-          <button onClick={() => navigate('/')}>
-            <Home className="h-6 w-6" />
+        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
+          <button onClick={() => navigate('/search')}>
+            <ArrowLeft className="h-6 w-6" />
           </button>
+          
+          <h1 className="text-lg font-bold">템플스테이 찾기</h1>
         </div>
-        
-        <form onSubmit={handleSearchSubmit} className="px-4 pb-4">
-          <div className="relative mb-3">
+      </div>
+
+      <div className="max-w-[480px] mx-auto px-5 py-6">
+        <div className="mb-6">
+          <form onSubmit={handleSearchSubmit} className="relative mb-3">
             <Input
-              type="text"
+              value={searchValue}
+              onChange={handleSearchInputChange}
               placeholder="도시, 지역, 지하철역"
-              className="w-full pl-10 pr-4 py-2 rounded-full"
-              value={searchTerm}
-              onChange={handleSearchChange}
+              className="w-full pl-10 pr-10 py-3 rounded-lg bg-white border-gray-200"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          </div>
-          
-          <div className="flex gap-2 mb-4">
+            {searchValue && (
+              <button 
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            )}
+          </form>
+
+          <div className="flex gap-3 mt-3">
             <div 
-              className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-2 border border-gray-200 cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-3 border border-gray-200 cursor-pointer"
               onClick={() => setShowDatePicker(!showDatePicker)}
             >
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">날짜 선택</span>
+              <Calendar className="h-5 w-5 text-gray-500" />
+              <span className="text-sm text-gray-600">{formatDateRange()}</span>
             </div>
             <div 
-              className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-2 border border-gray-200 cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-3 border border-gray-200 cursor-pointer"
               onClick={() => setShowGuestSelector(!showGuestSelector)}
             >
-              <Users className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">인원 선택</span>
+              <Users className="h-5 w-5 text-gray-500" />
+              <span className="text-sm text-gray-600">성인 {guestCount}명</span>
             </div>
           </div>
           
           {showDatePicker && (
-            <div className="mb-3">
+            <div className="mt-2">
               <DateRangePicker 
                 dateRange={dateRange} 
                 onChange={handleDateRangeChange} 
@@ -131,123 +146,67 @@ const FindTempleStay = () => {
           )}
           
           {showGuestSelector && (
-            <div className="mb-3">
+            <div className="mt-2">
               <GuestSelector 
                 value={guestCount} 
                 onChange={handleGuestCountChange} 
               />
             </div>
           )}
-        </form>
-      </div>
-      
-      <div className="max-w-[480px] mx-auto px-4 py-6">
-        {/* 최신 템플스테이 */}
+          
+          <Button 
+            className="w-full mt-4 bg-[#DE7834] hover:bg-[#C56A2D]"
+            onClick={handleSearchSubmit}
+          >
+            검색하기
+          </Button>
+          
+          <button 
+            className="flex items-center gap-2 bg-white rounded-full px-4 py-2 border border-[#DE7834] mt-4 w-full justify-center"
+            onClick={handleNearbySearch}
+          >
+            <MapPin className="h-4 w-4 text-[#DE7834]" />
+            <span className="text-sm text-[#DE7834] font-medium">내 주변에서 검색</span>
+          </button>
+        </div>
+
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold">최신 템플스테이</h2>
-            <button 
-              className="text-sm text-gray-500 flex items-center"
-              onClick={() => navigate('/search/temple-stay/results?newest=true')}
-            >
-              더보기 <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-          
-          <div className="mb-3 flex overflow-x-auto py-2 scrollbar-hide gap-2">
-            {['서울', '대구', '부산', '속초', '안동', '제주'].map(region => (
-              <span 
-                key={region} 
-                className={`inline-block px-3 py-1 rounded-full text-sm cursor-pointer whitespace-nowrap ${
-                  region === '서울' ? 'bg-[#DE7834] text-white' : 'bg-gray-200 text-gray-700'
+          <h2 className="text-base font-bold mb-3">지역</h2>
+          <div className="flex flex-wrap gap-2">
+            {typedLocations.map((location, index) => (
+              <button
+                key={index}
+                onClick={() => handleRegionClick(location.name)}
+                className={`px-3 py-1.5 rounded-full text-sm ${
+                  location.active 
+                    ? 'bg-[#DE7834] text-white' 
+                    : 'bg-white text-gray-700 border border-gray-200'
                 }`}
-                onClick={() => navigate(`/search/temple-stay/results?region=${region}`)}
               >
-                {region}
-              </span>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {featuredTempleStays.map(templeStay => (
-              <div 
-                key={templeStay.id} 
-                className="bg-white rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                onClick={() => handleTempleStayClick(templeStay.id)}
-              >
-                <div className="relative h-[100px]">
-                  <img 
-                    src={templeStay.imageUrl} 
-                    alt={templeStay.templeName} 
-                    className="w-full h-full object-cover"
-                  />
-                  {templeStay.likeCount && (
-                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
-                      <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
-                      <span>{templeStay.likeCount || 4.5}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-2">
-                  <h3 className="font-medium text-sm">{templeStay.templeName}</h3>
-                  <p className="text-gray-500 text-xs">{templeStay.location} 방면</p>
-                  <p className="font-medium text-sm mt-1">{templeStay.price.toLocaleString()}원</p>
-                </div>
-              </div>
+                {location.name}
+              </button>
             ))}
           </div>
         </div>
-        
-        {/* 많이 찾는 템플스테이 */}
+
         <div>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold">많이 찾는 템플스테이</h2>
-            <button 
-              className="text-sm text-gray-500 flex items-center"
-              onClick={() => navigate('/search/temple-stay/results?popular=true')}
-            >
-              더보기 <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-          
-          <div className="mb-3 flex overflow-x-auto py-2 scrollbar-hide gap-2">
-            {['서울', '대구', '부산', '속초', '안동', '제주'].map(region => (
-              <span 
-                key={region} 
-                className={`inline-block px-3 py-1 rounded-full text-sm cursor-pointer whitespace-nowrap ${
-                  region === '서울' ? 'bg-[#DE7834] text-white' : 'bg-gray-200 text-gray-700'
-                }`}
-                onClick={() => navigate(`/search/temple-stay/results?region=${region}`)}
-              >
-                {region}
-              </span>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {popularTempleStays.map(templeStay => (
-              <div 
-                key={templeStay.id} 
-                className="bg-white rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                onClick={() => handleTempleStayClick(templeStay.id)}
-              >
-                <div className="relative h-[100px]">
-                  <img 
-                    src={templeStay.imageUrl} 
-                    alt={templeStay.templeName} 
-                    className="w-full h-full object-cover"
-                  />
-                  {templeStay.likeCount && (
-                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
-                      <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
-                      <span>{templeStay.likeCount || 4.5}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-2">
-                  <h3 className="font-medium text-sm">{templeStay.templeName}</h3>
-                  <p className="text-gray-500 text-xs">{templeStay.location} 방면</p>
-                  <p className="font-medium text-sm mt-1">{templeStay.price.toLocaleString()}원</p>
+          <h2 className="text-base font-bold mb-4">많이 찾는 키워드</h2>
+          <div className="grid grid-cols-2 gap-y-3">
+            {typedSearchRankings.slice(0, 8).map((item, index) => (
+              <div key={item.id} className="flex items-center">
+                <span className="text-[#DE7834] font-bold w-6">{index + 1}</span>
+                <div className="flex items-center">
+                  <span 
+                    className="text-gray-800 cursor-pointer hover:underline"
+                    onClick={() => {
+                      navigate(`/search/temple-stay/results?query=${item.term}`);
+                    }}
+                  >
+                    {item.term}
+                  </span>
+                  {item.trend === 'up' && <span className="text-red-500 text-xs ml-1">▲</span>}
+                  {item.trend === 'down' && <span className="text-blue-500 text-xs ml-1">▼</span>}
+                  {item.trend === 'new' && <span className="text-green-500 text-xs ml-1">N</span>}
                 </div>
               </div>
             ))}

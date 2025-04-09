@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search, X, SlidersHorizontal, Home, Heart } from 'lucide-react';
+import { ArrowLeft, Search, X, SlidersHorizontal, Home } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleItem from '@/components/search/TempleItem';

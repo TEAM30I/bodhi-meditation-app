@@ -1,147 +1,119 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Home, ChevronRight, Star } from 'lucide-react';
+import { ArrowLeft, Search, X, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import TempleItem from '@/components/search/TempleItem';
+import { regionTags } from '/public/data/templeData/templeRepository';
+import { regionSearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
 import { typedData } from '@/utils/typeUtils';
-import { temples, getTempleList } from '/public/data/templeData/templeRepository';
 
 const FindTemple = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchValue, setSearchValue] = useState('');
   
-  const allTemples = typedData(getTempleList());
-  const nearbyTemples = allTemples.slice(0, 2); // Just showing 2 for nearby
-  const popularTemples = allTemples.slice(0, 4); // Just showing 4 for popular
+  const typedRegionTags = typedData(regionTags);
+  const typedSearchRankings = typedData<SearchRanking[]>(regionSearchRankings);
   
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/search/temple/results?query=${searchTerm}`);
+    navigate(`/search/temple/results?query=${searchValue}`);
   };
-  
-  const handleTempleClick = (id: string) => {
-    navigate(`/search/temple/TempleDetail?id=${id}`);
+
+  const handleNearbySearch = () => {
+    navigate('/search/temple/results?nearby=true');
   };
-  
+
+  const handleClearSearch = () => {
+    setSearchValue('');
+  };
+
+  const handleRegionClick = (region: string) => {
+    navigate(`/search/temple/results?region=${region}`);
+  };
+
   return (
     <div className="bg-[#F8F8F8] min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
-        <div className="flex items-center p-4 justify-between">
-          <div className="flex items-center">
-            <button onClick={() => navigate(-1)} className="mr-4">
-              <ArrowLeft className="h-6 w-6" />
-            </button>
-            <h1 className="text-lg font-semibold">사찰</h1>
-          </div>
-          <button onClick={() => navigate('/')}>
-            <Home className="h-6 w-6" />
+        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
+          <button onClick={() => navigate('/search')}>
+            <ArrowLeft className="h-6 w-6" />
           </button>
+          
+          <h1 className="text-lg font-bold">사찰 찾기</h1>
         </div>
-        
-        <form onSubmit={handleSearchSubmit} className="px-4 pb-4">
-          <div className="relative">
+      </div>
+
+      <div className="max-w-[480px] mx-auto px-5 py-6">
+        <div className="mb-6">
+          <form onSubmit={handleSearchSubmit} className="relative">
             <Input
-              type="text"
+              value={searchValue}
+              onChange={handleSearchInputChange}
               placeholder="도시, 지역, 사찰명"
-              className="w-full pl-10 pr-4 py-2 rounded-full"
-              value={searchTerm}
-              onChange={handleSearchChange}
+              className="w-full pl-10 pr-10 py-3 rounded-lg bg-white border-gray-200"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          </div>
-        </form>
-      </div>
-      
-      <div className="max-w-[480px] mx-auto px-4 py-6">
-        {/* 가까운 사찰 */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold">가까운 사찰</h2>
-            <button 
-              className="text-sm text-gray-500 flex items-center"
-              onClick={() => navigate('/search/temple/results?nearby=true')}
-            >
-              더보기 <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {nearbyTemples.map(temple => (
-              <div 
-                key={temple.id} 
-                className="bg-gray-200 rounded-lg h-[120px] relative overflow-hidden cursor-pointer"
-                onClick={() => handleTempleClick(temple.id)}
+            {searchValue && (
+              <button 
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
               >
-                <img 
-                  src={temple.imageUrl} 
-                  alt={temple.name} 
-                  className="w-full h-full object-cover"
-                />
-                
-                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                  <h3 className="text-white font-medium">{temple.name}</h3>
-                  <p className="text-white text-xs opacity-80">{temple.location} • {temple.direction}</p>
-                </div>
-              </div>
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            )}
+          </form>
+          
+          <button 
+            className="flex items-center gap-2 bg-white rounded-full px-4 py-2 border border-[#DE7834] mt-4"
+            onClick={handleNearbySearch}
+          >
+            <MapPin className="h-4 w-4 text-[#DE7834]" />
+            <span className="text-sm text-[#DE7834] font-medium">내 주변에서 검색</span>
+          </button>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-base font-bold mb-3">지역</h2>
+          <div className="flex flex-wrap gap-2">
+            {typedRegionTags.map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() => handleRegionClick(tag.name)}
+                className={`px-3 py-1.5 rounded-full text-sm ${
+                  tag.active 
+                    ? 'bg-[#DE7834] text-white' 
+                    : 'bg-white text-gray-700 border border-gray-200'
+                }`}
+              >
+                {tag.name}
+              </button>
             ))}
           </div>
         </div>
-        
-        {/* 많이 찾는 사찰 */}
+
         <div>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold">많이 찾는 사찰</h2>
-            <button 
-              className="text-sm text-gray-500 flex items-center"
-              onClick={() => navigate('/search/temple/results?popular=true')}
-            >
-              더보기 <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-          
-          <div className="mb-3 flex overflow-x-auto py-2 scrollbar-hide gap-2">
-            {['서울', '경주', '부산', '속초', '안동', '제주'].map(region => (
-              <span 
-                key={region} 
-                className={`inline-block px-3 py-1 rounded-full text-sm cursor-pointer whitespace-nowrap ${
-                  region === '서울' ? 'bg-[#DE7834] text-white' : 'bg-gray-200 text-gray-700'
-                }`}
-                onClick={() => navigate(`/search/temple/results?region=${region}`)}
-              >
-                {region}
-              </span>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {popularTemples.map(temple => (
-              <div 
-                key={temple.id} 
-                className="bg-white rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                onClick={() => handleTempleClick(temple.id)}
-              >
-                <div className="relative h-[100px]">
-                  <img 
-                    src={temple.imageUrl} 
-                    alt={temple.name} 
-                    className="w-full h-full object-cover"
-                  />
-                  {temple.likeCount && (
-                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
-                      <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
-                      <span>{temple.likeCount || 4.5}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-2">
-                  <h3 className="font-medium text-sm">{temple.name}</h3>
-                  <p className="text-gray-500 text-xs">{temple.location} • {temple.direction}</p>
+          <h2 className="text-base font-bold mb-4">많이 찾는 사찰</h2>
+          <div className="grid grid-cols-2 gap-y-3">
+            {typedSearchRankings.slice(0, 8).map((item, index) => (
+              <div key={item.id} className="flex items-center">
+                <span className="text-[#DE7834] font-bold w-6">{index + 1}</span>
+                <div className="flex items-center">
+                  <span 
+                    className="text-gray-800 cursor-pointer hover:underline"
+                    onClick={() => {
+                      navigate(`/search/temple/results?query=${item.term}`);
+                    }}
+                  >
+                    {item.term}
+                  </span>
+                  {item.trend === 'up' && <span className="text-red-500 text-xs ml-1">▲</span>}
+                  {item.trend === 'down' && <span className="text-blue-500 text-xs ml-1">▼</span>}
+                  {item.trend === 'new' && <span className="text-green-500 text-xs ml-1">N</span>}
                 </div>
               </div>
             ))}
