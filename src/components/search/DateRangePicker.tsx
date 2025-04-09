@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange as DayPickerDateRange } from 'react-day-picker';
 
-interface DateRangePickerProps {
+export interface DateRangePickerProps {
   dateRange: DayPickerDateRange;
   onChange: (range: DayPickerDateRange) => void;
   onClose?: () => void;

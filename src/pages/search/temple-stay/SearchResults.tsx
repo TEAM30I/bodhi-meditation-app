@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleStayItem from '@/components/search/TempleStayItem';
 import { searchTempleStays, TempleStay } from '@/data/templeStayData';
-import PageLayout from '@/components/PageLayout';
 
 const SearchResults = () => {
   const location = useLocation();

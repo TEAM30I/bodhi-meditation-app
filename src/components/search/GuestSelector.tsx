@@ -3,7 +3,7 @@ import React from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface GuestSelectorProps {
+export interface GuestSelectorProps {
   value: number;
   onChange: (value: number) => void;
   onClose?: () => void;
