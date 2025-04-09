@@ -4,16 +4,24 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, MapPin, Search as SearchIcon, Calendar, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { DateRange } from "react-day-picker";
 import { regionSearchRankings } from "../../data/searchRankingRepository";
 import { allTemples, allTempleStays } from '../../data/dataRepository';
 import BottomNav from '@/components/BottomNav';
+import { DateRangePicker } from "@/components/search/DateRangePicker";
+import { GuestSelector } from "@/components/search/GuestSelector";
+import { toast } from "@/hooks/use-toast";
 
 export default function SearchHome() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"temple" | "templeStay">("templeStay");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDate, setSelectedDate] = useState<string>("2025-04-15~2025-04-16");
-  const [selectedGuests, setSelectedGuests] = useState<string>("성인 1명");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(2025, 3, 15),
+    to: new Date(2025, 3, 16),
+  });
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
 
   const handleRegionClick = (query: string) => {
     const path = activeTab === 'temple' 
@@ -23,15 +31,41 @@ export default function SearchHome() {
   };
 
   const handleSearch = () => {
-    const path = activeTab === 'temple'
-      ? `/search/temple/results?query=${searchQuery || '서울'}`
-      : `/search/temple-stay/results?query=${searchQuery || '서울'}`;
-    navigate(path);
+    if (activeTab === 'temple') {
+      navigate(`/search/temple/results?query=${searchQuery || '서울'}`);
+    } else {
+      if (!dateRange?.from || !dateRange?.to) {
+        toast({
+          title: "날짜를 선택해주세요",
+          description: "템플스테이는 예약 날짜 선택이 필수입니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+      navigate(`/search/temple-stay/results?query=${searchQuery || '서울'}`);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
+    }
+  };
+
+  const handleLocationSearch = () => {
+    if (activeTab === 'temple') {
+      setSearchQuery("내 주변");
+      navigate(`/search/temple/results?query=nearby`);
+    } else {
+      setSearchQuery("내 주변");
+      if (!dateRange?.from || !dateRange?.to) {
+        toast({
+          title: "날짜를 선택해주세요",
+          description: "템플스테이는 예약 날짜 선택이 필수입니다.",
+        });
+      } else {
+        navigate(`/search/temple-stay/results?query=nearby`);
+      }
     }
   };
 
@@ -92,31 +126,28 @@ export default function SearchHome() {
         {/* Date and Guest Selection - Only for Temple Stay */}
         {activeTab === "templeStay" && (
           <div className="flex border-b border-[#E5E5EC] mb-4">
-            <button className="flex items-center justify-between flex-1 px-4 py-3 border-r border-[#E5E5EC]">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-500" />
-                <span className="text-sm">{selectedDate}</span>
-              </div>
-            </button>
-            <button className="flex items-center justify-between flex-1 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-gray-500" />
-                <span className="text-sm">{selectedGuests}</span>
-              </div>
-            </button>
+            <div className="flex-1 px-4 py-3 border-r border-[#E5E5EC]">
+              <DateRangePicker 
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+              />
+            </div>
+            <div className="flex-1 px-4 py-3">
+              <GuestSelector 
+                adults={adults}
+                children={children}
+                onAdultsChange={setAdults}
+                onChildrenChange={setChildren}
+              />
+            </div>
           </div>
         )}
 
         {/* Location Search Button */}
         <div className="px-4 mb-6">
           <button
-            className="flex items-center gap-2 text-sm text-[#FF8433] border border-[#FF8433] rounded-full py-2 px-4"
-            onClick={() => {
-              const path = activeTab === 'temple'
-                ? `/search/temple/results?query=nearby`
-                : `/search/temple-stay/results?query=nearby`;
-              navigate(path);
-            }}
+            className="flex items-center gap-2 text-sm text-[#FF8433] border border-[#FF8433] rounded-full py-2 px-4 w-full"
+            onClick={handleLocationSearch}
           >
             <MapPin className="w-4 h-4" />
             <span>내 주변에서 검색</span>

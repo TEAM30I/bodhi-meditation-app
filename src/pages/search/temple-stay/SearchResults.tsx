@@ -1,13 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Search, ArrowLeft, Home, Calendar, Users } from 'lucide-react';
 import BottomNav from "@/components/BottomNav";
 import { useNavigate, useLocation } from 'react-router-dom';
+import { DateRange } from "react-day-picker";
 import TempleStayItem from '@/components/search/TempleStayItem';
-import { allTempleStays } from '../../../data/dataRepository';
+import { allTempleStays } from '@/data/dataRepository';
+import { DateRangePicker } from '@/components/search/DateRangePicker';
+import { GuestSelector } from '@/components/search/GuestSelector';
 
-type SortOption = '추천순' | '최신순';
+type SortOption = '추천순' | '거리순' | '가격낮은순' | '가격높은순';
 
 const TempleStaySearchResults = () => {
   const navigate = useNavigate();
@@ -17,16 +21,39 @@ const TempleStaySearchResults = () => {
   
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [sortBy, setSortBy] = useState<SortOption>('추천순');
-  const [selectedDate, setSelectedDate] = useState<string>("2025-04-15~2025-04-16");
-  const [selectedGuests, setSelectedGuests] = useState<string>("성인 1명");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(2025, 3, 15),
+    to: new Date(2025, 3, 16),
+  });
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
 
   // Filter results based on search query
   const filteredTempleStays = allTempleStays.filter(templeStay => 
-    templeStay.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    templeStay.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (templeStay.description && templeStay.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    templeStay.temple.toLowerCase().includes(searchQuery.toLowerCase())
+    templeStay.name.includes(searchQuery) || 
+    templeStay.location.includes(searchQuery) ||
+    (templeStay.description && templeStay.description.includes(searchQuery))
   );
+
+  // Sort results based on selected option
+  const sortedTempleStays = React.useMemo(() => {
+    switch (sortBy) {
+      case '거리순':
+        return [...filteredTempleStays].sort((a, b) => {
+          if (!a.distance || !b.distance) return 0;
+          const distA = parseInt(a.distance.replace(/[^0-9]/g, ''));
+          const distB = parseInt(b.distance.replace(/[^0-9]/g, ''));
+          return distA - distB;
+        });
+      case '가격낮은순':
+        return [...filteredTempleStays].sort((a, b) => a.price - b.price);
+      case '가격높은순':
+        return [...filteredTempleStays].sort((a, b) => b.price - a.price);
+      case '추천순':
+      default:
+        return filteredTempleStays;
+    }
+  }, [filteredTempleStays, sortBy]);
 
   const handleSearch = () => {
     navigate(`/search/temple-stay/results?query=${searchQuery}`);
@@ -40,7 +67,6 @@ const TempleStaySearchResults = () => {
 
   useEffect(() => {
     setSearchQuery(initialQuery);
-    window.scrollTo(0, 0);
   }, [initialQuery]);
 
   return (
@@ -67,7 +93,7 @@ const TempleStaySearchResults = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input 
-              className="pl-9 bg-[#F5F5F5] border-0 focus-visible:ring-0 rounded-lg"
+              className="pl-9 bg-[#F5F5F5] border-none focus-visible:ring-0 rounded-full"
               placeholder="도시, 지역, 사찰명"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -75,44 +101,47 @@ const TempleStaySearchResults = () => {
             />
           </div>
         </div>
-        
+
         {/* Date and Guest Selection */}
         <div className="flex border-b border-[#E5E5EC]">
-          <button className="flex items-center justify-between flex-1 px-4 py-3 border-r border-[#E5E5EC]">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <span className="text-sm">{selectedDate}</span>
-            </div>
-          </button>
-          <button className="flex items-center justify-between flex-1 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-gray-500" />
-              <span className="text-sm">{selectedGuests}</span>
-            </div>
-          </button>
+          <div className="flex-1 px-4 py-3 border-r border-[#E5E5EC]">
+            <DateRangePicker 
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
+          </div>
+          <div className="flex-1 px-4 py-3">
+            <GuestSelector 
+              adults={adults}
+              children={children}
+              onAdultsChange={setAdults}
+              onChildrenChange={setChildren}
+            />
+          </div>
         </div>
 
         {/* Sort Options */}
-        <div className="flex px-4 py-3 gap-2 border-b border-[#E5E5EC]">
-          {(['추천순', '최신순'] as SortOption[]).map((option) => (
-            <button
+        <div className="flex px-4 py-3 gap-2 border-b border-[#E5E5EC] overflow-x-auto">
+          {(['추천순', '거리순', '가격낮은순', '가격높은순'] as SortOption[]).map((option) => (
+            <Badge 
               key={option}
-              className={`px-4 py-1 rounded-full text-xs font-bold ${
+              variant="outline"
+              className={`rounded-full px-4 py-2 cursor-pointer whitespace-nowrap ${
                 sortBy === option 
-                  ? 'bg-[#FF8433] text-white' 
-                  : 'bg-white text-black border border-gray-300'
+                  ? 'bg-[#FF8433] text-white border-[#FF8433]' 
+                  : 'bg-white text-black border-gray-300'
               }`}
               onClick={() => setSortBy(option)}
             >
               {option}
-            </button>
+            </Badge>
           ))}
         </div>
 
         {/* Results */}
-        <div className="px-4">
-          {filteredTempleStays.length > 0 ? (
-            filteredTempleStays.map((templeStay) => (
+        <div className="px-4 py-4">
+          {sortedTempleStays.length > 0 ? (
+            sortedTempleStays.map((templeStay) => (
               <TempleStayItem key={templeStay.id} templeStay={templeStay} />
             ))
           ) : (
