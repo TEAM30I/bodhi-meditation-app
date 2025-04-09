@@ -42,6 +42,14 @@ declare module '/public/data/templeData/templeRepository' {
     direction?: string;
     websiteUrl?: string;
     likeCount?: number;
+    facilities?: string[];
+    contact?: {
+      phone?: string;
+    };
+    social?: {
+      instagram?: string;
+      facebook?: string;
+    };
   }
   
   export const temples: Record<string, Temple>;
@@ -64,6 +72,11 @@ declare module '/public/data/templeStayData/templeStayRepository' {
     duration: string;
     imageUrl: string;
     websiteUrl: string;
+    tags?: string[];
+    schedule: {
+      time: string;
+      activity: string;
+    }[];
   }
   
   export const templeStays: Record<string, TempleStay>;
