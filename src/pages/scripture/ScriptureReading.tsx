@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
-import { scriptures, scriptureCategories } from '@/data/scriptureData';
+import { scriptures } from '@/data/scriptureData';
 import { Badge } from '@/components/ui/badge';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
@@ -18,7 +18,7 @@ const ScriptureReading = () => {
   const [fontSize, setFontSize] = useState(16);
   
   // 경전 데이터 찾기
-  const scripture = scriptures.find(s => s.id === id);
+  const scripture = id ? Object.values(scriptures).find(s => s.id === id) : null;
   
   useEffect(() => {
     // 스크롤을 최상단으로 이동
@@ -43,6 +43,14 @@ const ScriptureReading = () => {
   const handleBackClick = () => {
     navigate('/scripture');
   };
+
+  // 임시 스크립처 카테고리 정의 (나중에 실제 데이터로 대체할 예정)
+  const scriptureCategories = [
+    { id: 'original', label: '원문' },
+    { id: 'translation', label: '번역문' },
+    { id: 'annotation', label: '주석' },
+    { id: 'interpretation', label: '해설' }
+  ];
   
   return (
     <div className="bg-gray-50 min-h-screen pb-20">

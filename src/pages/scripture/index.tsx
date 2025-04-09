@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Bookmark, ChevronRight } from 'lucide-react';
@@ -9,7 +10,7 @@ const Scripture = () => {
   const navigate = useNavigate();
 
   // Filter scriptures with progress
-  const activeScriptures = scriptures
+  const activeScriptures = Object.values(scriptures)
     .filter(scripture => scripture.progress && scripture.progress > 0)
     .map(scripture => ({
       id: scripture.id,
@@ -19,7 +20,7 @@ const Scripture = () => {
     }));
   
   // Filter scriptures without progress
-  const unreadScriptures = scriptures
+  const unreadScriptures = Object.values(scriptures)
     .filter(scripture => !scripture.progress || scripture.progress === 0)
     .map(scripture => ({
       id: scripture.id,

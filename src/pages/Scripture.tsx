@@ -19,20 +19,20 @@ const Scripture = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen pb-20">
+    <div className="bg-[#F1F3F5] min-h-screen pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white w-full py-4 px-6 flex items-center border-b">
+      <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center border-b border-[#E5E5EC] px-5">
         <button 
           onClick={() => navigate('/main')}
           className="mr-4"
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-xl font-bold text-center flex-1">경전 읽기</h1>
+        <h1 className="text-lg font-bold text-center flex-1">경전 읽기</h1>
       </div>
 
       {activeTab === 'reading' ? (
-        <div className="px-6 py-4">
+        <div className="px-5 py-4">
           <h2 className="text-lg font-medium mb-6">
             오늘의 경전 스케줄을 완료하세요
           </h2>
@@ -46,7 +46,7 @@ const Scripture = () => {
               );
               
               if (!matchingScripture) return null;
-              
+
               return (
                 <ScriptureCard
                   key={schedule.id}
@@ -64,30 +64,32 @@ const Scripture = () => {
           {/* 다른 경전 목록 */}
           <div className="mb-8">
             <h2 className="text-lg font-medium mb-4">다른 경전 읽기</h2>
-            {Object.values(scriptures).map((scripture) => {
-              // readingSchedule에 이미 포함된 경전은 제외
-              const alreadyIncluded = readingSchedule.some(
-                schedule => schedule.scriptureId === scripture.id
-              );
-              
-              if (alreadyIncluded) return null;
-              
-              return (
-                <ScriptureCard
-                  key={scripture.id}
-                  scripture={{
-                    id: scripture.id,
-                    title: scripture.title,
-                    progress: scripture.progress || 0,
-                    colorScheme: scripture.colorScheme
-                  }}
-                />
-              );
-            })}
+            <div className="space-y-4">
+              {Object.values(scriptures).map((scripture) => {
+                // Check if this scripture is already in readingSchedule
+                const alreadyIncluded = readingSchedule.some(
+                  schedule => schedule.scriptureId === scripture.id
+                );
+                
+                if (alreadyIncluded) return null;
+                
+                return (
+                  <ScriptureCard
+                    key={scripture.id}
+                    scripture={{
+                      id: scripture.id,
+                      title: scripture.title,
+                      progress: scripture.progress || 0,
+                      colorScheme: scripture.colorScheme
+                    }}
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
       ) : (
-        <div className="px-6 py-4">
+        <div className="px-5 py-4">
           {activeTab === 'calendar' && <ScriptureCalendar />}
           {activeTab === 'bookmark' && <BookmarkList />}
           {activeTab === 'share' && <ShareOptions />}

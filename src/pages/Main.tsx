@@ -173,11 +173,10 @@ const Main = () => {
                   { bg: 'bg-[#4CAF50]', text: 'text-white' },
                 ];
                 
-                const matchingScripture = scriptures.find(s => s.categories.includes(reading.category));
+                const colorIndex = index % scriptureColors.length;
+                const matchingScripture = Object.values(scriptures).find(s => s.id === reading.scriptureId);
                 
                 if (!matchingScripture) return null;
-                
-                const colorIndex = index % scriptureColors.length;
                 
                 return (
                   <div 
@@ -188,7 +187,7 @@ const Main = () => {
                     <div className="flex flex-col gap-3">
                       <div className={`inline-flex px-2 py-2 ${scriptureColors[colorIndex].bg} rounded-[12px] w-fit`}>
                         <span className={`text-xs font-medium ${scriptureColors[colorIndex].text} tracking-[-0.3px]`}>
-                          {reading.category}
+                          {matchingScripture.title}
                         </span>
                       </div>
                       
