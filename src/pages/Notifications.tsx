@@ -14,45 +14,45 @@ interface NotificationItem {
   icon: React.ReactNode;
 }
 
+const notificationData: NotificationItem[] = [
+  {
+    id: "1",
+    type: "템플스테이",
+    title: "다가오는 2025-04-15일 봉기점 봉정사 사찰 체험이 되세요!",
+    date: "2025.04.08",
+    icon: <Calendar className="w-8 h-8 text-bodhi-orange" />
+  },
+  {
+    id: "2",
+    type: "사찰",
+    title: "My 사찰로 등록한 '봉정사'에서 새로운 공지사항이 게재되었습니다!",
+    date: "2025.04.08",
+    icon: <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+  },
+  {
+    id: "3",
+    type: "템플스테이",
+    title: "다가오는 2025-04-15일 봉기점 봉정사 사찰 체험이 되세요!",
+    date: "2025.04.08",
+    icon: <Calendar className="w-8 h-8 text-bodhi-orange" />
+  },
+  {
+    id: "4",
+    type: "템플스테이",
+    title: "다가오는 2025-04-15일 봉기점 봉정사 사찰 체험이 되세요!",
+    date: "2025.04.08",
+    icon: <Calendar className="w-8 h-8 text-bodhi-orange" />
+  }
+];
+
 export default function Notifications() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<"전체" | "템플스테이" | "사찰">("전체");
 
-  const notifications: NotificationItem[] = [
-    {
-      id: "1",
-      type: "템플스테이",
-      title: "다가오는 2025-04-15일 봉기점 봉정사 사찰 체험이 되세요!",
-      date: "2025.04.08",
-      icon: <Calendar className="w-8 h-8 text-bodhi-orange" />
-    },
-    {
-      id: "2",
-      type: "사찰",
-      title: "My 사찰로 등록한 '봉정사'에서 새로운 공지사항이 게재되었습니다!",
-      date: "2025.04.08",
-      icon: <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
-    },
-    {
-      id: "3",
-      type: "템플스테이",
-      title: "다가오는 2025-04-15일 봉기점 봉정사 사찰 체험이 되세요!",
-      date: "2025.04.08",
-      icon: <Calendar className="w-8 h-8 text-bodhi-orange" />
-    },
-    {
-      id: "4",
-      type: "템플스테이",
-      title: "다가오는 2025-04-15일 봉기점 봉정사 사찰 체험이 되세요!",
-      date: "2025.04.08",
-      icon: <Calendar className="w-8 h-8 text-bodhi-orange" />
-    }
-  ];
-
   const filteredNotifications = activeTab === "전체" 
-    ? notifications 
-    : notifications.filter(n => n.type === activeTab);
+    ? notificationData 
+    : notificationData.filter(n => n.type === activeTab);
 
   return (
     <div className="bg-white min-h-screen w-full">

@@ -43,7 +43,7 @@ export const newsData: NewsItem[] = [
   },
   {
     id: "news5",
-    temple: "해인사",
+    temple: "통도사",
     source: "통도사 - 인스타그램",
     title: "오늘의 풍경, 봄꽃이 만개한 사찰의 모습",
     link: "/news/5",

@@ -6,7 +6,7 @@ import { Search, ArrowLeft, Home } from 'lucide-react';
 import BottomNav from "@/components/BottomNav";
 import { useNavigate, useLocation } from 'react-router-dom';
 import TempleItem from '@/components/search/TempleItem';
-import { allTemples } from '@/data/dataRepository';
+import { allTemples } from '/public/data/dataRepository';
 
 type SortOption = '추천순' | '최신순';
 

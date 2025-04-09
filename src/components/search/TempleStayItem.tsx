@@ -1,45 +1,73 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TempleStay } from '@/data/templeStayRepository';
+import { Star } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { TempleStay } from '/public/data/templeStayRepository';
 
 interface TempleStayItemProps {
   templeStay: TempleStay;
 }
 
-const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay }) => {
+const TempleStayItem = ({ templeStay }: TempleStayItemProps) => {
   const navigate = useNavigate();
   
   const handleClick = () => {
     navigate(`/search/temple-stay/detail/${templeStay.id}`);
   };
   
-  const formatPrice = (price: number) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원";
+  const formatPrice = (price: number): string => {
+    return new Intl.NumberFormat('ko-KR').format(price);
   };
-
+  
   return (
-    <div className="flex gap-4 mb-6 cursor-pointer" onClick={handleClick}>
-      <div className="w-[109px] h-[126px] overflow-hidden rounded-[6px]">
-        <img 
-          src={templeStay.imageUrl} 
-          alt={templeStay.name} 
+    <div 
+      className="flex cursor-pointer mb-6"
+      onClick={handleClick}
+    >
+      <div className="w-[120px] h-[120px] rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+        <img
+          src={templeStay.imageUrl}
+          alt={templeStay.name}
           className="w-full h-full object-cover"
         />
       </div>
-      <div className="flex flex-col">
-        <h3 className="text-base font-bold text-[#222] font-pretendard mb-1">{templeStay.name}</h3>
-        <p className="text-sm text-[#8B8B8B] font-pretendard mb-4">
-          {templeStay.location}
-        </p>
-        <p className="text-sm font-semibold text-[#222] font-pretendard mb-2">
-          {formatPrice(templeStay.price)} / {templeStay.duration}
-        </p>
-        <div className="flex items-center gap-1">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 1.5L8.67594 4.94429L12.5 5.48471L9.75 8.15071L10.3519 12L7 10.1943L3.64813 12L4.25 8.15071L1.5 5.48471L5.32406 4.94429L7 1.5Z" fill="#FFD600" stroke="#FFD600" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span className="text-xs text-[#222] font-pretendard">{templeStay.rating} ({templeStay.reviews})</span>
+      
+      <div className="ml-4 flex-1">
+        <h3 className="font-bold mb-1">{templeStay.name}</h3>
+        <p className="text-gray-500 text-sm mb-1">{templeStay.location}</p>
+        
+        {templeStay.distance && (
+          <p className="text-gray-700 text-sm mb-1">{templeStay.distance}</p>
+        )}
+        
+        <div className="flex items-center mb-2">
+          <Badge className="flex items-center gap-1 bg-[#ffc83b] text-black font-bold text-xs rounded-full h-6 mr-2">
+            <Star className="w-3 h-3 fill-current" />
+            <span>{templeStay.rating}</span>
+          </Badge>
+          
+          <span className="text-gray-500 text-xs">
+            {templeStay.reviews}개의 평가
+          </span>
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-1">
+            {templeStay.tags && templeStay.tags.map((tag, index) => (
+              <Badge 
+                key={index}
+                variant="outline" 
+                className="bg-gray-100 border-none text-gray-700 font-medium text-[10px] px-2 py-1 rounded-full"
+              >
+                #{tag}
+              </Badge>
+            ))}
+          </div>
+          
+          <div className="text-bodhi-orange font-bold">
+            {formatPrice(templeStay.price)}원
+          </div>
         </div>
       </div>
     </div>
