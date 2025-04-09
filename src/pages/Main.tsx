@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
 import { Search, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getTempleList } from '../../../public/data/templeData/templeRepository';
-import { getTempleStayList } from '../../../public/data/templeStayData/templeStayRepository';
+import { getTempleList } from '/public/data/templeData/templeRepository';
+import { getTempleStayList } from '/public/data/templeStayData/templeStayRepository';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
-import { imageRepository } from '../../../public/data/imageRepository';
+import { readingSchedule, scriptures } from '/public/data/scriptureData/scriptureRepository';
+import { imageRepository } from '/public/data/imageRepository';
 import { typedData } from '@/utils/typeUtils';
 
 const Main = () => {
