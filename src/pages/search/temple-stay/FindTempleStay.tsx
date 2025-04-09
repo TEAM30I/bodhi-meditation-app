@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, ArrowLeft, Home } from 'lucide-react';
-import { templeStays, nearbyTempleStays } from '@/data/templeStayRepository';
+import { templeStays, nearbyTempleStays } from '/public/data/templeStayRepository';
 import BottomNav from '@/components/BottomNav';
 
 // Define the proper type for location objects

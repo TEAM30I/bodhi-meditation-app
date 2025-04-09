@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, MapPin, Search as SearchIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { regionSearchRankings } from "@/data/searchRankingRepository";
+import { regionSearchRankings } from "/public/data/searchRankingRepository";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { allTemples, allTempleStays } from '@/data/dataRepository';
+import { allTemples, allTempleStays } from '/public/data/dataRepository';
 import BottomNav from '@/components/BottomNav';
 
 export default function SearchHome() {

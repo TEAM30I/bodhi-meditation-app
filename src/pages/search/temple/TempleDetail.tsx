@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, Heart, Share } from 'lucide-react';
-import { temples } from '@/data/templeRepository';
+import { temples } from '/public/data/templeRepository';
 import BottomNav from '@/components/BottomNav';
 
 // Placeholder images for temple details

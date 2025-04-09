@@ -9,7 +9,7 @@ import { temples } from '/public/data/templeRepository';
 import { templeStays } from '/public/data/templeStayRepository';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule, scriptures } from '@/data/scriptureRepository';
+import { readingSchedule, scriptures } from '/public/data/scriptureRepository';
 import { imageRepository } from '/public/data/imageRepository';
 
 const Main = () => {

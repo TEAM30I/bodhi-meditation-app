@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, Heart, Share, MapPin, Globe, Calendar } from 'lucide-react';
-import { templeStays } from '@/data/templeStayRepository';
+import { templeStays } from '/public/data/templeStayRepository';
 import BottomNav from '@/components/BottomNav';
 
 const TempleStayDetail: React.FC = () => {

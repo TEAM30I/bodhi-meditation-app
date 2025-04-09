@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { imageRepository } from '@/data/imageRepository';
+import { imageRepository } from '/public/data/imageRepository';
 
 interface TempleBannerProps {
   className?: string;
