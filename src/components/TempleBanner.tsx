@@ -2,11 +2,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { imageRepository } from '/public/data/imageRepository';
-import { castRepository } from '@/utils/typeAssertions';
+import { typedData } from '@/utils/typeUtils';
 
 const TempleBanner = () => {
   const navigate = useNavigate();
-  const typedImageRepo = castRepository<typeof imageRepository>(imageRepository);
+  const typedImageRepo = typedData<typeof imageRepository>(imageRepository);
 
   return (
     <div className="w-full px-[24px] mb-[20px]">

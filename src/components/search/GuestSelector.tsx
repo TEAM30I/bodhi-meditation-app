@@ -9,14 +9,14 @@ export interface GuestSelectorProps {
 }
 
 export const GuestSelector: React.FC<GuestSelectorProps> = ({ value, onChange }) => {
-  const handleIncrease = () => {
-    onChange(value + 1);
-  };
-
   const handleDecrease = () => {
     if (value > 1) {
       onChange(value - 1);
     }
+  };
+
+  const handleIncrease = () => {
+    onChange(value + 1);
   };
 
   return (

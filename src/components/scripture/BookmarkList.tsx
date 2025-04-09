@@ -3,7 +3,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookmarks, scriptures } from '/public/data/scriptureData/scriptureRepository';
 import { ChevronRight } from 'lucide-react';
-import { castToType } from '@/utils/typeAssertions';
+import { typedData } from '@/utils/typeUtils';
+import type { Scripture, Bookmark } from '/public/data/scriptureData/scriptureRepository';
 
 const BookmarkList: React.FC = () => {
   const navigate = useNavigate();
@@ -17,7 +18,11 @@ const BookmarkList: React.FC = () => {
     { id: 'recent', label: '반야심경' },
   ];
   
-  if (bookmarks.length === 0) {
+  // Type the repository data
+  const typedBookmarks = typedData<Bookmark[]>(bookmarks);
+  const typedScriptures = typedData<Record<string, Scripture>>(scriptures);
+  
+  if (typedBookmarks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl">
         <h3 className="text-gray-500 mb-2">저장된 북마크가 없습니다</h3>
@@ -43,11 +48,11 @@ const BookmarkList: React.FC = () => {
       
       {/* Bookmarks */}
       <div className="space-y-3">
-        {bookmarks.filter(b => activeTab === 'all' || b.scriptureId === activeTab).map((bookmark) => {
-          const scripture = castToType<any>(Object.values(scriptures).find(s => s.id === bookmark.scriptureId));
+        {typedBookmarks.filter(b => activeTab === 'all' || b.scriptureId === activeTab).map((bookmark) => {
+          const scripture = Object.values(typedScriptures).find(s => s.id === bookmark.scriptureId);
           if (!scripture) return null;
           
-          const chapter = scripture.chapters.find((ch: any) => ch.id === bookmark.chapterId);
+          const chapter = scripture.chapters.find(ch => ch.id === bookmark.chapterId);
           
           return (
             <div 
@@ -56,8 +61,8 @@ const BookmarkList: React.FC = () => {
               onClick={() => navigate(`/scripture/${bookmark.scriptureId}`)}
             >
               <div className="flex-1">
-                <div className={`inline-flex px-3 py-1 ${scripture.colorScheme?.bg || 'bg-[#DE7834]'} rounded-full mb-2`}>
-                  <span className={`text-xs font-medium ${scripture.colorScheme?.text || 'text-white'}`}>
+                <div className={`inline-flex px-3 py-1 ${scripture.colorScheme.bg || 'bg-[#DE7834]'} rounded-full mb-2`}>
+                  <span className={`text-xs font-medium ${scripture.colorScheme.text || 'text-white'}`}>
                     {scripture.title}
                   </span>
                 </div>

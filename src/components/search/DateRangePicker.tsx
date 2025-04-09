@@ -1,5 +1,11 @@
 
 import React from 'react';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 export interface DateRange {
   from: Date | undefined;
@@ -12,22 +18,60 @@ export interface DateRangePickerProps {
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({ dateRange, onChange }) => {
+  const handleSelect = (date: Date | undefined) => {
+    if (!date) return;
+
+    const { from, to } = dateRange;
+    if (from && to) {
+      // Reset the range if both dates are already selected
+      onChange({ from: date, to: undefined });
+    } else if (from && !to && date > from) {
+      // Select end date if start date is already selected
+      onChange({ from, to: date });
+    } else {
+      // Select start date
+      onChange({ from: date, to: undefined });
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg p-4 mt-2 border border-gray-200">
-      <div className="flex flex-col space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">체크인</label>
-          <div className="border border-gray-300 rounded-lg p-3 text-center cursor-pointer">
-            {dateRange.from ? dateRange.from.toLocaleDateString() : '날짜 선택'}
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">체크아웃</label>
-          <div className="border border-gray-300 rounded-lg p-3 text-center cursor-pointer">
-            {dateRange.to ? dateRange.to.toLocaleDateString() : '날짜 선택'}
-          </div>
-        </div>
-      </div>
+    <div className="mt-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-start text-left font-normal bg-white"
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {dateRange.from ? (
+              dateRange.to ? (
+                <>
+                  {format(dateRange.from, 'PPP', { locale: ko })} -{' '}
+                  {format(dateRange.to, 'PPP', { locale: ko })}
+                </>
+              ) : (
+                format(dateRange.from, 'PPP', { locale: ko })
+              )
+            ) : (
+              <span className="text-gray-500">날짜를 선택하세요</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="range"
+            selected={{
+              from: dateRange.from,
+              to: dateRange.to,
+            }}
+            onSelect={(range: any) => {
+              onChange(range || { from: undefined, to: undefined });
+            }}
+            locale={ko}
+            numberOfMonths={2}
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
