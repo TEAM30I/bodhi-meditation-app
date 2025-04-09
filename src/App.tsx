@@ -21,27 +21,12 @@ import FindPassword from "./pages/login/FindPassword";
 import ProfileSetup from "./pages/login/ProfileSetup";
 import TermsAgreement from "./pages/login/TermsAgreement";
 
-// Configure Amplify with the aws-config
+// Configure Amplify
+// This needs to happen after the polyfills in main.tsx are applied
 try {
   console.log("Attempting to configure Amplify...");
-  
-  // Double check that global and window are properly connected
-  if (typeof window !== 'undefined' && typeof window.global !== 'undefined') {
-    console.log("Global object is available, configuring Amplify");
-    Amplify.configure(awsConfig);
-    console.log("Amplify configuration successful");
-  } else {
-    console.error("Global object not available for Amplify configuration - polyfills may not be working");
-    // Attempt a fallback configuration
-    if (typeof window !== 'undefined') {
-      console.log("Trying fallback global polyfill...");
-      // @ts-ignore - required for AWS Amplify
-      window.global = window;
-      // Now attempt to configure Amplify again
-      Amplify.configure(awsConfig);
-      console.log("Fallback Amplify configuration attempted");
-    }
-  }
+  Amplify.configure(awsConfig);
+  console.log("Amplify configuration successful");
 } catch (error) {
   console.error("Error configuring Amplify:", error);
 }
