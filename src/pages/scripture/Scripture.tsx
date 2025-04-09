@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Home, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { scriptures, readingSchedule } from '../../../public/data/scriptureData/scriptureRepository';
+import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import { ScriptureCalendar } from '@/components/scripture/ScriptureCalendar';
 import BookmarkList from '@/components/scripture/BookmarkList';
 import ShareOptions from '@/components/scripture/ShareOptions';
@@ -10,13 +11,13 @@ import SettingsPanel from '@/components/scripture/SettingsPanel';
 
 const Scripture = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'calendar' | 'bookmark' | 'share' | 'settings' | null>('calendar');
+  const [activeTab, setActiveTab] = useState<'reading' | 'calendar' | 'bookmark' | 'share' | 'settings'>('reading');
 
   // Type our data properly
   const typedScriptures = typedData<typeof scriptures>(scriptures);
   const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
 
-  const handleTabChange = (tab: 'calendar' | 'bookmark' | 'share' | 'settings') => {
+  const handleTabChange = (tab: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings') => {
     setActiveTab(tab);
   };
 
@@ -79,7 +80,7 @@ const Scripture = () => {
       </div>
 
       <div className="px-5 py-4">
-        {activeTab === null ? (
+        {activeTab === 'reading' ? (
           <>
             {/* Calendar Section */}
             <div className="mb-6">
@@ -225,6 +226,12 @@ const Scripture = () => {
           </div>
         )}
       </div>
+
+      {/* Scripture Bottom Navigation */}
+      <ScriptureBottomNav 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
     </div>
   );
 };
