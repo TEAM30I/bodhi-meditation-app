@@ -7,18 +7,38 @@ interface GuestSelectorProps {
   value: number;
   onChange: (value: number) => void;
   onClose?: () => void;
+  // Add these props for backward compatibility
+  adults?: number;
+  children?: number;
+  onAdultsChange?: (value: number) => void;
+  onChildrenChange?: (value: number) => void;
 }
 
-const GuestSelector: React.FC<GuestSelectorProps> = ({ value, onChange, onClose }) => {
-  const increment = () => {
-    if (value < 10) {
-      onChange(value + 1);
+const GuestSelector: React.FC<GuestSelectorProps> = ({ 
+  value, 
+  onChange, 
+  onClose,
+  adults,
+  children,
+  onAdultsChange,
+  onChildrenChange
+}) => {
+  // Handle both direct value/onChange and adults/onAdultsChange patterns
+  const actualValue = typeof adults === 'number' ? adults : value;
+  
+  const handleIncrement = () => {
+    if (actualValue < 10) {
+      const newValue = actualValue + 1;
+      onChange?.(newValue);
+      onAdultsChange?.(newValue);
     }
   };
 
-  const decrement = () => {
-    if (value > 1) {
-      onChange(value - 1);
+  const handleDecrement = () => {
+    if (actualValue > 1) {
+      const newValue = actualValue - 1;
+      onChange?.(newValue);
+      onAdultsChange?.(newValue);
     }
   };
 
@@ -42,24 +62,51 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({ value, onChange, onClose 
           <Button
             variant="outline"
             size="icon"
-            onClick={decrement}
-            disabled={value <= 1}
+            onClick={handleDecrement}
+            disabled={actualValue <= 1}
             className="h-8 w-8 rounded-full"
           >
             <Minus size={16} />
           </Button>
-          <span className="mx-4 w-8 text-center">{value}</span>
+          <span className="mx-4 w-8 text-center">{actualValue}</span>
           <Button
             variant="outline"
             size="icon"
-            onClick={increment}
-            disabled={value >= 10}
+            onClick={handleIncrement}
+            disabled={actualValue >= 10}
             className="h-8 w-8 rounded-full"
           >
             <Plus size={16} />
           </Button>
         </div>
       </div>
+      
+      {children !== undefined && onChildrenChange && (
+        <div className="flex items-center justify-between mt-4">
+          <p>어린이</p>
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onChildrenChange(Math.max(0, children - 1))}
+              disabled={children <= 0}
+              className="h-8 w-8 rounded-full"
+            >
+              <Minus size={16} />
+            </Button>
+            <span className="mx-4 w-8 text-center">{children}</span>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onChildrenChange(Math.min(5, children + 1))}
+              disabled={children >= 5}
+              className="h-8 w-8 rounded-full"
+            >
+              <Plus size={16} />
+            </Button>
+          </div>
+        </div>
+      )}
       
       <div className="mt-6">
         <Button 

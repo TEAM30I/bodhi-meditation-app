@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,8 +7,8 @@ import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { regionSearchRankings } from "../../data/searchRankingRepository";
 import BottomNav from '@/components/BottomNav';
-import { DateRangePicker } from "@/components/search/DateRangePicker";
-import { GuestSelector } from "@/components/search/GuestSelector";
+import DateRangePicker from "@/components/search/DateRangePicker";
+import GuestSelector from "@/components/search/GuestSelector";
 
 export default function SearchHome() {
   const navigate = useNavigate();

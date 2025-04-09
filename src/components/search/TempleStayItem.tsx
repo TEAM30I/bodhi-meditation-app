@@ -1,69 +1,41 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { TempleStay } from '@/data/templeStayData';
 
 interface TempleStayItemProps {
   templeStay: TempleStay;
+  onClick: () => void;
 }
 
-const TempleStayItem = ({ templeStay }: TempleStayItemProps) => {
-  const navigate = useNavigate();
-  
-  const handleClick = () => {
-    navigate(`/search/temple-stay/detail/${templeStay.id}`);
-  };
-  
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('ko-KR').format(price);
-  };
-  
+const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) => {
   return (
-    <div 
-      className="flex cursor-pointer mb-6"
-      onClick={handleClick}
-    >
-      <div className="w-[120px] h-[120px] rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+    <div className="rounded-lg overflow-hidden bg-white shadow-sm" onClick={onClick}>
+      <div className="relative">
         <img
-          src={templeStay.imageUrl}
+          src={templeStay.images[0]}
           alt={templeStay.templeName}
-          className="w-full h-full object-cover"
+          className="w-full h-48 object-cover"
         />
+        <button className="absolute top-3 right-3 p-1.5 bg-white/80 rounded-full">
+          <Heart size={18} className="text-gray-600" />
+        </button>
       </div>
       
-      <div className="ml-4 flex-1">
-        <h3 className="font-bold mb-1">{templeStay.templeName}</h3>
-        <p className="text-gray-500 text-sm mb-1">{templeStay.location}</p>
-        
-        {templeStay.distance && (
-          <p className="text-gray-700 text-sm mb-1">{templeStay.distance}</p>
-        )}
-        
-        <div className="flex items-center mb-2">
-          <Badge className="flex items-center gap-1 bg-pink-100 text-pink-600 font-bold text-xs rounded-full h-6 mr-2">
-            <Heart className="w-3 h-3 fill-current" />
-            <span>{templeStay.likeCount}</span>
-          </Badge>
-        </div>
-        
-        <div className="flex justify-between items-center">
-          <div className="flex flex-wrap gap-1">
-            {templeStay.tags && templeStay.tags.map((tag, index) => (
-              <Badge 
-                key={index}
-                variant="outline" 
-                className="bg-gray-100 border-none text-gray-700 font-medium text-[10px] px-2 py-1 rounded-full"
-              >
-                #{tag}
-              </Badge>
-            ))}
+      <div className="p-4">
+        <h3 className="font-semibold text-lg mb-1">{templeStay.templeName}</h3>
+        <p className="text-sm text-gray-600 mb-1">{templeStay.location}</p>
+        <div className="flex justify-between items-end mt-2">
+          <div>
+            <div className="flex items-center space-x-1">
+              <span className="text-xs bg-gray-100 py-0.5 px-2 rounded-full">
+                {templeStay.tags[0]}
+              </span>
+            </div>
           </div>
-          
-          <div className="text-bodhi-orange font-bold">
-            {formatPrice(templeStay.price)}원
-          </div>
+          <p className="font-semibold">
+            {templeStay.price > 0 ? `${templeStay.price.toLocaleString()}원~` : '무료'}
+          </p>
         </div>
       </div>
     </div>

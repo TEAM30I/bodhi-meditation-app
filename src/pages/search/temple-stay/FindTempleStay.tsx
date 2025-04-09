@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, X, Search, Calendar, Users, ChevronDown } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { DateRange } from '@/components/ui/calendar';
+import { DateRange } from "react-day-picker";
 import { Button } from '@/components/ui/button';
 import DateRangePicker from '@/components/search/DateRangePicker';
 import GuestSelector from '@/components/search/GuestSelector';

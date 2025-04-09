@@ -1,146 +1,103 @@
 
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Filter, X } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Slider } from "@/components/ui/slider";
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import TempleStayItem from '@/components/search/TempleStayItem';
-import { templeStays } from '@/data/templeStayData';
-import GuestSelector from '@/components/search/GuestSelector';
+import { searchTempleStays, TempleStay } from '@/data/templeStayData';
+import PageLayout from '@/components/PageLayout';
 
 const SearchResults = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const queryParams = location.state || {};
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get('query') || '';
   
-  const [openFilter, setOpenFilter] = useState(false);
-  const [guestCount, setGuestCount] = useState(queryParams.guestCount || 2);
-  const [priceRange, setPriceRange] = useState([0, 1000000]);
-  const [sortBy, setSortBy] = useState("추천순");
+  const [searchValue, setSearchValue] = useState(query);
+  const [templeStays, setTempleStays] = useState<TempleStay[]>([]);
 
-  // 정렬 옵션
-  const sortOptions = ["추천순", "가격 낮은순", "평점 높은순", "리뷰 많은순"];
-  
-  // Display all temple stays if no search query provided, or apply filter
-  const filteredStays = Object.values(templeStays).filter(stay => {
-    if (queryParams.query) {
-      return stay.name.includes(queryParams.query) || 
-             stay.location?.includes(queryParams.query) ||
-             stay.temple?.includes(queryParams.query);
-    }
-    return true;
-  });
+  useEffect(() => {
+    // Search temple stays based on query
+    const results = searchTempleStays(query);
+    setTempleStays(results);
+  }, [query]);
+
+  const handleClearSearch = () => {
+    setSearchValue('');
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/search/temple-stay/results?query=${searchValue}`);
+  };
+
+  const handleTempleStayClick = (id: string) => {
+    navigate(`/search/temple-stay/detail/${id}`);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 bg-white w-full px-5 py-4 flex items-center border-b">
-        <button 
-          onClick={() => navigate(-1)}
-          className="mr-4"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-lg font-medium">
-            {queryParams.query ? `"${queryParams.query}" 검색 결과` : '모든 템플스테이'}
-          </h1>
-          <p className="text-sm text-gray-500">
-            {filteredStays.length}개의 템플스테이
-          </p>
-        </div>
-        <button 
-          className="flex items-center gap-1 text-sm text-gray-600"
-          onClick={() => setOpenFilter(true)}
-        >
-          <Filter size={18} />
-          필터
-        </button>
-      </div>
-
-      <div className="px-5 py-3 flex overflow-x-auto gap-2">
-        {sortOptions.map((option) => (
-          <button
-            key={option}
-            className={`px-4 py-2 rounded-full whitespace-nowrap text-sm ${
-              sortBy === option
-                ? 'bg-black text-white'
-                : 'bg-white text-gray-700 border border-gray-300'
-            }`}
-            onClick={() => setSortBy(option)}
-          >
-            {option}
+    <div className="bg-[#F5F5F5] min-h-screen pb-16">
+      <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
+        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
+          <button onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-6 w-6" />
           </button>
-        ))}
-      </div>
-
-      <div className="p-5 space-y-4">
-        {filteredStays.length > 0 ? (
-          filteredStays.map((stay) => (
-            <TempleStayItem 
-              key={stay.id}
-              stay={stay}
-              onClick={() => navigate(`/search/temple-stay/${stay.id}`)}
-            />
-          ))
-        ) : (
-          <div className="py-8 text-center text-gray-500">
-            <p>검색 결과가 없습니다.</p>
-            <Button className="mt-4" onClick={() => navigate(-1)}>
-              다시 검색하기
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Filter Dialog */}
-      <Dialog open={openFilter} onOpenChange={setOpenFilter}>
-        <DialogContent className="sm:max-w-[425px]">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium">필터</h2>
-            <button onClick={() => setOpenFilter(false)}>
-              <X size={20} />
-            </button>
-          </div>
           
-          <div className="space-y-6">
-            {/* Price Range */}
-            <div>
-              <h3 className="mb-3 font-medium">가격 범위</h3>
-              <div className="mb-2">
-                <Slider 
-                  defaultValue={[0, 1000000]} 
-                  max={1000000} 
-                  step={10000}
-                  value={priceRange}
-                  onValueChange={setPriceRange}
-                />
-              </div>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>₩{priceRange[0].toLocaleString()}</span>
-                <span>₩{priceRange[1].toLocaleString()}</span>
-              </div>
+          <form onSubmit={handleSearchSubmit} className="flex-1 relative">
+            <Input
+              value={searchValue}
+              onChange={handleSearchInputChange}
+              placeholder="템플스테이 검색"
+              className="w-full pl-9 pr-8 py-2 rounded-full bg-[#F5F5F5] border-none"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            {searchValue && (
+              <button 
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                <X className="h-4 w-4 text-gray-400" />
+              </button>
+            )}
+          </form>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/search/temple-stay/find')}
+            className="p-1"
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="max-w-[480px] mx-auto px-5 py-6">
+        <h2 className="text-lg font-bold mb-4">검색 결과: {templeStays.length}개</h2>
+        
+        <div className="space-y-6">
+          {templeStays.map((templeStay) => (
+            <TempleStayItem
+              key={templeStay.id}
+              templeStay={templeStay}
+              onClick={() => handleTempleStayClick(templeStay.id)}
+            />
+          ))}
+          
+          {templeStays.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">검색 결과가 없습니다.</p>
+              <p className="text-gray-400 text-sm mt-2">다른 검색어를 입력해 보세요.</p>
             </div>
-            
-            {/* Guest Count */}
-            <div>
-              <h3 className="mb-3 font-medium">인원 수</h3>
-              <GuestSelector 
-                value={guestCount}
-                onChange={setGuestCount}
-              />
-            </div>
-            
-            {/* Apply Button */}
-            <Button 
-              className="w-full bg-black hover:bg-gray-900"
-              onClick={() => setOpenFilter(false)}
-            >
-              적용하기
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

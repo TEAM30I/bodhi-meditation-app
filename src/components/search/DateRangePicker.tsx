@@ -3,19 +3,30 @@ import React from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { DateRange } from 'react-day-picker';
+import { DateRange as DayPickerDateRange } from 'react-day-picker';
 
 interface DateRangePickerProps {
-  dateRange: DateRange;
-  onChange: (range: DateRange) => void;
+  dateRange: DayPickerDateRange;
+  onChange: (range: DayPickerDateRange) => void;
   onClose?: () => void;
+  onDateRangeChange?: (range: DayPickerDateRange) => void;
 }
 
 const DateRangePicker: React.FC<DateRangePickerProps> = ({ 
   dateRange, 
   onChange,
-  onClose 
+  onClose,
+  onDateRangeChange
 }) => {
+  // Handle both onChange and onDateRangeChange for backward compatibility
+  const handleChange = (range: DayPickerDateRange | undefined) => {
+    const validRange = range || { from: undefined, to: undefined };
+    onChange(validRange);
+    if (onDateRangeChange) {
+      onDateRangeChange(validRange);
+    }
+  };
+
   // For navigating between months
   const [month, setMonth] = React.useState<Date>(dateRange.from || new Date());
 
@@ -93,12 +104,12 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
       <Calendar
         mode="range"
         selected={dateRange}
-        onSelect={(range) => onChange(range || { from: undefined, to: undefined })}
+        onSelect={handleChange}
         month={month}
         onMonthChange={setMonth}
         numberOfMonths={1}
         defaultMonth={new Date()}
-        className="rounded-md border"
+        className="rounded-md border pointer-events-auto"
       />
       
       {/* Apply Button */}
