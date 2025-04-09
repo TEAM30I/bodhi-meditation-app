@@ -2,7 +2,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import { ScriptureColorScheme } from '/public/data/scriptureData/scriptureRepository';
+import { typedData } from '@/utils/typeUtils';
+
+// Import the types but use dynamic require for the actual data
+const scriptureData = require('/public/data/scriptureData/scriptureRepository');
+type ScriptureColorScheme = typeof scriptureData.scriptures[keyof typeof scriptureData.scriptures]['colorScheme'];
 
 interface ScriptureCardProps {
   scripture: {

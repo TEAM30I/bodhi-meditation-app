@@ -1,14 +1,18 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bookmarks, scriptures } from '/public/data/scriptureData/scriptureRepository';
 import { ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import type { Scripture, Bookmark } from '/public/data/scriptureData/scriptureRepository';
 
+// Use dynamic require for the actual data
 const BookmarkList: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState('diamond-sutra');
+  
+  // Import the data from the correct path
+  const scriptureData = require('/public/data/scriptureData/scriptureRepository');
+  const bookmarks = scriptureData.bookmarks;
+  const scriptures = scriptureData.scriptures;
   
   const tabs = [
     { id: 'diamond-sutra', label: '반야심경' },
@@ -19,8 +23,8 @@ const BookmarkList: React.FC = () => {
   ];
   
   // Type the repository data
-  const typedBookmarks = typedData<Bookmark[]>(bookmarks);
-  const typedScriptures = typedData<Record<string, Scripture>>(scriptures);
+  const typedBookmarks = typedData<typeof bookmarks>(bookmarks);
+  const typedScriptures = typedData<typeof scriptures>(scriptures);
   
   if (typedBookmarks.length === 0) {
     return (

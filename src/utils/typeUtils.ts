@@ -26,3 +26,14 @@ export function hasProperty<K extends string>(obj: unknown, prop: K): obj is { [
 export function typedData<T>(data: unknown): T {
   return data as T;
 }
+
+// Mock the imageRepository for local development and type checking
+// This will be replaced by the actual imported data at runtime
+export const mockImageRepository = {
+  templeBanner: {
+    default: '/placeholder-image.jpg'
+  },
+  logo: {
+    default: '/placeholder-logo.jpg'
+  }
+};

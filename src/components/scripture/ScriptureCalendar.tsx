@@ -1,7 +1,12 @@
+
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { ChevronRight } from 'lucide-react';
-import { calendarData } from '/public/data/scriptureData/scriptureRepository';
+import { typedData } from '@/utils/typeUtils';
+
+// Import the data using require
+const scriptureData = require('/public/data/scriptureData/scriptureRepository');
+const calendarData = scriptureData.calendarData;
 
 interface ScriptureProgressPreviewProps {
   recentDates?: {
@@ -13,7 +18,8 @@ interface ScriptureProgressPreviewProps {
 }
 
 const ScriptureProgressPreview: React.FC<ScriptureProgressPreviewProps> = ({ recentDates }) => {
-  const dates = recentDates || calendarData.slice(0, 2);
+  const typedCalendarData = typedData<typeof calendarData>(calendarData);
+  const dates = recentDates || typedCalendarData.slice(0, 2);
   
   // Get day of week in Korean
   const getDayOfWeek = (date: Date) => {
@@ -56,6 +62,7 @@ const ScriptureProgressPreview: React.FC<ScriptureProgressPreviewProps> = ({ rec
 
 export const ScriptureCalendar: React.FC = () => {
   const today = new Date();
+  const typedCalendarData = typedData<typeof calendarData>(calendarData);
   
   // Get day of week in Korean
   const getDayOfWeek = (date: Date) => {
@@ -83,7 +90,7 @@ export const ScriptureCalendar: React.FC = () => {
         </div>
         
         <div className="space-y-3">
-          {calendarData.slice(0, 3).map((item, index) => (
+          {typedCalendarData.slice(0, 3).map((item, index) => (
             <div key={index} className="bg-white rounded-xl p-4 shadow-sm">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gray-100 rounded-full flex flex-col items-center justify-center mr-4">
