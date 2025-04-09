@@ -3,20 +3,32 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
-const SettingsPanel: React.FC = () => {
+interface SettingsPanelProps {
+  onFontSizeChange?: (size: number) => void;
+}
+
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ onFontSizeChange }) => {
   const [fontSize, setFontSize] = useState(90);
   const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>('gothic');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   const decreaseFontSize = () => {
     if (fontSize > 50) {
-      setFontSize(fontSize - 10);
+      const newSize = fontSize - 10;
+      setFontSize(newSize);
+      if (onFontSizeChange) {
+        onFontSizeChange((newSize / 100) * 16);
+      }
     }
   };
 
   const increaseFontSize = () => {
     if (fontSize < 150) {
-      setFontSize(fontSize + 10);
+      const newSize = fontSize + 10;
+      setFontSize(newSize);
+      if (onFontSizeChange) {
+        onFontSizeChange((newSize / 100) * 16);
+      }
     }
   };
 
@@ -32,7 +44,7 @@ const SettingsPanel: React.FC = () => {
       <div className="flex justify-center">
         <div className="w-12 h-1 bg-[#E5E6EB] rounded-full mb-3"></div>
       </div>
-      <div className="bg-white rounded-3xl p-5">
+      <div className="bg-white rounded-3xl">
         <h2 className="text-xl font-bold text-[#111]">환경 설정</h2>
         <p className="text-xs text-[#767676] mt-1">나에게 맞는 설정으로 경전 읽기를 시작해보세요</p>
         

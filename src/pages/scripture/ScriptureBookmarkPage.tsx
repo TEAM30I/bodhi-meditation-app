@@ -7,7 +7,7 @@ import { bookmarks, scriptures } from '../../../public/data/scriptureData/script
 
 const ScriptureBookmarkPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeScripture, setActiveScripture] = useState<string | null>('heart-sutra');
+  const [activeScripture, setActiveScripture] = useState<string | null>(null);
 
   // Type our data properly
   const typedBookmarks = typedData<typeof bookmarks>(bookmarks);
@@ -15,20 +15,16 @@ const ScriptureBookmarkPage: React.FC = () => {
 
   // Get unique scripture IDs from bookmarks
   const scriptureIds = [...new Set(typedBookmarks.map(bookmark => bookmark.scriptureId))];
-  const scriptureOptions = scriptureIds.map(id => {
-    const scripture = Object.values(typedScriptures).find(s => s.id === id);
-    return {
-      id,
-      title: scripture?.title || '',
-      colorScheme: scripture?.colorScheme
-    };
-  });
-
-  // Add all scripture titles from repository
+  
+  // Get all scripture titles from repository
   const allScriptureOptions = Object.values(typedScriptures).map(scripture => ({
     id: scripture.id,
     title: scripture.title,
-    colorScheme: scripture.colorScheme
+    colorScheme: scripture.colorScheme,
+    badgeColor: scripture.id === "heart-sutra" ? "#EF4223" :
+                scripture.id === "diamond-sutra" ? "#21212F" :
+                scripture.id === "lotus-sutra" ? "#0080FF" :
+                scripture.id === "sixpatriarch-sutra" ? "#4CAF50" : "#DE7834"
   }));
 
   // Filter bookmarks by active scripture
@@ -92,12 +88,12 @@ const ScriptureBookmarkPage: React.FC = () => {
                 if (!scripture) return null;
                 
                 let badgeColor = "#EF4223";
-                if (scripture.id === "heart-sutra") {
-                  badgeColor = "#EF4223";
-                } else if (scripture.id === "diamond-sutra") {
+                if (scripture.id === "diamond-sutra") {
                   badgeColor = "#21212F";
                 } else if (scripture.id === "lotus-sutra") {
                   badgeColor = "#0080FF";
+                } else if (scripture.id === "sixpatriarch-sutra") {
+                  badgeColor = "#4CAF50";
                 }
                 
                 return (
@@ -107,13 +103,16 @@ const ScriptureBookmarkPage: React.FC = () => {
                     onClick={() => navigate(`/scripture/${bookmark.scriptureId}`)}
                   >
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="px-2 py-2 rounded-xl" style={{ backgroundColor: badgeColor }}>
+                      <div 
+                        className="px-2 py-2 rounded-xl"
+                        style={{ backgroundColor: badgeColor }}
+                      >
                         <span className="text-xs text-white">
                           {scripture.title}
                         </span>
                       </div>
                       <span className="text-lg font-bold text-[#111]">
-                        제1권 1장
+                        {chapter?.title || '제1권 1장'}
                       </span>
                     </div>
                     <div className="flex items-center">

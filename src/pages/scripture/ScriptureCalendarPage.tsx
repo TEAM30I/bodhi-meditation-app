@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-
 import { calendarData, readingSchedule, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
 
 const ScriptureCalendarPage: React.FC = () => {
@@ -17,6 +16,9 @@ const ScriptureCalendarPage: React.FC = () => {
   const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
   
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate();
   };
@@ -24,9 +26,6 @@ const ScriptureCalendarPage: React.FC = () => {
   const getFirstDayOfMonth = (year: number, month: number) => {
     return new Date(year, month, 1).getDay();
   };
-  
-  const year = currentMonth.getFullYear();
-  const month = currentMonth.getMonth();
   
   const daysInMonth = getDaysInMonth(year, month);
   const firstDayOfMonth = getFirstDayOfMonth(year, month);
@@ -61,7 +60,7 @@ const ScriptureCalendarPage: React.FC = () => {
     setCurrentMonth(nextMonth);
   };
   
-  const getProgressForDate = (date: number) => {
+  const getReadingDataForDate = (date: number) => {
     const fullDate = new Date(year, month, date);
     const matchingData = typedCalendarData.find(item => 
       item.date.getFullYear() === fullDate.getFullYear() &&
@@ -74,90 +73,98 @@ const ScriptureCalendarPage: React.FC = () => {
   
   const readingItems = typedReadingSchedule.slice(0, 2).map(schedule => {
     const matchingScripture = Object.values(typedScriptures).find(s => s.id === schedule.scriptureId);
+    if (!matchingScripture) return null;
+    
     return {
       id: schedule.id,
-      title: matchingScripture?.title || '',
-      color: matchingScripture?.colorScheme?.bg?.replace('bg-', '') || '[#DE7834]',
-      textColor: matchingScripture?.colorScheme?.text?.replace('text-', '') || 'white',
-      progress: matchingScripture?.progress || 0
+      title: matchingScripture.title,
+      color: matchingScripture.id === 'heart-sutra' ? '#EF4223' :
+             matchingScripture.id === 'diamond-sutra' ? '#21212F' :
+             matchingScripture.id === 'lotus-sutra' ? '#0080FF' : '#DE7834',
+      progress: matchingScripture.progress || 0
     };
-  });
+  }).filter(Boolean);
+  
+  const getDayClass = (day: number) => {
+    const isToday = day === new Date().getDate() && 
+                    month === new Date().getMonth() && 
+                    year === new Date().getFullYear();
+                    
+    const hasReading = !!getReadingDataForDate(day);
+    
+    if (isToday) return "bg-[#DE7834] text-white";
+    if (hasReading) return "bg-[#FFD0B0] text-[#111]";
+    
+    const dayOfWeek = new Date(year, month, day).getDay();
+    if (dayOfWeek === 0) return "text-[#E30000]"; // Sunday
+    
+    return "text-[#111]";
+  };
 
   return (
-    <div className="bg-[#F8F8F8] min-h-screen pb-5">
-      <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center border-b border-[#E5E5EC] px-5">
+    <div className="bg-[#F8F8F8] min-h-screen">
+      <div className="sticky top-0 z-10 bg-white w-full h-[44px] flex items-center justify-between px-5">
+        <span className="text-[15px] text-[#111111]">9:41</span>
+      </div>
+      
+      <div className="sticky top-[44px] z-10 bg-white w-full h-[56px] flex items-center px-5">
         <button 
           onClick={() => navigate('/scripture')}
           className="mr-4"
         >
-          <ArrowLeft size={24} />
+          <ChevronLeft size={28} />
         </button>
-        <h1 className="text-lg font-bold text-center flex-1">경전 읽기 캘린더</h1>
+        <h1 className="text-[20px] font-bold">경전 읽기 캘린더</h1>
       </div>
 
-      <div className="px-5 pt-5 pb-5">
-        <div className="flex justify-between items-center mb-4 bg-white p-4 rounded-lg">
-          <button onClick={goToPrevMonth}>
-            <ChevronLeft size={24} />
-          </button>
-          <h2 className="text-lg font-medium">
-            {year}년 {monthNames[month]}
-          </h2>
-          <button onClick={goToNextMonth}>
-            <ChevronRight size={24} />
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-lg p-4 mb-4">
-          <div className="grid grid-cols-7 mb-2">
+      <div className="p-5">
+        <div className="bg-white rounded-[32px] p-4 shadow-sm mb-8">
+          <div className="flex justify-between items-center px-[10px] py-[10px]">
+            <button onClick={goToPrevMonth}>
+              <ChevronLeft size={24} />
+            </button>
+            <h2 className="text-base font-bold">
+              {year}년 {monthNames[month]}
+            </h2>
+            <button onClick={goToNextMonth}>
+              <ChevronRight size={24} />
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-7 text-center">
             {weekdays.map((day, index) => (
               <div 
-                key={index} 
-                className={`text-center text-sm font-medium ${index === 0 ? 'text-red-500' : 'text-gray-600'}`}
+                key={`weekday-${index}`} 
+                className={`py-[14px] text-xs ${index === 0 ? 'text-[#767676]' : 'text-[#767676]'}`}
               >
                 {day}
               </div>
             ))}
           </div>
           
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 text-center">
             {prevMonthDays.map((day, index) => (
               <div 
                 key={`prev-${index}`} 
-                className="h-9 flex justify-center items-center text-gray-400 text-sm"
+                className="py-[14px] text-xs text-[#767676]"
               >
                 {day}
               </div>
             ))}
             
-            {days.map((day) => {
-              const isToday = day === new Date().getDate() && 
-                             month === new Date().getMonth() && 
-                             year === new Date().getFullYear();
-              
-              const progressData = getProgressForDate(day);
-              const hasProgress = !!progressData;
-              
-              return (
-                <div 
-                  key={`current-${day}`} 
-                  className={`h-9 flex justify-center items-center relative ${
-                    isToday ? 'bg-[#DE7834] text-white rounded-full' : 
-                    hasProgress ? 'text-black font-medium' : 'text-black'
-                  }`}
-                >
-                  {day}
-                  {hasProgress && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#DE7834] rounded-full"></div>
-                  )}
-                </div>
-              );
-            })}
+            {days.map((day) => (
+              <div 
+                key={`current-${day}`} 
+                className={`py-[14px] text-xs ${getDayClass(day)} ${getReadingDataForDate(day) ? 'rounded-full' : ''}`}
+              >
+                {day}
+              </div>
+            ))}
             
             {nextMonthDays.map((day, index) => (
               <div 
                 key={`next-${index}`} 
-                className="h-9 flex justify-center items-center text-gray-400 text-sm"
+                className="py-[14px] text-xs text-[#767676]"
               >
                 {day}
               </div>
@@ -165,52 +172,69 @@ const ScriptureCalendarPage: React.FC = () => {
           </div>
         </div>
         
-        <div className="bg-white rounded-lg p-4 mb-4">
-          <h3 className="text-base font-medium mb-3">
-            인기 경전 중
-          </h3>
+        <div className="mt-8 mb-6">
+          <h2 className="text-[20px] font-bold pb-3">현재 진행 중</h2>
           
-          <div className="space-y-4">
-            {readingItems.map((item, index) => (
-              <div key={item.id} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className={`px-3 py-1 bg-${item.color} text-${item.textColor} rounded-full text-xs font-medium`}>
-                    {item.title}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {item.progress.toFixed(1)}%
-                  </div>
-                </div>
-                
-                <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full bg-${item.color}`}
-                    style={{ width: `${item.progress}%` }}
-                  ></div>
-                </div>
-                
-                <p className="text-xs text-gray-500">
-                  {index === 0 ? '다음 학습 권장일: 10일 후' : '다음 핵습 권장일: 17일 후'}
-                </p>
+          {readingItems.map((item, index) => (
+            <div key={`reading-${index}`} className="bg-white rounded-[32px] p-5 shadow-sm mb-4">
+              <div 
+                className="inline-flex px-2 py-2 rounded-xl mb-3"
+                style={{ backgroundColor: item.color }}
+              >
+                <span className="text-xs text-white">
+                  {item.title}
+                </span>
               </div>
-            ))}
-          </div>
+              <h3 className="text-base font-bold text-gray-900 mb-4">
+                보리11님의 {item.title} 통독
+              </h3>
+              <div className="w-full h-1 bg-[#FBF3E9] rounded-full mb-2">
+                <div 
+                  className="h-1 rounded-full"
+                  style={{ 
+                    width: `${item.progress}%`,
+                    background: `linear-gradient(90deg, rgba(218, 0, 0, 0.55) 0%, ${item.color} 44.19%)`
+                  }}
+                ></div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500">
+                  이 달의 진행률: <span className="text-[#DE7834] font-bold">{(item.progress / 10).toFixed(1)}%</span>
+                  {index === 0 ? ' 9일 동안 경전을 읽었어요' : ' 17일 동안 경전을 읽었어요'}
+                </span>
+                <span className="text-xs text-gray-500">{item.progress}%</span>
+              </div>
+            </div>
+          ))}
         </div>
         
-        <div className="bg-white rounded-lg p-4">
-          <h3 className="text-base font-medium mb-3">
-            나의 경전 여정
-          </h3>
+        <div className="mt-8">
+          <h2 className="text-[20px] font-bold mb-3">나의 경전 여정</h2>
           
-          <div className="space-y-3">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="flex items-center">
-                <div className="w-8 h-8 bg-gray-700 rounded-full mr-3"></div>
+          <div className="bg-white rounded-[24px] p-5 shadow-sm flex items-center justify-between mb-4">
+            <span className="text-base text-[#767676]">기록 데이터가 없어요</span>
+            <Calendar size={24} className="text-[#767676]" />
+          </div>
+          
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((item) => (
+              <div key={`journey-${item}`} className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#F1F1F5]"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">금시심경 제{item}장 학습 완료했습니다</p>
-                  <p className="text-xs text-gray-500">2025-04-0{item}</p>
+                  <p className="text-sm font-bold text-[#505050]">
+                    {item % 2 === 0 ? '김시훈님이 반야심경 24페이지를 읽었어요' : '김시훈님이 화엄경 31페이지를 읽었어요'}
+                  </p>
+                  <p className="text-xs text-gray-500">2025.04.{9 - item}</p>
+                  <div className="flex items-center gap-1.5">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: item % 2 === 0 ? '#EF4223' : '#FFB23F' }}
+                    ></div>
+                    <span className="text-xs text-gray-500">
+                      {item % 2 === 0 ? '반야심경 이어보기 →' : '화엄경 이어보기 →'}
+                    </span>
+                  </div>
                 </div>
-                <div className="bg-red-500 w-2 h-2 rounded-full"></div>
               </div>
             ))}
           </div>

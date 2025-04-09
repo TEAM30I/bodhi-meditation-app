@@ -29,6 +29,16 @@ const ScriptureBottomNav: React.FC<ScriptureBottomNavProps> = ({
   activeTab, 
   onTabChange 
 }) => {
+  const navigate = useNavigate();
+  
+  const handleCalendarClick = () => {
+    navigate('/scripture/calendar');
+  };
+  
+  const handleBookmarkClick = () => {
+    navigate('/scripture/bookmarks');
+  };
+  
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white z-10">
       <div className="flex justify-around items-center h-16 max-w-screen-lg mx-auto">
@@ -42,13 +52,13 @@ const ScriptureBottomNav: React.FC<ScriptureBottomNavProps> = ({
           icon={<CalendarDays size={24} />}
           text="캘린더"
           isActive={activeTab === 'calendar'}
-          onClick={() => onTabChange('calendar')}
+          onClick={handleCalendarClick}
         />
         <NavItem
           icon={<Bookmark size={24} />}
           text="북마크"
           isActive={activeTab === 'bookmark'}
-          onClick={() => onTabChange('bookmark')}
+          onClick={handleBookmarkClick}
         />
         <NavItem
           icon={<Share2 size={24} />}

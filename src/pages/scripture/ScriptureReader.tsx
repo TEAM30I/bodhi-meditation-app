@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Share2, ChevronLeft, ChevronRight, ChevronDown, Calendar } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { getScriptureById, updateReadingProgress, addBookmark, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
+import { getScriptureContent, ScriptureContent } from '../../../public/data/scriptureData/scriptureContent';
 import SettingsPanel from '@/components/scripture/SettingsPanel';
 
 const ScriptureReader = () => {
@@ -12,7 +13,6 @@ const ScriptureReader = () => {
   const [activeTab, setActiveTab] = useState<'original' | 'explanation'>('explanation');
   const [fontSize, setFontSize] = useState(16);
   const [showSettings, setShowSettings] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [lineHeight, setLineHeight] = useState(1.6);
@@ -23,8 +23,10 @@ const ScriptureReader = () => {
   const typedGetScriptureById = typedData<typeof getScriptureById>(getScriptureById);
   const typedUpdateReadingProgress = typedData<typeof updateReadingProgress>(updateReadingProgress);
   const typedAddBookmark = typedData<typeof addBookmark>(addBookmark);
+  const typedGetScriptureContent = typedData<typeof getScriptureContent>(getScriptureContent);
   
   const scripture: Scripture | undefined = id ? typedGetScriptureById(id) : undefined;
+  const scriptureContent: ScriptureContent | undefined = id ? typedGetScriptureContent(id) : undefined;
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -52,7 +54,7 @@ const ScriptureReader = () => {
     }
   }, [currentChapterIndex, currentPageIndex, scripture]);
 
-  if (!scripture) {
+  if (!scripture || !scriptureContent) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p>경전을 찾을 수 없습니다.</p>
@@ -61,37 +63,39 @@ const ScriptureReader = () => {
   }
 
   const currentChapter = scripture.chapters[currentChapterIndex];
-  const content = currentChapter ? (activeTab === 'original' ? currentChapter.original : currentChapter.explanation) : '';
-  
-  const pageContent = content.split('\n');
   
   const handleBackClick = () => {
     navigate('/scripture');
   };
 
-  const handlePrevPage = () => {
+  const handlePrevPage = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (currentPageIndex > 0) {
       setCurrentPageIndex(currentPageIndex - 1);
     } else if (currentChapterIndex > 0) {
       setCurrentChapterIndex(currentChapterIndex - 1);
-      setCurrentPageIndex(4);
+      setCurrentPageIndex(4); // Assuming each chapter has 5 pages (0-4)
     }
+    window.scrollTo(0, 0);
   };
 
-  const handleNextPage = () => {
+  const handleNextPage = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (currentPageIndex < 4) {
       setCurrentPageIndex(currentPageIndex + 1);
     } else if (currentChapterIndex < scripture.chapters.length - 1) {
       setCurrentChapterIndex(currentChapterIndex + 1);
       setCurrentPageIndex(0);
     }
+    window.scrollTo(0, 0);
   };
 
   const toggleControls = () => {
     setShowControls(!showControls);
   };
 
-  const handleBookmark = () => {
+  const handleBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
     typedAddBookmark(
       'user1',
       scripture.id,
@@ -105,12 +109,31 @@ const ScriptureReader = () => {
     setActiveTab(tab);
   };
 
-  const handleNavigateToCalendar = () => {
+  const handleNavigateToCalendar = (e: React.MouseEvent) => {
+    e.stopPropagation();
     navigate('/scripture/calendar');
   };
 
-  const handleNavigateToBookmark = () => {
+  const handleNavigateToBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
     navigate('/scripture/bookmarks');
+  };
+
+  const renderContent = () => {
+    // Calculate start and end indices for the current page
+    const contentArray = activeTab === 'original' 
+      ? scriptureContent.original 
+      : scriptureContent.explanation;
+    
+    const itemsPerPage = 1;
+    const startIdx = currentPageIndex * itemsPerPage;
+    const endIdx = Math.min(startIdx + itemsPerPage, contentArray.length);
+    
+    return contentArray.slice(startIdx, endIdx).map((paragraph, idx) => (
+      <p key={idx} className="mb-6 text-gray-600 leading-relaxed">
+        {paragraph}
+      </p>
+    ));
   };
 
   return (
@@ -148,8 +171,8 @@ const ScriptureReader = () => {
           <button
             className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
               activeTab === 'original' 
-                ? 'bg-white border border-[#EDEDED] text-[#111]' 
-                : 'bg-[#21212F] text-white font-bold'
+                ? 'bg-[#21212F] text-white font-bold' 
+                : 'bg-white border border-[#EDEDED] text-[#111]'
             }`}
             onClick={(e) => {
               e.stopPropagation();
@@ -187,13 +210,11 @@ const ScriptureReader = () => {
         {currentChapter && (
           <>
             <h2 className="font-bold text-xl mb-3">{currentChapter.title}</h2>
-            <p className="text-gray-500 mb-8">부처님/보살 등장 및 설정</p>
-            <div className="mb-4 text-gray-600 leading-relaxed">
-              {pageContent.map((paragraph, index) => (
-                <p key={index} className="mb-4">
-                  {paragraph}
-                </p>
-              ))}
+            <p className="text-gray-500 mb-8">
+              {activeTab === 'original' ? '원문' : '해설'} - 페이지 {currentPageIndex + 1}
+            </p>
+            <div className="mb-4">
+              {renderContent()}
             </div>
           </>
         )}
@@ -204,10 +225,7 @@ const ScriptureReader = () => {
         <div className="fixed bottom-24 left-0 right-0 flex justify-center">
           <div className="flex justify-between w-[270px]">
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePrevPage();
-              }}
+              onClick={handlePrevPage}
               className="w-[53px] h-[53px] flex items-center justify-center rounded-full bg-white shadow-md"
               disabled={currentChapterIndex === 0 && currentPageIndex === 0}
             >
@@ -215,10 +233,7 @@ const ScriptureReader = () => {
             </button>
             
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNextPage();
-              }}
+              onClick={handleNextPage}
               className="w-[53px] h-[53px] flex items-center justify-center rounded-full bg-white shadow-md"
               disabled={currentChapterIndex === scripture.chapters.length - 1 && currentPageIndex === 4}
             >
@@ -234,23 +249,17 @@ const ScriptureReader = () => {
           <div className="flex items-center justify-between px-3 h-14 bg-white/80 backdrop-blur-md shadow-lg rounded-full mx-8">
             <button 
               className="w-[67px] h-14 flex items-center justify-center"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNavigateToCalendar();
-              }}
+              onClick={handleNavigateToCalendar}
             >
-              <Calendar size={28} />
+              <Calendar size={28} className="text-black" />
             </button>
             
             <button 
               className="w-[67px] h-14 flex items-center justify-center"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNavigateToBookmark();
-              }}
+              onClick={handleNavigateToBookmark}
             >
               <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M25.8334 23.1C25.8334 21.1398 25.8334 20.1597 26.2149 19.411C26.5504 18.7525 27.0858 18.217 27.7444 17.8815C28.4931 17.5 29.4732 17.5 31.4334 17.5H36.5667C38.5269 17.5 39.507 17.5 40.2557 17.8815C40.9142 18.217 41.4497 18.7525 41.7852 19.411C42.1667 20.1597 42.1667 21.1398 42.1667 23.1V38.5L34 33.8333L25.8334 38.5V23.1Z" stroke="#111111" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M5 7.8C5 6.11984 5 5.27976 5.32698 4.63803C5.6146 4.07354 6.07354 3.6146 6.63803 3.32698C7.27976 3 8.11984 3 9.8 3H14.2C15.8802 3 16.7202 3 17.362 3.32698C17.9265 3.6146 18.3854 4.07354 18.673 4.63803C19 5.27976 19 6.11984 19 7.8V21L12 17L5 21V7.8Z" stroke="#111111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
             
@@ -258,7 +267,7 @@ const ScriptureReader = () => {
               className="w-[67px] h-14 flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <Share2 size={28} />
+              <Share2 size={28} className="text-black" />
             </button>
             
             <button 
@@ -290,7 +299,7 @@ const ScriptureReader = () => {
             className="w-full p-5 bg-white rounded-t-3xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <SettingsPanel />
+            <SettingsPanel onFontSizeChange={setFontSize} />
           </div>
         </div>
       )}
