@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { TempleStay } from '@/data/templeStayData/types';
+import { TempleStay } from '@/data/templeStayData';
+import { Heart } from 'lucide-react';
 
 export interface TempleStayItemProps {
   templeStay: TempleStay;
@@ -22,6 +23,10 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
         <p className="text-sm text-gray-600 mb-2">{templeStay.location}</p>
         <div className="flex justify-between items-center">
           <p className="text-sm font-medium">₩{templeStay.price.toLocaleString()}~</p>
+          <div className="flex items-center text-gray-500">
+            <Heart size={14} className="mr-1" />
+            <span className="text-sm">{templeStay.likeCount}</span>
+          </div>
         </div>
       </div>
     </div>

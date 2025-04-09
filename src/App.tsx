@@ -30,7 +30,7 @@ import TempleDetail from "@/pages/search/temple/TempleDetail";
 // Temple Stay Module
 import FindTempleStay from "@/pages/search/temple-stay/FindTempleStay";
 import TempleStaySearchResults from "@/pages/search/temple-stay/SearchResults";
-import TempleStayDetail from "@/pages/search/temple-stay/TempleDetail";
+import TempleStayDetail from "@/pages/search/temple-stay/TempleStayDetail";
 
 // Login Module
 import Onboarding1 from "@/pages/login/Onboarding1";
