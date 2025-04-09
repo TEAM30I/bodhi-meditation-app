@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bookmark, Search, Share2, ChevronLeft, ChevronRight, ChevronDown, Calendar } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { getScriptureById, updateReadingProgress, addBookmark, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
+import SettingsPanel from '@/components/scripture/SettingsPanel';
 
 const ScriptureReader = () => {
   const navigate = useNavigate();

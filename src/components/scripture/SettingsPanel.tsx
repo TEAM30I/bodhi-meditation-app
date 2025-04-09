@@ -2,13 +2,23 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { Switch } from '@/components/ui/switch';
 
 const SettingsPanel: React.FC = () => {
-  const [fontSize, setFontSize] = useState(16);
-  const [lineSpacing, setLineSpacing] = useState(1.5);
-  const [darkMode, setDarkMode] = useState(false);
-  const [autoScroll, setAutoScroll] = useState(false);
+  const [fontSize, setFontSize] = useState(90);
+  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>('gothic');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  const decreaseFontSize = () => {
+    if (fontSize > 50) {
+      setFontSize(fontSize - 10);
+    }
+  };
+
+  const increaseFontSize = () => {
+    if (fontSize < 150) {
+      setFontSize(fontSize + 10);
+    }
+  };
 
   const handleSave = () => {
     toast({
@@ -19,71 +29,96 @@ const SettingsPanel: React.FC = () => {
 
   return (
     <div className="w-full">
-      <h2 className="text-lg font-medium mb-4">경전 설정</h2>
-      
-      <div className="space-y-5">
-        <div className="space-y-3">
-          <label className="text-sm font-medium">글자 크기</label>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">작게</span>
-            <input
-              type="range"
-              value={fontSize}
-              min={12}
-              max={24}
-              onChange={(e) => setFontSize(parseInt(e.target.value))}
-              className="flex-1 h-2 rounded-lg appearance-none bg-gray-200 cursor-pointer"
-            />
-            <span className="text-sm text-gray-500">크게</span>
-          </div>
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>50%</span>
-            <span>100%</span>
-          </div>
-        </div>
+      <div className="flex justify-center">
+        <div className="w-12 h-1 bg-[#E5E6EB] rounded-full mb-3"></div>
+      </div>
+      <div className="bg-white rounded-3xl p-5 shadow-lg">
+        <h2 className="text-xl font-bold text-[#111]">환경 설정</h2>
+        <p className="text-xs text-[#767676] mt-1">나에게 맞는 설정으로 경전 읽기를 시작해보세요</p>
         
-        <div className="space-y-3">
-          <label className="text-sm font-medium">줄 간격</label>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">좁게</span>
-            <input
-              type="range"
-              value={lineSpacing * 10}
-              min={10}
-              max={30}
-              onChange={(e) => setLineSpacing(parseInt(e.target.value) / 10)}
-              className="flex-1 h-2 rounded-lg appearance-none bg-gray-200 cursor-pointer"
-            />
-            <span className="text-sm text-gray-500">넓게</span>
+        <div className="mt-6 space-y-8">
+          {/* 글자 크기 설정 */}
+          <div className="flex justify-between items-center">
+            <span className="text-base text-[#111]">글자 크기</span>
+            <div className="flex items-center gap-7">
+              <button 
+                onClick={decreaseFontSize}
+                className="text-base text-[#111] font-medium"
+              >
+                -
+              </button>
+              <span className="text-sm text-[#111]">{fontSize}%</span>
+              <button 
+                onClick={increaseFontSize}
+                className="text-base text-[#111] font-medium"
+              >
+                +
+              </button>
+            </div>
           </div>
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>기본</span>
-            <span>최대</span>
+          
+          {/* 글꼴 설정 */}
+          <div className="flex justify-between items-center">
+            <span className="text-base text-[#111]">글꼴</span>
+            <div className="inline-flex p-[2px] bg-[#F1F1F5] rounded-2xl">
+              <button 
+                onClick={() => setFontFamily('gothic')}
+                className={`w-20 py-2 text-center rounded-xl ${
+                  fontFamily === 'gothic' 
+                    ? 'bg-white font-bold text-black shadow-sm' 
+                    : 'text-[#767676]'
+                }`}
+              >
+                고딕체
+              </button>
+              <button 
+                onClick={() => setFontFamily('serif')}
+                className={`w-20 py-2.5 text-center ${
+                  fontFamily === 'serif' 
+                    ? 'bg-white font-bold text-black shadow-sm rounded-xl' 
+                    : 'text-[#767676]'
+                }`}
+              >
+                명조체
+              </button>
+            </div>
           </div>
+          
+          {/* 테마 설정 */}
+          <div className="flex justify-between items-center">
+            <span className="text-base text-[#111]">테마</span>
+            <div className="inline-flex p-[2px] bg-[#F1F1F5] rounded-2xl">
+              <button 
+                onClick={() => setTheme('light')}
+                className={`w-20 py-2 text-center rounded-xl ${
+                  theme === 'light' 
+                    ? 'bg-white font-bold text-black shadow-sm' 
+                    : 'text-[#767676]'
+                }`}
+              >
+                라이트
+              </button>
+              <button 
+                onClick={() => setTheme('dark')}
+                className={`w-20 py-2.5 text-center ${
+                  theme === 'dark' 
+                    ? 'bg-white font-bold text-black shadow-sm rounded-xl' 
+                    : 'text-[#767676]'
+                }`}
+              >
+                다크
+              </button>
+            </div>
+          </div>
+          
+          {/* 적용하기 버튼 */}
+          <Button
+            onClick={handleSave}
+            className="w-full h-14 bg-[#DE7834] hover:bg-[#C56628] text-white font-bold text-lg rounded-xl mt-8"
+          >
+            적용하기
+          </Button>
         </div>
-        
-        <div className="flex items-center justify-between py-2">
-          <span className="text-sm">다크 모드</span>
-          <Switch
-            checked={darkMode}
-            onCheckedChange={setDarkMode}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between py-2 border-b border-gray-100 mb-4">
-          <span className="text-sm">자동 스크롤</span>
-          <Switch
-            checked={autoScroll}
-            onCheckedChange={setAutoScroll}
-          />
-        </div>
-        
-        <Button
-          className="w-full py-6 h-auto bg-[#FF4D00] hover:bg-[#E04400] text-white rounded-lg"
-          onClick={handleSave}
-        >
-          적용하기
-        </Button>
       </div>
     </div>
   );
