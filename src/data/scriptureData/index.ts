@@ -1,8 +1,8 @@
 
 // This file re-exports everything from the public/data folder to maintain backwards compatibility
 // Import from public/data/scriptureData
-import { 금강경 } from '../../../public/data/scriptureData/금강경';
-import { 반야심경 } from '../../../public/data/scriptureData/반야심경';
+import { 금강경 } from '../../../public/data/scriptureData/geumgang';
+import { 반야심경 } from '../../../public/data/scriptureData/banya';
 
 // Create scriptureTexts object
 export const scriptureTexts = {

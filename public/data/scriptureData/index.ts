@@ -1,6 +1,6 @@
 
-import { 금강경 } from './금강경';
-import { 반야심경 } from './반야심경';
+import { 금강경 } from './geumgang';
+import { 반야심경 } from './banya';
 
 export const scriptureTexts = {
   금강경,
