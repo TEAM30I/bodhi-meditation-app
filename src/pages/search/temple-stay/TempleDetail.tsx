@@ -1,11 +1,14 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Share, MapPin, Clock, Calendar } from 'lucide-react';
+import { ArrowLeft, Heart, Share, MapPin, Clock, Calendar, Home, Globe } from 'lucide-react';
 import { templeStays } from '@/data/templeStayData';
+import BottomNav from '@/components/BottomNav';
 
 const TempleStayDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [isFavorite, setIsFavorite] = useState(false);
 
   // Find the temple stay by id
   const templeStay = Object.values(templeStays).find(ts => ts.id === id);
@@ -42,7 +45,7 @@ const TempleStayDetail = () => {
         <div className="w-full h-[255px] bg-gray-200">
           <img 
             src={templeStay.imageUrl} 
-            alt={templeStay.name} 
+            alt={templeStay.templeName} 
             className="w-full h-full object-cover"
           />
         </div>
@@ -50,7 +53,7 @@ const TempleStayDetail = () => {
         {/* Temple Stay Information */}
         <div className="px-5 py-4 bg-white">
           <div className="flex justify-between items-start mb-1.5">
-            <h1 className="text-base font-bold text-[#222]">{templeStay.name}</h1>
+            <h1 className="text-base font-bold text-[#222]">{templeStay.templeName}</h1>
             <div className="flex items-center gap-2.5">
               <button onClick={() => setIsFavorite(!isFavorite)}>
                 <Heart size={18} fill={isFavorite ? "#FF0000" : "none"} stroke={isFavorite ? "#FF0000" : "#111111"} />
@@ -129,7 +132,6 @@ const TempleStayDetail = () => {
         </div>
       </div>
       
-      {/* Bottom Navigation */}
       <BottomNav />
     </div>
   );

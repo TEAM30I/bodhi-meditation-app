@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BodhiLogo from '@/components/BodhiLogo';
@@ -144,7 +145,7 @@ const Main = () => {
                 >
                   <img 
                     src={templeStay.imageUrl} 
-                    alt={templeStay.name} 
+                    alt={templeStay.templeName} 
                     className="w-full h-full object-cover"
                   />
                 </div>

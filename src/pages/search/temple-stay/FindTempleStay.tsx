@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, ChevronDown } from 'lucide-react';
@@ -5,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getTempleStayList, locations } from '@/data/templeStayData';
-import DateRangePicker from '@/components/search/DateRangePicker';
-import GuestSelector from '@/components/search/GuestSelector';
+import { DateRangePicker } from '@/components/search/DateRangePicker';
+import { GuestSelector } from '@/components/search/GuestSelector';
 import BottomNav from '@/components/BottomNav';
+import { DateRange } from 'react-day-picker';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
@@ -21,8 +23,10 @@ const FindTempleStay = () => {
   const dayAfterTomorrow = new Date();
   dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
   
-  const [startDate, setStartDate] = useState(tomorrow);
-  const [endDate, setEndDate] = useState(dayAfterTomorrow);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: tomorrow,
+    to: dayAfterTomorrow
+  });
   const [guests, setGuests] = useState(2);
   
   // Get all temple stays
@@ -88,10 +92,8 @@ const FindTempleStay = () => {
         <div className="px-4 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <DateRangePicker 
-              startDate={startDate}
-              endDate={endDate}
-              setStartDate={setStartDate}
-              setEndDate={setEndDate}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
             />
             <GuestSelector guests={guests} setGuests={setGuests} />
           </div>

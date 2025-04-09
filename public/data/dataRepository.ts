@@ -17,7 +17,8 @@ import { imageRepository } from './imageRepository';
 import { nearbyTemples, regionTags } from './templeData/templeData';
 
 // All temples data - combine temple data from different sources
-export const allTemples = Object.values(temples).concat(nearbyTemples);
+// Make sure nearbyTemples has the same structure as temples
+export const allTemples = Object.values(temples).concat(nearbyTemples as unknown as Temple[]);
 
 // All temple stays data
 export const allTempleStays = Object.values(templeStays);

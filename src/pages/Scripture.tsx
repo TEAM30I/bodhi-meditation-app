@@ -61,18 +61,28 @@ const Scripture = () => {
               const matchingScripture = scriptures.find(
                 s => s.categories.includes(schedule.category)
               );
+              
+              if (!matchingScripture) return null;
 
               const color = scriptureColors[schedule.category]?.bg || "bg-gray-500";
               const textColor = scriptureColors[schedule.category]?.text || "text-white";
               
-              if (!matchingScripture) return null;
+              // Ensure progress is available
+              const scriptureWithProgress = {
+                id: matchingScripture.id,
+                title: matchingScripture.title,
+                progress: matchingScripture.progress || 0,
+                colorScheme: matchingScripture.colorScheme || { 
+                  bg: color, 
+                  text: textColor,
+                  progressBg: "#FF4D00"
+                }
+              };
 
               return (
                 <ScriptureCard
                   key={schedule.id}
-                  scripture={matchingScripture}
-                  color={color}
-                  textColor={textColor}
+                  scripture={scriptureWithProgress}
                 />
               );
             })}
@@ -93,12 +103,22 @@ const Scripture = () => {
               const color = scriptureColors[category]?.bg || "bg-gray-500";
               const textColor = scriptureColors[category]?.text || "text-white";
               
+              // Ensure progress is available
+              const scriptureWithProgress = {
+                id: scripture.id,
+                title: scripture.title,
+                progress: scripture.progress || 0,
+                colorScheme: scripture.colorScheme || { 
+                  bg: color, 
+                  text: textColor,
+                  progressBg: "#FF4D00"
+                }
+              };
+              
               return (
                 <ScriptureCard
                   key={scripture.id}
-                  scripture={scripture}
-                  color={color}
-                  textColor={textColor}
+                  scripture={scriptureWithProgress}
                 />
               );
             })}
