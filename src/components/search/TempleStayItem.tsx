@@ -13,7 +13,7 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
     <div className="rounded-lg overflow-hidden bg-white shadow-sm" onClick={onClick}>
       <div className="relative">
         <img
-          src={templeStay.images[0]}
+          src={templeStay.imageUrl}
           alt={templeStay.templeName}
           className="w-full h-48 object-cover"
         />
@@ -29,7 +29,7 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
           <div>
             <div className="flex items-center space-x-1">
               <span className="text-xs bg-gray-100 py-0.5 px-2 rounded-full">
-                {templeStay.tags[0]}
+                {templeStay.tags && templeStay.tags.length > 0 ? templeStay.tags[0] : '템플스테이'}
               </span>
             </div>
           </div>

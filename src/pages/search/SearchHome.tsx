@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,7 +23,7 @@ export default function SearchHome() {
   const dayAfterTomorrow = new Date();
   dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
   
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: tomorrow,
     to: dayAfterTomorrow,
   });
@@ -122,11 +123,14 @@ export default function SearchHome() {
             <div className="flex-1 px-4 py-3 border-r border-[#E5E5EC]">
               <DateRangePicker 
                 dateRange={dateRange}
+                onChange={setDateRange}
                 onDateRangeChange={setDateRange}
               />
             </div>
             <div className="flex-1 px-4 py-3">
               <GuestSelector 
+                value={adults}
+                onChange={setAdults}
                 adults={adults}
                 children={children}
                 onAdultsChange={setAdults}
