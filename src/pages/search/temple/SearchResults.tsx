@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeft, Search, X, SlidersHorizontal, Home } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleItem from '@/components/search/TempleItem';
@@ -11,9 +12,11 @@ const SearchResults = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const query = searchParams.get('query') || '';
+  const nearby = searchParams.get('nearby') === 'true';
   
   const [searchValue, setSearchValue] = useState(query);
   const [temples, setTemples] = useState<Temple[]>([]);
+  const [activeFilter, setActiveFilter] = useState<'popular' | 'recent'>('popular');
 
   useEffect(() => {
     // Search temples based on query
@@ -39,7 +42,7 @@ const SearchResults = () => {
   };
 
   return (
-    <div className="bg-[#F5F5F5] min-h-screen pb-16">
+    <div className="bg-[#F8F8F8] min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
         <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
           <button onClick={() => navigate(-1)}>
@@ -68,18 +71,35 @@ const SearchResults = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/search/temple/find')}
+            onClick={() => navigate('/main')}
             className="p-1"
           >
-            <SlidersHorizontal className="h-5 w-5" />
+            <Home className="h-5 w-5" />
           </Button>
         </div>
       </div>
 
-      <div className="max-w-[480px] mx-auto px-5 py-6">
-        <h2 className="text-lg font-bold mb-4">검색 결과: {temples.length}개</h2>
+      <div className="max-w-[480px] mx-auto px-5 py-3">
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant={activeFilter === 'popular' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('popular')}
+            className={activeFilter === 'popular' ? 'bg-[#DE7834]' : 'bg-white'}
+            size="sm"
+          >
+            인기순
+          </Button>
+          <Button
+            variant={activeFilter === 'recent' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('recent')}
+            className={activeFilter === 'recent' ? 'bg-[#DE7834]' : 'bg-white'}
+            size="sm"
+          >
+            최신순
+          </Button>
+        </div>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           {temples.map((temple) => (
             <TempleItem
               key={temple.id}

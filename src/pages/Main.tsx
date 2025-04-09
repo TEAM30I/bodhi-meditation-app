@@ -1,13 +1,14 @@
+
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
 import { Search, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getTempleList } from '../../public/data/templeData/templeRepository';
-import { getTempleStayList } from '../../public/data/templeStayData/templeStayRepository';
+import { getTempleList } from '../../../public/data/templeData/templeRepository';
+import { getTempleStayList } from '../../../public/data/templeStayData/templeStayRepository';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule, scriptures } from '../../public/data/scriptureData/scriptureRepository';
-import { imageRepository } from '../../public/data/imageRepository';
+import { readingSchedule, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
+import { imageRepository } from '../../../public/data/imageRepository';
 import { typedData } from '@/utils/typeUtils';
 
 const Main = () => {
@@ -65,7 +66,10 @@ const Main = () => {
         <div className="flex justify-between items-center px-5 py-3 max-w-[480px] mx-auto">
           <div className="text-[#DE7834] text-xl font-bold">BODHI</div>
           <div className="flex-1 mx-2">
-            <div className="flex items-center bg-[#F5F5F5] rounded-full px-3 py-2">
+            <div 
+              className="flex items-center bg-[#F5F5F5] rounded-full px-3 py-2 cursor-pointer"
+              onClick={() => navigate('/search')}
+            >
               <Search className="w-4 h-4 text-gray-400 mr-2" />
               <span className="text-[13px] text-gray-400">검색어를 입력하세요</span>
             </div>

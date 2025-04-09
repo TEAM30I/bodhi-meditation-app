@@ -18,22 +18,6 @@ export interface DateRangePickerProps {
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({ dateRange, onChange }) => {
-  const handleSelect = (date: Date | undefined) => {
-    if (!date) return;
-
-    const { from, to } = dateRange;
-    if (from && to) {
-      // Reset the range if both dates are already selected
-      onChange({ from: date, to: undefined });
-    } else if (from && !to && date > from) {
-      // Select end date if start date is already selected
-      onChange({ from, to: date });
-    } else {
-      // Select start date
-      onChange({ from: date, to: undefined });
-    }
-  };
-
   return (
     <div className="mt-2">
       <Popover>
