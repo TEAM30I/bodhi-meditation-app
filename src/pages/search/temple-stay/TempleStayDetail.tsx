@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Calendar, Clock, Heart, Share, Globe, ChevronRight, Home } from 'lucide-react';
-import { templeStays, TempleStay } from '/public/data/templeStayData/templeStayRepository';
+import { templeStays, TempleStay } from '@/utils/repository';
 import { castRepository } from '@/utils/typeAssertions';
 import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';

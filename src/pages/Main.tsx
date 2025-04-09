@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
@@ -48,20 +49,6 @@ const Main = () => {
   const typedScriptures = typedData<typeof scriptures>(scriptures);
   const typedImageRepository = typedData<typeof imageRepository>(imageRepository);
 
-  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
-  const today = new Date();
-  const currentDate = today.getDate();
-  const dates = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(today);
-    date.setDate(currentDate - today.getDay() + i);
-    return {
-      day: weekDays[date.getDay()],
-      date: date.getDate(),
-      active: i === today.getDay(),
-      isPrayer: date.getDay() === 0, // Sunday
-    };
-  });
-
   return (
     <div className="w-full min-h-screen bg-[#F8F8F8] font-['Pretendard']">
       <div className="w-full bg-white shadow-sm">
@@ -83,30 +70,6 @@ const Main = () => {
             <Bell className="w-6 h-6" />
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
           </button>
-        </div>
-      </div>
-
-      <div className="w-full bg-white px-5 py-3 mb-2 rounded-b-3xl shadow-sm">
-        <div className="max-w-[480px] mx-auto">
-          <div className="flex justify-between">
-            {dates.map((date, index) => (
-              <div 
-                key={index} 
-                className="flex flex-col items-center"
-              >
-                <span className="text-xs text-gray-500 mb-1">{date.day}</span>
-                {date.isPrayer ? (
-                  <div className="w-[18px] h-[18px] flex items-center justify-center mt-2">
-                    <span role="img" aria-label="prayer">🙏</span>
-                  </div>
-                ) : (
-                  <div className={`w-[43px] h-[43px] flex items-center justify-center ${date.active ? 'bg-[#F1F3F5] rounded-full font-bold' : ''}`}>
-                    {date.date}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 

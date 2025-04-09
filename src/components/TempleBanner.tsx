@@ -3,9 +3,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { typedData } from '@/utils/typeUtils';
 
-// Import using a wildcard pattern that our type definitions will match
-import { imageRepository } from '../public/data/imageRepository';
-import { regionSearchRankings } from '../public/data/searchRankingRepository';
+// Import using the correct path
+import { imageRepository } from '@/utils/repository';
 
 const TempleBanner = () => {
   const navigate = useNavigate();

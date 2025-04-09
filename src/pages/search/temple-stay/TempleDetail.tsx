@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Globe, Heart, Share, PhoneCall, Instagram as InstagramIcon, Facebook as FacebookIcon } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import { templeStays, type TempleStay } from '../../../public/data/templeStayData/templeStayRepository';
+import { templeStays, TempleStay } from '@/utils/repository';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';

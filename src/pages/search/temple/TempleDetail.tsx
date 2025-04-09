@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Heart, Share, Globe, ChevronRight, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { temples, Temple } from '/public/data/templeData/templeRepository';
+import { temples, Temple } from '@/utils/repository';
 import { castRepository } from '@/utils/typeAssertions';
 import { toast } from '@/components/ui/use-toast';
 

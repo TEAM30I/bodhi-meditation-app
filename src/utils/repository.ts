@@ -4,11 +4,7 @@ import { lazy } from 'react';
 
 // Repository exports with consistent static imports
 export { 
-  imageRepository
-} from '/public/data/image/imageRepository';
-
-// Import helper functions from the correct location
-export { 
+  imageRepository,
   getProfileImage, 
   getScriptureImage, 
   getTempleImage, 
