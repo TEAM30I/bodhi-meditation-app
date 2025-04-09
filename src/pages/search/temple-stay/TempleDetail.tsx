@@ -3,7 +3,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Globe, Heart, Share, PhoneCall, Instagram as InstagramIcon, Facebook as FacebookIcon } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import { templeStays } from '../../../public/data/templeStayData/templeStayRepository';
+import { templeStays, type TempleStay } from '../../../public/data/templeStayData/templeStayRepository';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -12,8 +12,8 @@ const TempleDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // Use typedData to safely cast the temple stay data
-  const temple = typedData(templeStays[id || '']);
+  // Use typedData with explicit TempleStay type
+  const temple = typedData<TempleStay>(templeStays[id || '']);
 
   if (!temple) {
     return <div>사찰 정보를 찾을 수 없습니다.</div>;
