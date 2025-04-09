@@ -1,15 +1,13 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BodhiLogo from '@/components/BodhiLogo';
 import BottomNav from '@/components/BottomNav';
-import { Search, MapPin, Bell, ChevronRight, CalendarDays } from 'lucide-react';
+import { Search, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getTempleList } from '../public/data/templeData/templeRepository';
-import { getTempleStayList } from '../public/data/templeStayData/templeStayRepository';
-import { toast } from '@/components/ui/use-toast';
+import { getTempleList } from '../../public/data/templeData/templeRepository';
+import { getTempleStayList } from '../../public/data/templeStayData/templeStayRepository';
 import { useAuth } from '@/context/AuthContext';
-import { readingSchedule, scriptures } from '../public/data/scriptureData/scriptureRepository';
-import { imageRepository } from '../public/data/imageRepository';
+import { readingSchedule, scriptures } from '../../public/data/scriptureData/scriptureRepository';
+import { imageRepository } from '../../public/data/imageRepository';
 import { typedData } from '@/utils/typeUtils';
 
 const Main = () => {
@@ -36,7 +34,6 @@ const Main = () => {
     );
   }
 
-  // Type data for safety
   const templeList = getTempleList();
   const typedTempleList = typedData<typeof templeList>(templeList);
   const recommendedTemples = typedTempleList.slice(0, 3);
