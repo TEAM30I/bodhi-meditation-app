@@ -3,19 +3,40 @@ import { Amplify } from 'aws-amplify';
 import awsConfig from '../aws-config';
 
 /**
- * Initialize Amplify with proper error handling
+ * Initialize Amplify with proper error handling and polyfill verification
  */
 export const initializeAmplify = () => {
   try {
     console.log("Initializing Amplify...");
     
-    // Double-check polyfills
-    if (typeof window !== 'undefined' && !window.global) {
-      console.warn("Global polyfill not detected, applying now");
-      // @ts-ignore
-      window.global = window;
+    // Verify global polyfills are in place
+    if (typeof window === 'undefined' || typeof global === 'undefined') {
+      console.error("Global object not available - polyfills not loaded correctly");
+      
+      // Apply emergency polyfill if in browser context
+      if (typeof window !== 'undefined') {
+        console.warn("Applying emergency global polyfill");
+        // @ts-ignore
+        window.global = window;
+        // @ts-ignore
+        global = window;
+      } else {
+        return false;
+      }
     }
     
+    // Verify Buffer polyfill
+    if (typeof Buffer === 'undefined' && typeof window !== 'undefined') {
+      console.warn("Buffer polyfill not detected, applying emergency polyfill");
+      try {
+        // @ts-ignore
+        window.Buffer = require('buffer/').Buffer;
+      } catch (e) {
+        console.error("Failed to apply Buffer polyfill:", e);
+      }
+    }
+    
+    // Configure Amplify
     Amplify.configure(awsConfig);
     console.log("Amplify initialized successfully");
     return true;

@@ -4,10 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Amplify } from 'aws-amplify';
-import awsConfig from "./aws-config";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { initializeAmplify } from "./utils/amplify-helpers";
 
 // Auth Routes
 import Onboarding1 from "./pages/login/Onboarding1";
@@ -21,15 +20,8 @@ import FindPassword from "./pages/login/FindPassword";
 import ProfileSetup from "./pages/login/ProfileSetup";
 import TermsAgreement from "./pages/login/TermsAgreement";
 
-// Configure Amplify
-// This needs to happen after the polyfills in main.tsx are applied
-try {
-  console.log("Attempting to configure Amplify...");
-  Amplify.configure(awsConfig);
-  console.log("Amplify configuration successful");
-} catch (error) {
-  console.error("Error configuring Amplify:", error);
-}
+// Configure Amplify using our helper function
+initializeAmplify();
 
 const queryClient = new QueryClient();
 
