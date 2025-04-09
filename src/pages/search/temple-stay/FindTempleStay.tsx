@@ -31,7 +31,8 @@ const FindTempleStay = () => {
   const [showGuestSelector, setShowGuestSelector] = useState(false);
   const [guestCount, setGuestCount] = useState(1);
 
-  const typedLocations = typedData(locations);
+  // Properly type the data using the typedData utility
+  const typedLocations = typedData<typeof locations>(locations);
   const typedSearchRankings = typedData<SearchRanking[]>(templeStaySearchRankings);
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

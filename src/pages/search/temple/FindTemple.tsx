@@ -11,7 +11,8 @@ const FindTemple = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
   
-  const typedRegionTags = typedData(regionTags);
+  // Properly type the data using the typedData utility
+  const typedRegionTags = typedData<typeof regionTags>(regionTags);
   const typedSearchRankings = typedData<SearchRanking[]>(regionSearchRankings);
   
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
