@@ -53,7 +53,11 @@ const SearchResults = () => {
       const results = searchTempleStays(searchTerm);
       setTempleStays(typedData<TempleStay[]>(results));
     } else {
-      setTempleStays([]);
+      // If no search term, get all temple stays
+      import('/public/data/templeStayData/templeStayRepository').then(({ getTempleStayList }) => {
+        const allTempleStays = getTempleStayList();
+        setTempleStays(typedData<TempleStay[]>(allTempleStays));
+      });
     }
     setLoading(false);
   }, [query, region]);
@@ -131,7 +135,7 @@ const SearchResults = () => {
             onClick={() => navigate('/search/temple-stay')}
           >
             <Users className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600">성인 {guestCount}</span>
+            <span className="text-sm text-gray-600">성인 {guestCount}명</span>
           </Button>
         </div>
 

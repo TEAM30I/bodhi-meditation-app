@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Search, MapPin, Calendar, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Search, MapPin, Calendar, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -129,6 +129,15 @@ const SearchHome = () => {
               }}
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            {searchValue && (
+              <button 
+                type="button"
+                onClick={() => setSearchValue('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            )}
           </div>
 
           {activeTab === 'temple-stay' && (
@@ -191,7 +200,10 @@ const SearchHome = () => {
             {activeTab === 'temple' ? '많이 둘러본 사찰' : '많이 찾는 지역'}
           </h2>
           <div className="grid grid-cols-2 gap-y-3">
-            {(activeTab === 'temple' ? regionSearchRankings : templeStaySearchRankings).slice(0, 8).map((item, index) => (
+            {(activeTab === 'temple' ? 
+              typedData(regionSearchRankings) : 
+              typedData(templeStaySearchRankings)
+            ).slice(0, 8).map((item, index) => (
               <div key={item.id} className="flex items-center">
                 <span className="text-[#DE7834] font-bold w-6">{index + 1}</span>
                 <span 
