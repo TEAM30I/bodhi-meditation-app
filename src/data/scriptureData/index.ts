@@ -2,7 +2,6 @@
 // This file re-exports everything from the public/data folder to maintain backwards compatibility
 // Import from public/data/scriptureData
 import { 
-  scriptureTexts,
   scriptureCategories,
   readingSchedule,
   bookmarks,
@@ -12,7 +11,9 @@ import {
   readingHistory
 } from '../../../public/data/scriptureData/scriptureRepository';
 
-// Export scriptureTexts object
+import { scriptureTexts } from '../../../public/data/scriptureData';
+
+// Export all data
 export { 
   scriptureTexts,
   scriptureCategories,

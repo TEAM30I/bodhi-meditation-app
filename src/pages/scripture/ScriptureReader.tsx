@@ -18,7 +18,7 @@ const ScriptureReader = () => {
   
   const contentRef = useRef<HTMLDivElement>(null);
   
-  const scripture = Object.values(scriptureTexts).find(s => s.title === id);
+  const scripture = id ? scriptureTexts[id as keyof typeof scriptureTexts] : undefined;
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -33,8 +33,8 @@ const ScriptureReader = () => {
   }
 
   // For this implementation we're using the first chapter
-  const currentChapter = scripture.chapters[0];
-  const content = activeTab === 'original' ? currentChapter.original : currentChapter.explanation;
+  const currentChapter = scripture.chapters && scripture.chapters.length > 0 ? scripture.chapters[0] : null;
+  const content = currentChapter ? (activeTab === 'original' ? currentChapter.original : currentChapter.explanation) : '';
   
   const handleBackClick = () => {
     navigate('/scripture');
@@ -115,14 +115,18 @@ const ScriptureReader = () => {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-bold text-lg mb-4">{currentChapter.title}</h2>
-        <div className="mb-4">
-          {content.split('\n').map((paragraph, index) => (
-            <p key={index} className="mb-4 leading-relaxed">
-              {paragraph}
-            </p>
-          ))}
-        </div>
+        {currentChapter && (
+          <>
+            <h2 className="font-bold text-lg mb-4">{currentChapter.title}</h2>
+            <div className="mb-4">
+              {content.split('\n').map((paragraph, index) => (
+                <p key={index} className="mb-4 leading-relaxed">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          </>
+        )}
       </div>
       
       {/* Page navigation buttons - Only show when controls are visible */}
@@ -172,7 +176,7 @@ const ScriptureReader = () => {
               경전 설정
             </h3>
             
-            {/* Settings content from the fifth image */}
+            {/* Settings content */}
             <div className="space-y-6">
               <div className="space-y-3">
                 <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>

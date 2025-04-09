@@ -1,174 +1,197 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin } from 'lucide-react';
+import { ArrowLeft, X, Search, Calendar, Users, ChevronDown } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DateRange } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { DateRangePicker } from '@/components/search/DateRangePicker';
+import DateRangePicker from '@/components/search/DateRangePicker';
 import GuestSelector from '@/components/search/GuestSelector';
-import { locations } from '@/data/dataRepository';
+
+type RegionType = {
+  name: string;
+  active: boolean;
+};
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
-  const [selectedLocation, setSelectedLocation] = useState('전국');
-  const [showLocationSelector, setShowLocationSelector] = useState(false);
-  const [dateRange, setDateRange] = useState<{
-    from: Date;
-    to: Date;
-  }>({
+  const [searchQuery, setSearchQuery] = useState("");
+  const [openDatePicker, setOpenDatePicker] = useState(false);
+  const [openGuestSelector, setOpenGuestSelector] = useState(false);
+  const [activeRegion, setActiveRegion] = useState<string>("전체");
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(),
-    to: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default to tomorrow
+    to: new Date(new Date().setDate(new Date().getDate() + 1))
   });
-  const [guests, setGuests] = useState(2); // Default 2 guests
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [showGuestSelector, setShowGuestSelector] = useState(false);
-  
-  // Set default values for date range - tomorrow to day after tomorrow
-  useEffect(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const dayAfterTomorrow = new Date();
-    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-    
-    setDateRange({
-      from: tomorrow,
-      to: dayAfterTomorrow
-    });
-  }, []);
+  const [guestCount, setGuestCount] = useState(2);
+
+  // 정의된 지역 목록
+  const regions: RegionType[] = [
+    { name: "전체", active: true },
+    { name: "서울/경기", active: false },
+    { name: "강원", active: false },
+    { name: "경상", active: false },
+    { name: "전라", active: false },
+    { name: "충청", active: false },
+    { name: "제주", active: false }
+  ];
+
+  // 테마 필터
+  const themes: RegionType[] = [
+    { name: "전체", active: true },
+    { name: "사찰 체험", active: false },
+    { name: "명상", active: false },
+    { name: "템플스테이", active: false },
+    { name: "불교 문화", active: false }
+  ];
 
   const handleSearch = () => {
-    navigate('/search/temple-stay/results', {
-      state: {
-        location: selectedLocation,
+    navigate('/search/temple-stay/results', { 
+      state: { 
+        query: searchQuery,
         dateRange,
-        guests
-      }
-    });
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('ko-KR', {
-      month: 'short',
-      day: 'numeric',
-      weekday: 'short'
+        guestCount,
+        region: activeRegion
+      } 
     });
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="pt-8 pb-6 px-6 bg-white">
-        <h1 className="text-2xl font-bold mb-1">템플 스테이 찾기</h1>
-        <p className="text-gray-500">전국 사찰의 체험 프로그램을 만나보세요</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="sticky top-0 z-10 bg-white w-full px-5 py-4 flex items-center border-b">
+        <button 
+          onClick={() => navigate(-1)}
+          className="mr-4"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <div className="flex-1">
+          <h1 className="text-lg font-bold">템플스테이 찾기</h1>
+        </div>
       </div>
 
-      {/* Search Form */}
-      <div className="px-6">
-        {/* Location Selector */}
-        <div className="mb-4 relative">
-          <div 
-            className="flex items-center p-4 border rounded-lg shadow-sm"
-            onClick={() => setShowLocationSelector(!showLocationSelector)}
-          >
-            <MapPin className="text-gray-400 mr-2" size={20} />
-            <div>
-              <p className="text-sm text-gray-500">위치</p>
-              <p className="font-medium">{selectedLocation}</p>
-            </div>
-          </div>
-          
-          {/* Location Dropdown */}
-          {showLocationSelector && (
-            <div className="absolute top-full left-0 right-0 bg-white border rounded-lg mt-1 shadow-lg z-10">
-              {locations.map((location) => (
-                <div 
-                  key={location}
-                  className="p-3 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setSelectedLocation(location);
-                    setShowLocationSelector(false);
-                  }}
-                >
-                  {location}
-                </div>
-              ))}
-            </div>
+      <div className="p-5 space-y-6">
+        {/* 검색창 */}
+        <div className="relative">
+          <Input
+            type="text"
+            placeholder="템플스테이 이름을 검색하세요"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 py-6 rounded-xl border-gray-300 w-full"
+          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          {searchQuery && (
+            <button 
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              onClick={() => setSearchQuery("")}
+            >
+              <X size={18} />
+            </button>
           )}
         </div>
 
-        {/* Date Selector */}
-        <div className="mb-4">
-          <div 
-            className="p-4 border rounded-lg shadow-sm"
-            onClick={() => setShowCalendar(!showCalendar)}
+        {/* 날짜 및 인원 선택 */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="flex-1 justify-between font-normal text-gray-700 border-gray-300 py-6"
+            onClick={() => setOpenDatePicker(true)}
           >
-            <p className="text-sm text-gray-500">날짜</p>
-            <p className="font-medium">
-              {formatDate(dateRange.from)} - {formatDate(dateRange.to)}
-            </p>
-          </div>
-          
-          {showCalendar && (
-            <div className="mt-2 border rounded-lg shadow-lg">
-              <DateRangePicker 
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-                onClose={() => setShowCalendar(false)}
-              />
+            <div className="flex items-center">
+              <Calendar className="mr-2 h-4 w-4" />
+              <span>{dateRange.from ? 
+                `${dateRange.from.getMonth() + 1}/${dateRange.from.getDate()}` : 
+                "체크인"} - {dateRange.to ? 
+                `${dateRange.to.getMonth() + 1}/${dateRange.to.getDate()}` : 
+                "체크아웃"}</span>
             </div>
-          )}
+            <ChevronDown className="h-4 w-4 opacity-50" />
+          </Button>
+          
+          <Button
+            variant="outline"
+            className="flex-1 justify-between font-normal text-gray-700 border-gray-300 py-6"
+            onClick={() => setOpenGuestSelector(true)}
+          >
+            <div className="flex items-center">
+              <Users className="mr-2 h-4 w-4" />
+              <span>인원 {guestCount}명</span>
+            </div>
+            <ChevronDown className="h-4 w-4 opacity-50" />
+          </Button>
         </div>
 
-        {/* Guest Selector */}
-        <div className="mb-6">
-          <div 
-            className="p-4 border rounded-lg shadow-sm"
-            onClick={() => setShowGuestSelector(!showGuestSelector)}
-          >
-            <p className="text-sm text-gray-500">인원</p>
-            <p className="font-medium">{guests}명</p>
+        {/* 지역 필터 */}
+        <div>
+          <h3 className="mb-3 font-medium">지역</h3>
+          <div className="flex flex-wrap gap-2">
+            {regions.map((region) => (
+              <button
+                key={region.name}
+                className={`px-4 py-2 rounded-full text-sm ${
+                  activeRegion === region.name
+                    ? "bg-black text-white" 
+                    : "bg-white text-gray-700 border border-gray-300"
+                }`}
+                onClick={() => setActiveRegion(region.name)}
+              >
+                {region.name}
+              </button>
+            ))}
           </div>
-          
-          {showGuestSelector && (
-            <div className="mt-2 border rounded-lg shadow-lg p-4">
-              <GuestSelector 
-                value={guests}
-                onChange={setGuests}
-                onClose={() => setShowGuestSelector(false)}
-              />
-            </div>
-          )}
         </div>
 
-        {/* Search Button */}
+        {/* 테마 필터 */}
+        <div>
+          <h3 className="mb-3 font-medium">테마</h3>
+          <div className="flex flex-wrap gap-2">
+            {themes.map((theme) => (
+              <button
+                key={theme.name} 
+                className={`px-4 py-2 rounded-full text-sm ${
+                  theme.active 
+                    ? "bg-black text-white" 
+                    : "bg-white text-gray-700 border border-gray-300"
+                }`}
+              >
+                {theme.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 검색 버튼 */}
         <Button 
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 rounded-lg text-lg font-medium"
+          className="w-full bg-black hover:bg-gray-900 text-white py-6"
           onClick={handleSearch}
         >
-          <Search className="mr-2" size={20} />
           검색하기
         </Button>
       </div>
-      
-      {/* Popular Destinations */}
-      <div className="mt-10 px-6">
-        <h2 className="text-xl font-bold mb-4">인기 템플스테이 목적지</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {locations.slice(0, 4).map((location) => (
-            <div 
-              key={location}
-              className="bg-gray-100 rounded-lg p-4 cursor-pointer"
-              onClick={() => {
-                setSelectedLocation(location);
-                handleSearch();
-              }}
-            >
-              <p className="font-medium">{location}</p>
-              <p className="text-sm text-gray-500">10+ 프로그램</p>
-            </div>
-          ))}
-        </div>
-      </div>
+
+      {/* Date Picker Dialog */}
+      <Dialog open={openDatePicker} onOpenChange={setOpenDatePicker}>
+        <DialogContent className="sm:max-w-[425px] p-0">
+          <DateRangePicker 
+            dateRange={dateRange}
+            onChange={setDateRange}
+            onClose={() => setOpenDatePicker(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Guest Selector Dialog */}
+      <Dialog open={openGuestSelector} onOpenChange={setOpenGuestSelector}>
+        <DialogContent className="sm:max-w-[425px] p-0">
+          <GuestSelector
+            value={guestCount}
+            onChange={setGuestCount}
+            onClose={() => setOpenGuestSelector(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

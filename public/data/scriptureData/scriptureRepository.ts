@@ -158,16 +158,13 @@ export const readingHistory = [
   }
 ];
 
-// Import the scriptureTexts separately to avoid circular dependencies
-import { scriptureTexts } from './index';
-
-// Sample scripture data - this needs to come after the import to avoid circular dependency
+// Sample scripture data - don't import scriptureTexts to avoid circular dependency
 export const scriptures: Scripture[] = [
   {
     id: 'diamond-sutra',
     title: '금강경',
     categories: ['금강경', '대승경전'],
-    content: scriptureTexts['금강경'].content,
+    content: '如是我聞：一時佛在舍衛國祇樹給孤獨園，與大比丘衆千二百五十人俱。爾時，世尊食時，著衣持缽，入舍衛大城乞食。於其城中，次第乞已，還至本處。飯食訖，收衣缽，洗足已，敷座而坐。...',
     hasStarted: true,
     lastReadPosition: 120,
     progress: 25.5,
@@ -177,7 +174,7 @@ export const scriptures: Scripture[] = [
     id: 'heart-sutra',
     title: '반야심경',
     categories: ['반야심', '대승경전'],
-    content: scriptureTexts['반야심경'].content,
+    content: '관자재보살이 깊은 반야바라밀다를 행할 때 오온이 공함을 비추어 보고 일체의 고통에서 건지느니라...',
     hasStarted: true,
     lastReadPosition: 50,
     progress: 87.8,

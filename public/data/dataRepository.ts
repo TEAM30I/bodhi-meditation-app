@@ -10,9 +10,9 @@ import {
   Scripture, 
   Bookmark, 
   ReadingProgress,
-  scriptureColorSchemes,
-  scriptureTexts 
+  scriptureColorSchemes
 } from './scriptureData/scriptureRepository';
+import { scriptureTexts } from './scriptureData';
 import { newsData, NewsItem } from './newsRepository';
 import { regionSearchRankings, SearchRanking } from './searchRankingRepository';
 import { imageRepository } from './imageRepository';
