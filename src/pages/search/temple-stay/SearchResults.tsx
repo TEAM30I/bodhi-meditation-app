@@ -6,22 +6,57 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleStayItem from '@/components/search/TempleStayItem';
 import { searchTempleStays, TempleStay } from '/public/data/templeStayData/templeStayRepository';
+import { typedData } from '@/utils/typeUtils';
 
 const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const query = searchParams.get('query') || '';
+  const region = searchParams.get('region') || '';
+  const guestCount = searchParams.get('guests') ? parseInt(searchParams.get('guests') || '1') : 1;
   
-  const [searchValue, setSearchValue] = useState(query);
+  const [searchValue, setSearchValue] = useState(query || region);
   const [templeStays, setTempleStays] = useState<TempleStay[]>([]);
   const [activeFilter, setActiveFilter] = useState<'popular' | 'recent'>('popular');
+  const [loading, setLoading] = useState(true);
+
+  // Format the date ranges for display
+  const from = searchParams.get('from') || formatDate(getTomorrow());
+  const to = searchParams.get('to') || formatDate(getDayAfterTomorrow());
+
+  function getTomorrow() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  }
+
+  function getDayAfterTomorrow() {
+    const dayAfter = new Date();
+    dayAfter.setDate(dayAfter.getDate() + 2);
+    return dayAfter;
+  }
+
+  function formatDate(date: Date) {
+    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const weekday = weekdays[date.getDay()];
+    return `${month}.${day}(${weekday})`;
+  }
 
   useEffect(() => {
-    // Search temple stays based on query
-    const results = searchTempleStays(query);
-    setTempleStays(results);
-  }, [query]);
+    setLoading(true);
+    // Search temple stays based on query or region
+    const searchTerm = query || region;
+    if (searchTerm) {
+      const results = searchTempleStays(searchTerm);
+      setTempleStays(typedData<TempleStay[]>(results));
+    } else {
+      setTempleStays([]);
+    }
+    setLoading(false);
+  }, [query, region]);
 
   const handleClearSearch = () => {
     setSearchValue('');
@@ -84,17 +119,19 @@ const SearchResults = () => {
             variant="outline"
             size="sm"
             className="flex items-center gap-1 rounded-lg flex-1 bg-white"
+            onClick={() => navigate('/search/temple-stay')}
           >
             <Calendar className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600">3.24(일) - 3.25(월)</span>
+            <span className="text-sm text-gray-600">{from} - {to}</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             className="flex items-center gap-1 rounded-lg flex-1 bg-white"
+            onClick={() => navigate('/search/temple-stay')}
           >
             <Users className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600">성인 2, 아이 0</span>
+            <span className="text-sm text-gray-600">성인 {guestCount}</span>
           </Button>
         </div>
 
@@ -117,22 +154,28 @@ const SearchResults = () => {
           </Button>
         </div>
         
-        <div className="space-y-4">
-          {templeStays.map((templeStay) => (
-            <TempleStayItem
-              key={templeStay.id}
-              templeStay={templeStay}
-              onClick={() => handleTempleStayClick(templeStay.id)}
-            />
-          ))}
-          
-          {templeStays.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">검색 결과가 없습니다.</p>
-              <p className="text-gray-400 text-sm mt-2">다른 검색어를 입력해 보세요.</p>
-            </div>
-          )}
-        </div>
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]"></div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {templeStays.length > 0 ? (
+              templeStays.map((templeStay) => (
+                <TempleStayItem
+                  key={templeStay.id}
+                  templeStay={templeStay}
+                  onClick={() => handleTempleStayClick(templeStay.id)}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">검색 결과가 없습니다.</p>
+                <p className="text-gray-400 text-sm mt-2">다른 검색어를 입력해 보세요.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

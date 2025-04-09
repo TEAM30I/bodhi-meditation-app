@@ -7,23 +7,53 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
+import { typedData } from '@/utils/typeUtils';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
+
+// Import data from the repository
 import { templeStaySearchRankings } from '/public/data/searchRankingRepository';
 import { locations } from '/public/data/templeStayData/templeStayRepository';
-import { castRepository } from '@/utils/typeAssertions';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLocation, setActiveLocation] = useState('서울');
-  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
+  
+  // Set default dates to tomorrow and day after tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const dayAfterTomorrow = new Date();
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  
+  const [dateRange, setDateRange] = useState<DateRange>({ 
+    from: tomorrow, 
+    to: dayAfterTomorrow 
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showGuestSelector, setShowGuestSelector] = useState(false);
   const [guestCount, setGuestCount] = useState(1);
   
-  const typedRankings = castRepository<typeof templeStaySearchRankings>(templeStaySearchRankings);
-  const typedLocations = castRepository<typeof locations>(locations);
+  // Use the typedData utility to safely cast repository data
+  const typedRankings = typedData<typeof templeStaySearchRankings>(templeStaySearchRankings);
+  const typedLocations = typedData<typeof locations>(locations);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/search/temple-stay/results?query=${searchTerm}`);
+    let queryParams = `query=${searchTerm || activeLocation}`;
+    
+    if (dateRange.from) {
+      queryParams += `&from=${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })}`;
+    }
+    
+    if (dateRange.to) {
+      queryParams += `&to=${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
+    }
+    
+    queryParams += `&guests=${guestCount}`;
+    
+    navigate(`/search/temple-stay/results?${queryParams}`);
   };
 
   const handleLocationClick = (location: string) => {
@@ -32,10 +62,20 @@ const FindTempleStay = () => {
 
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range);
+    if (range.from && range.to) {
+      setShowDatePicker(false);
+    }
   };
 
   const handleGuestCountChange = (count: number) => {
     setGuestCount(count);
+  };
+
+  const formatDateRange = () => {
+    if (dateRange.from && dateRange.to) {
+      return `${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })} - ${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
+    }
+    return '날짜 선택';
   };
 
   return (
@@ -108,29 +148,42 @@ const FindTempleStay = () => {
 
         <div className="mt-6">
           <h2 className="text-base font-semibold mb-3">날짜</h2>
-          <div className="flex items-center space-x-2 bg-white p-3 rounded-lg border border-gray-200">
+          <div
+            className="flex items-center space-x-2 bg-white p-3 rounded-lg border border-gray-200 cursor-pointer"
+            onClick={() => setShowDatePicker(!showDatePicker)}
+          >
             <Calendar className="text-gray-400" />
-            <span className="text-gray-600">날짜 선택</span>
+            <span className="text-gray-600">{formatDateRange()}</span>
           </div>
-          <DateRangePicker 
-            dateRange={dateRange} 
-            onChange={handleDateRangeChange} 
-          />
+          {showDatePicker && (
+            <DateRangePicker 
+              dateRange={dateRange} 
+              onChange={handleDateRangeChange} 
+            />
+          )}
         </div>
 
         <div className="mt-6">
           <h2 className="text-base font-semibold mb-3">인원</h2>
-          <div className="flex items-center space-x-2 bg-white p-3 rounded-lg border border-gray-200">
+          <div
+            className="flex items-center space-x-2 bg-white p-3 rounded-lg border border-gray-200 cursor-pointer"
+            onClick={() => setShowGuestSelector(!showGuestSelector)}
+          >
             <Users className="text-gray-400" />
             <span className="text-gray-600">{guestCount}명</span>
           </div>
-          <GuestSelector 
-            value={guestCount} 
-            onChange={handleGuestCountChange} 
-          />
+          {showGuestSelector && (
+            <GuestSelector 
+              value={guestCount} 
+              onChange={handleGuestCountChange} 
+            />
+          )}
         </div>
 
-        <Button className="w-full mt-8 bg-[#DE7834] hover:bg-[#C56A2D]">
+        <Button 
+          className="w-full mt-8 bg-[#DE7834] hover:bg-[#C56A2D]"
+          onClick={handleSearchSubmit}
+        >
           검색하기
         </Button>
       </div>

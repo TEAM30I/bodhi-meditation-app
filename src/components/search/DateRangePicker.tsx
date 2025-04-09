@@ -20,42 +20,21 @@ export interface DateRangePickerProps {
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({ dateRange, onChange }) => {
   return (
     <div className="mt-2">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className="w-full justify-start text-left font-normal bg-white"
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateRange.from ? (
-              dateRange.to ? (
-                <>
-                  {format(dateRange.from, 'PPP', { locale: ko })} -{' '}
-                  {format(dateRange.to, 'PPP', { locale: ko })}
-                </>
-              ) : (
-                format(dateRange.from, 'PPP', { locale: ko })
-              )
-            ) : (
-              <span className="text-gray-500">날짜를 선택하세요</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="range"
-            selected={{
-              from: dateRange.from,
-              to: dateRange.to,
-            }}
-            onSelect={(range: any) => {
-              onChange(range || { from: undefined, to: undefined });
-            }}
-            locale={ko}
-            numberOfMonths={2}
-          />
-        </PopoverContent>
-      </Popover>
+      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+        <Calendar
+          mode="range"
+          selected={{
+            from: dateRange.from,
+            to: dateRange.to,
+          }}
+          onSelect={(range: any) => {
+            onChange(range || { from: undefined, to: undefined });
+          }}
+          locale={ko}
+          numberOfMonths={2}
+          className="pointer-events-auto"
+        />
+      </div>
     </div>
   );
 };

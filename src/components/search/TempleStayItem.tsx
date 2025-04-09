@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Heart } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { TempleStay } from '/public/data/templeStayData/templeStayRepository';
 
@@ -23,6 +23,12 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
           alt={typedTempleStay.templeName} 
           className="w-full h-40 object-cover" 
         />
+        {typedTempleStay.likeCount && (
+          <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
+            <Heart className="w-3 h-3 mr-1 fill-white text-white" />
+            <span>{typedTempleStay.likeCount}</span>
+          </div>
+        )}
       </div>
       
       <div className="p-4">
@@ -32,7 +38,7 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
           <span>{typedTempleStay.location} • {typedTempleStay.direction}</span>
         </div>
         <div className="text-gray-700 text-sm font-medium">
-          다른 날짜 확인
+          {typedTempleStay.price.toLocaleString()}원 / 1인
         </div>
       </div>
     </div>

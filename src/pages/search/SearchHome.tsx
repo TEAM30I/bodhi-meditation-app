@@ -1,22 +1,54 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Search, MapPin, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
+import { GuestSelector } from '@/components/search/GuestSelector';
 import { regionSearchRankings, templeStaySearchRankings } from '/public/data/searchRankingRepository';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { typedData } from '@/utils/typeUtils';
 
 const SearchHome = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'temple-stay' | 'temple'>('temple');
   const [searchValue, setSearchValue] = useState('');
+  
+  // Set default dates to tomorrow and day after tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const dayAfterTomorrow = new Date();
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  
+  const [dateRange, setDateRange] = useState<DateRange>({ 
+    from: tomorrow, 
+    to: dayAfterTomorrow 
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showGuestSelector, setShowGuestSelector] = useState(false);
+  const [guestCount, setGuestCount] = useState(1);
 
   const handleSearch = () => {
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${searchValue}`);
     } else {
-      navigate(`/search/temple-stay/results?query=${searchValue}`);
+      let queryParams = `query=${searchValue}`;
+      
+      if (dateRange.from) {
+        queryParams += `&from=${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })}`;
+      }
+      
+      if (dateRange.to) {
+        queryParams += `&to=${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
+      }
+      
+      queryParams += `&guests=${guestCount}`;
+      
+      navigate(`/search/temple-stay/results?${queryParams}`);
     }
   };
 
@@ -29,7 +61,29 @@ const SearchHome = () => {
   };
 
   const handleNearbySearch = () => {
-    navigate('/search/temple/results?nearby=true');
+    if (activeTab === 'temple') {
+      navigate('/search/temple/results?nearby=true');
+    } else {
+      navigate('/search/temple-stay/results?nearby=true');
+    }
+  };
+
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+    if (range.from && range.to) {
+      setShowDatePicker(false);
+    }
+  };
+
+  const handleGuestCountChange = (count: number) => {
+    setGuestCount(count);
+  };
+
+  const formatDateRange = () => {
+    if (dateRange.from && dateRange.to) {
+      return `${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })} - ${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
+    }
+    return '날짜 선택';
   };
 
   return (
@@ -79,16 +133,47 @@ const SearchHome = () => {
 
           {activeTab === 'temple-stay' && (
             <div className="flex gap-3 mt-3">
-              <div className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-3 border border-gray-200">
+              <div 
+                className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-3 border border-gray-200 cursor-pointer"
+                onClick={() => setShowDatePicker(!showDatePicker)}
+              >
                 <Calendar className="h-5 w-5 text-gray-500" />
-                <span className="text-sm text-gray-600">날짜 선택</span>
+                <span className="text-sm text-gray-600">{formatDateRange()}</span>
               </div>
-              <div className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-3 border border-gray-200">
+              <div 
+                className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-3 border border-gray-200 cursor-pointer"
+                onClick={() => setShowGuestSelector(!showGuestSelector)}
+              >
                 <Users className="h-5 w-5 text-gray-500" />
-                <span className="text-sm text-gray-600">인원 선택</span>
+                <span className="text-sm text-gray-600">성인 {guestCount}명</span>
               </div>
             </div>
           )}
+          
+          {showDatePicker && (
+            <div className="mt-2">
+              <DateRangePicker 
+                dateRange={dateRange} 
+                onChange={handleDateRangeChange} 
+              />
+            </div>
+          )}
+          
+          {showGuestSelector && (
+            <div className="mt-2">
+              <GuestSelector 
+                value={guestCount} 
+                onChange={handleGuestCountChange} 
+              />
+            </div>
+          )}
+          
+          <Button 
+            className="w-full mt-4 bg-[#DE7834] hover:bg-[#C56A2D]"
+            onClick={handleSearch}
+          >
+            검색하기
+          </Button>
         </div>
 
         {/* Nearby Search Button */}

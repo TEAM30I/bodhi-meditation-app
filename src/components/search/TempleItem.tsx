@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Heart } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { Temple } from '/public/data/templeData/templeRepository';
 
@@ -18,11 +18,19 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
       onClick={onClick}
     >
       <div className="flex">
-        <img 
-          src={typedTemple.imageUrl} 
-          alt={typedTemple.name} 
-          className="w-24 h-24 object-cover" 
-        />
+        <div className="relative w-24 h-24">
+          <img 
+            src={typedTemple.imageUrl} 
+            alt={typedTemple.name} 
+            className="w-full h-full object-cover" 
+          />
+          {typedTemple.likeCount && (
+            <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
+              <Heart className="w-3 h-3 mr-1 fill-white text-white" />
+              <span>{typedTemple.likeCount}</span>
+            </div>
+          )}
+        </div>
         
         <div className="p-3 flex-1">
           <h3 className="font-semibold text-base text-gray-800 mb-1">{typedTemple.name}</h3>

@@ -20,7 +20,7 @@ export const GuestSelector: React.FC<GuestSelectorProps> = ({ value, onChange })
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 mt-2 border border-gray-200">
+    <div className="bg-white rounded-lg p-4 mt-2 border border-gray-200 shadow-sm">
       <div className="flex justify-between items-center">
         <span className="text-gray-700">성인</span>
         <div className="flex items-center space-x-3">

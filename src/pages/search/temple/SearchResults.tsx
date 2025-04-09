@@ -1,28 +1,43 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search, X, SlidersHorizontal, Home } from 'lucide-react';
+import { ArrowLeft, Search, X, SlidersHorizontal, Home, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleItem from '@/components/search/TempleItem';
 import { searchTemples, Temple } from '/public/data/templeData/templeRepository';
+import { typedData } from '@/utils/typeUtils';
 
 const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const query = searchParams.get('query') || '';
+  const region = searchParams.get('region') || '';
   const nearby = searchParams.get('nearby') === 'true';
   
-  const [searchValue, setSearchValue] = useState(query);
+  const [searchValue, setSearchValue] = useState(query || region);
   const [temples, setTemples] = useState<Temple[]>([]);
   const [activeFilter, setActiveFilter] = useState<'popular' | 'recent'>('popular');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Search temples based on query
-    const results = searchTemples(query);
-    setTemples(results);
-  }, [query]);
+    setLoading(true);
+    // Search temples based on query or region
+    const searchTerm = query || region;
+    if (searchTerm) {
+      const results = searchTemples(searchTerm);
+      setTemples(typedData<Temple[]>(results));
+    } else if (nearby) {
+      // If nearby search, we'd typically use geolocation data
+      // For now, let's just return all temples as a placeholder
+      const results = searchTemples("");
+      setTemples(typedData<Temple[]>(results));
+    } else {
+      setTemples([]);
+    }
+    setLoading(false);
+  }, [query, region, nearby]);
 
   const handleClearSearch = () => {
     setSearchValue('');
@@ -99,22 +114,28 @@ const SearchResults = () => {
           </Button>
         </div>
         
-        <div className="space-y-4">
-          {temples.map((temple) => (
-            <TempleItem
-              key={temple.id}
-              temple={temple}
-              onClick={() => handleTempleClick(temple.id)}
-            />
-          ))}
-          
-          {temples.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">검색 결과가 없습니다.</p>
-              <p className="text-gray-400 text-sm mt-2">다른 검색어를 입력해 보세요.</p>
-            </div>
-          )}
-        </div>
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]"></div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {temples.length > 0 ? (
+              temples.map((temple) => (
+                <TempleItem
+                  key={temple.id}
+                  temple={temple}
+                  onClick={() => handleTempleClick(temple.id)}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">검색 결과가 없습니다.</p>
+                <p className="text-gray-400 text-sm mt-2">다른 검색어를 입력해 보세요.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
