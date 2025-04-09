@@ -5,7 +5,7 @@ import { Search, Calendar, Users, MapPin, ArrowLeft, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { DateRange } from 'react-day-picker';
-import { DateRangePicker } from '@/components/search/DateRangePicker';
+import DateRangePicker from '@/components/search/DateRangePicker';
 import GuestSelector from '@/components/search/GuestSelector';
 import { regionSearchRankings } from '@/data/searchRankingRepository';
 
@@ -16,7 +16,7 @@ const SearchHome = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGuestSelector, setShowGuestSelector] = useState(false);
-  const [date, setDate] = useState<DateRange | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [guests, setGuests] = useState<{ adults: number; children: number }>({ adults: 2, children: 0 });
   
   const handleGuestsChange = (newValue: { adults: number; children: number }) => {
@@ -28,7 +28,7 @@ const SearchHome = () => {
     navigate('/search/temple-stay/results', { 
       state: { 
         searchTerm, 
-        date, 
+        date: dateRange, 
         guests 
       } 
     });
@@ -90,8 +90,8 @@ const SearchHome = () => {
           >
             <Calendar className="h-4 w-4 mr-2" />
             <span className="text-sm">
-              {date 
-                ? `${date.from?.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'})} - ${date.to?.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'})}`
+              {dateRange.from 
+                ? `${dateRange.from?.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'})} - ${dateRange.to?.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'})}`
                 : '날짜'}
             </span>
           </button>
@@ -116,11 +116,11 @@ const SearchHome = () => {
                 key={index}
                 className="bg-gray-100 rounded-full px-4 py-2 text-sm"
                 onClick={() => {
-                  setSearchTerm(region.keyword);
+                  setSearchTerm(region.query);
                   handleSearch();
                 }}
               >
-                {region.keyword}
+                {region.name}
               </button>
             ))}
           </div>
@@ -154,8 +154,8 @@ const SearchHome = () => {
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-4 w-full max-w-md mx-4">
             <DateRangePicker 
-              date={date}
-              onDateChange={setDate}
+              dateRange={dateRange}
+              onChange={setDateRange}
               onClose={() => setShowDatePicker(false)}
             />
           </div>

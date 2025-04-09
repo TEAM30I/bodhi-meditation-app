@@ -140,6 +140,19 @@ export const filterTempleStaysByTag = (tag: string) => {
   );
 };
 
+// Export regions for temple stays
+export const regions = [
+  "서울",
+  "대구",
+  "부산",
+  "속초",
+  "인천",
+  "제주",
+  "전주",
+  "경주",
+  "강릉"
+];
+
 // 위치 필터
 export const locations = [
   { name: "서울", active: true },

@@ -113,12 +113,14 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
       />
       
       {/* Apply Button */}
-      <Button 
-        className="w-full mt-6 bg-gray-900 hover:bg-black"
-        onClick={onClose}
-      >
-        선택 완료
-      </Button>
+      {onClose && (
+        <Button 
+          className="w-full mt-6 bg-gray-900 hover:bg-black"
+          onClick={onClose}
+        >
+          선택 완료
+        </Button>
+      )}
     </div>
   );
 };
