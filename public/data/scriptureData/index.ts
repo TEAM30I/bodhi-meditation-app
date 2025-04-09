@@ -87,5 +87,5 @@ export const scriptureTexts = {
   }
 };
 
-// Re-export everything from scriptureRepository
+// Export types and data from scriptureRepository
 export * from './scriptureRepository';

@@ -1,90 +1,76 @@
 
-import * as React from "react";
-import { Users } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import React from 'react';
+import { Minus, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface GuestSelectorProps {
-  adults: number;
-  children: number;
-  onAdultsChange: (value: number) => void;
-  onChildrenChange: (value: number) => void;
+  value: number;
+  onChange: (value: number) => void;
+  onClose?: () => void;
 }
 
-export function GuestSelector({ 
-  adults, 
-  children, 
-  onAdultsChange, 
-  onChildrenChange 
-}: GuestSelectorProps) {
-  const totalGuests = adults + children;
-  
+const GuestSelector: React.FC<GuestSelectorProps> = ({ value, onChange, onClose }) => {
+  const increment = () => {
+    if (value < 10) {
+      onChange(value + 1);
+    }
+  };
+
+  const decrement = () => {
+    if (value > 1) {
+      onChange(value - 1);
+    }
+  };
+
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="justify-start text-left font-normal w-full bg-[#F5F5F5] border-none"
-        >
-          <Users className="mr-2 h-4 w-4 text-gray-500" />
-          <span>{`성인 ${adults}명${children > 0 ? `, 아동 ${children}명` : ''}`}</span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80" align="start">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium">성인</div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-                onClick={() => onAdultsChange(Math.max(1, adults - 1))}
-                disabled={adults <= 1}
-              >
-                -
-              </Button>
-              <span className="w-8 text-center">{adults}</span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-                onClick={() => onAdultsChange(adults + 1)}
-              >
-                +
-              </Button>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium">아동</div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-                onClick={() => onChildrenChange(Math.max(0, children - 1))}
-                disabled={children <= 0}
-              >
-                -
-              </Button>
-              <span className="w-8 text-center">{children}</span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-                onClick={() => onChildrenChange(children + 1)}
-              >
-                +
-              </Button>
-            </div>
-          </div>
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="font-medium">인원 수</h3>
+        {onClose && (
+          <button 
+            className="text-gray-400 text-sm"
+            onClick={onClose}
+          >
+            닫기
+          </button>
+        )}
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <p>성인</p>
+        <div className="flex items-center">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={decrement}
+            disabled={value <= 1}
+            className="h-8 w-8 rounded-full"
+          >
+            <Minus size={16} />
+          </Button>
+          <span className="mx-4 w-8 text-center">{value}</span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={increment}
+            disabled={value >= 10}
+            className="h-8 w-8 rounded-full"
+          >
+            <Plus size={16} />
+          </Button>
         </div>
-      </PopoverContent>
-    </Popover>
+      </div>
+      
+      <div className="mt-6">
+        <Button 
+          className="w-full bg-gray-900 hover:bg-black text-white"
+          onClick={onClose}
+        >
+          완료
+        </Button>
+      </div>
+    </div>
   );
-}
+};
+
+export default GuestSelector;

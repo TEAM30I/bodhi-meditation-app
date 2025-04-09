@@ -1,6 +1,5 @@
 
 // Interface for Scripture data model
-import { scriptureTexts } from "./index";
 export interface Scripture {
   id: string;
   title: string;
@@ -159,13 +158,16 @@ export const readingHistory = [
   }
 ];
 
-// Sample scripture data
+// Import the scriptureTexts separately to avoid circular dependencies
+import { scriptureTexts } from './index';
+
+// Sample scripture data - this needs to come after the import to avoid circular dependency
 export const scriptures: Scripture[] = [
   {
     id: 'diamond-sutra',
     title: '금강경',
     categories: ['금강경', '대승경전'],
-    content: scriptureTexts['금강경']["content"],
+    content: scriptureTexts['금강경'].content,
     hasStarted: true,
     lastReadPosition: 120,
     progress: 25.5,
@@ -175,7 +177,7 @@ export const scriptures: Scripture[] = [
     id: 'heart-sutra',
     title: '반야심경',
     categories: ['반야심', '대승경전'],
-    content: scriptureTexts["반야심경"]["content"],
+    content: scriptureTexts['반야심경'].content,
     hasStarted: true,
     lastReadPosition: 50,
     progress: 87.8,

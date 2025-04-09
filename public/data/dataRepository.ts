@@ -9,16 +9,18 @@ import {
   bookmarks, 
   Scripture, 
   Bookmark, 
-  ReadingProgress 
+  ReadingProgress,
+  scriptureColorSchemes,
+  scriptureTexts 
 } from './scriptureData/scriptureRepository';
 import { newsData, NewsItem } from './newsRepository';
 import { regionSearchRankings, SearchRanking } from './searchRankingRepository';
 import { imageRepository } from './imageRepository';
-import { nearbyTemples, regionTags } from './templeData/templeData';
+import { regionTags } from './templeData/templeData';
 
 // All temples data - combine temple data from different sources
-// Make sure nearbyTemples has the same structure as temples
-export const allTemples = Object.values(temples).concat(nearbyTemples as unknown as Temple[]);
+// We no longer use nearbyTemples as they are already included in temples
+export const allTemples = Object.values(temples);
 
 // All temple stays data
 export const allTempleStays = Object.values(templeStays);
@@ -26,7 +28,6 @@ export const allTempleStays = Object.values(templeStays);
 // Export all data 
 export {
   temples,
-  nearbyTemples,
   regionTags,
   templeStays,
   locations,
@@ -36,7 +37,9 @@ export {
   bookmarks,
   newsData,
   regionSearchRankings,
-  imageRepository
+  imageRepository,
+  scriptureColorSchemes,
+  scriptureTexts
 };
 
 // Re-export types

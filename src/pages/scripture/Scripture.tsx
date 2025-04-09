@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { scriptures, readingSchedule } from '@/data/scriptureData';
+import { scriptures, readingSchedule, scriptureColorSchemes } from '@/data/scriptureData';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
 import ScriptureBottomNav from '@/components/ScriptureBottomNav';
 import ScriptureCalendar from '@/components/scripture/ScriptureCalendar';
@@ -13,16 +13,6 @@ import SettingsPanel from '@/components/scripture/SettingsPanel';
 const Scripture = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'reading' | 'calendar' | 'bookmark' | 'share' | 'settings'>('reading');
-
-  // 각 경전별 색상 매핑
-  const scriptureColors: Record<string, { bg: string, text: string }> = {
-    "금강경": { bg: "bg-black", text: "text-white" },
-    "반야심경": { bg: "bg-red-500", text: "text-white" },
-    "법화경": { bg: "bg-blue-500", text: "text-white" },
-    "화엄경": { bg: "bg-amber-500", text: "text-white" },
-    "용수경": { bg: "bg-green-500", text: "text-white" },
-    "반야심": { bg: "bg-red-500", text: "text-white" }
-  };
 
   const handleTabChange = (tab: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings') => {
     setActiveTab(tab);
@@ -54,18 +44,18 @@ const Scripture = () => {
               const matchingScripture = scriptures.find(
                 s => s.categories.includes(schedule.category)
               );
-
-              const color = scriptureColors[schedule.category]?.bg || "bg-gray-500";
-              const textColor = scriptureColors[schedule.category]?.text || "text-white";
               
               if (!matchingScripture) return null;
 
               return (
                 <ScriptureCard
                   key={schedule.id}
-                  scripture={matchingScripture}
-                  color={color}
-                  textColor={textColor}
+                  scripture={{
+                    id: matchingScripture.id,
+                    title: matchingScripture.title,
+                    progress: matchingScripture.progress || 0,
+                    colorScheme: matchingScripture.colorScheme || scriptureColorSchemes[schedule.category]
+                  }}
                 />
               );
             })}
@@ -83,16 +73,15 @@ const Scripture = () => {
                 
                 if (alreadyIncluded) return null;
                 
-                const category = scripture.categories[0];
-                const color = scriptureColors[category]?.bg || "bg-gray-500";
-                const textColor = scriptureColors[category]?.text || "text-white";
-                
                 return (
                   <ScriptureCard
                     key={scripture.id}
-                    scripture={scripture}
-                    color={color}
-                    textColor={textColor}
+                    scripture={{
+                      id: scripture.id,
+                      title: scripture.title,
+                      progress: scripture.progress || 0,
+                      colorScheme: scripture.colorScheme || scriptureColorSchemes[scripture.categories[0]]
+                    }}
                   />
                 );
               })}

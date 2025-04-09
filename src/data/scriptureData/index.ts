@@ -1,13 +1,8 @@
 
 // This file re-exports everything from the public/data folder to maintain backwards compatibility
 // Import from public/data/scriptureData
-import { scriptureTexts } from '../../../public/data/scriptureData';
-
-// Export scriptureTexts object
-export { scriptureTexts };
-
-// Export other data from scriptureRepository
-export { 
+import { 
+  scriptureTexts,
   scriptureCategories,
   readingSchedule,
   bookmarks,
@@ -16,6 +11,18 @@ export {
   scriptureColorSchemes,
   readingHistory
 } from '../../../public/data/scriptureData/scriptureRepository';
+
+// Export scriptureTexts object
+export { 
+  scriptureTexts,
+  scriptureCategories,
+  readingSchedule,
+  bookmarks,
+  scriptures,
+  calendarData,
+  scriptureColorSchemes,
+  readingHistory
+};
 
 // Use "export type" for type declarations to fix TS1205 errors
 export type { 

@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Bookmark, ChevronRight } from 'lucide-react';
-import { scriptures, readingSchedule, calendarData, scriptureColorSchemes } from '@/data/scriptureData';
+import { scriptures, calendarData } from '@/data/scriptureData';
 import ScriptureCard from '@/components/scripture/ScriptureCard';
 import ScriptureProgressPreview from '@/components/scripture/ScriptureProgressPreview';
 
@@ -16,7 +15,7 @@ const Scripture = () => {
       id: scripture.id,
       title: scripture.title,
       progress: scripture.progress || 0,
-      colorScheme: scripture.colorScheme || scriptureColorSchemes[scripture.title] || scriptureColorSchemes['금강경']
+      colorScheme: scripture.colorScheme || { bg: "bg-gray-500", text: "text-white", progressBg: "#FF4D00" }
     }));
   
   // Filter scriptures without progress
@@ -26,7 +25,7 @@ const Scripture = () => {
       id: scripture.id,
       title: scripture.title,
       progress: 0,
-      colorScheme: scripture.colorScheme || scriptureColorSchemes[scripture.title] || scriptureColorSchemes['금강경']
+      colorScheme: scripture.colorScheme || { bg: "bg-gray-500", text: "text-white", progressBg: "#FF4D00" }
     }));
 
   // Get the next 7 days for calendar preview
@@ -83,14 +82,14 @@ const Scripture = () => {
         <div className="space-y-4 mb-8">
           {activeScriptures.map((scripture) => (
             <ScriptureCard
-              key={scripture.key}
+              key={scripture.id}
               scripture={{
-                id: scripture.key,
+                id: scripture.id,
                 title: scripture.title,
                 progress: scripture.progress,
-                colorScheme: scripture.color
+                colorScheme: scripture.colorScheme
               }}
-              onClick={() => navigate(`/scripture/${scripture.title}`)}
+              onClick={() => navigate(`/scripture/${scripture.id}`)}
             />
           ))}
         </div>
@@ -102,14 +101,14 @@ const Scripture = () => {
             <div className="space-y-4">
               {unreadScriptures.map((scripture) => (
                 <ScriptureCard
-                  key={scripture.key}
+                  key={scripture.id}
                   scripture={{
-                    id: scripture.key,
+                    id: scripture.id,
                     title: scripture.title,
                     progress: 0,
-                    colorScheme: scripture.color
+                    colorScheme: scripture.colorScheme
                   }}
-                  onClick={() => navigate(`/scripture/${scripture.title}`)}
+                  onClick={() => navigate(`/scripture/${scripture.id}`)}
                 />
               ))}
             </div>
