@@ -14,7 +14,6 @@ export interface TempleStay {
     time: string;
     activity: string;
   }[];
-  distance?: string;
   tags?: string[];
 }
 
@@ -66,29 +65,6 @@ export const templeStays: Record<string, TempleStay> = {
     ],
     tags: ["불교체험", "휴식", "명상"]
   },
-  "월정사": {
-    id: "ts-woljeongsa",
-    templeName: "월정사",
-    location: "강원도 평창군 진부면 오대산로 374-8",
-    direction: "진부역에서 버스 이용 약 15분",
-    price: 110000,
-    likeCount: 425,
-    description: "오대산의 품에 안긴 사찰 체험",
-    duration: "1박 2일",
-    imageUrl: "https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
-    websiteUrl: "https://woljeongsa.org",
-    schedule: [
-      { time: "14:00", activity: "입재 및 오리엔테이션" },
-      { time: "15:30", activity: "전나무숲 명상" },
-      { time: "17:30", activity: "저녁 공양" },
-      { time: "19:00", activity: "참선 명상" },
-      { time: "21:00", activity: "취침" },
-      { time: "03:30", activity: "기상 및 새벽 예불" },
-      { time: "06:00", activity: "아침 공양" },
-      { time: "09:00", activity: "회향식 및 퇴소" }
-    ],
-    tags: ["산사", "명상", "휴식"]
-  },
   "조계사": {
     id: "ts-jogyesa",
     templeName: "조계사",
@@ -108,29 +84,6 @@ export const templeStays: Record<string, TempleStay> = {
       { time: "16:00", activity: "회향식 및 퇴소" }
     ],
     tags: ["도심", "일일체험", "문화"]
-  },
-  "법주사": {
-    id: "ts-beopjusa",
-    templeName: "법주사",
-    location: "충북 보은군 속리산면 법주사로 379",
-    direction: "청주고속버스터미널에서 보은행 버스 이용 약 1시간",
-    price: 110000,
-    likeCount: 187,
-    description: "속리산의 아름다운 산사에서의 하루",
-    duration: "1박 2일",
-    imageUrl: "https://images.unsplash.com/photo-1527576539890-dfa815648363?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80",
-    websiteUrl: "http://www.beopjusa.org",
-    schedule: [
-      { time: "14:00", activity: "입재 및 오리엔테이션" },
-      { time: "15:30", activity: "사찰 예절 및 108배" },
-      { time: "17:30", activity: "저녁 공양" },
-      { time: "19:00", activity: "야간 명상" },
-      { time: "21:00", activity: "취침" },
-      { time: "04:00", activity: "기상 및 새벽 예불" },
-      { time: "06:00", activity: "아침 공양" },
-      { time: "10:00", activity: "회향식 및 퇴소" }
-    ],
-    tags: ["속리산", "휴식", "명상"]
   },
   "해인사": {
     id: "ts-haeinsa",

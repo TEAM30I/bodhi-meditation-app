@@ -96,9 +96,14 @@ const TempleDetail = () => {
       {/* Temple Basic Info */}
       <div className="p-5">
         <h2 className="text-xl font-bold mb-1">{temple.name}</h2>
-        <div className="flex items-center text-gray-600 mb-4">
+        <div className="flex items-center text-gray-600 mb-2">
           <MapPin className="w-4 h-4 mr-1" />
           <span className="text-sm">{temple.location}</span>
+        </div>
+        
+        <div className="flex items-center text-gray-600 mb-4">
+          <Heart className="w-4 h-4 mr-1 text-red-500" />
+          <span className="text-sm font-medium">{temple.likeCount || 0}명이 찜했습니다</span>
         </div>
         
         {temple.tags && temple.tags.length > 0 && (
@@ -125,6 +130,15 @@ const TempleDetail = () => {
           </TabsList>
           
           <TabsContent value="info" className="space-y-4">
+            {/* Direction */}
+            <div className="flex items-start">
+              <MapPin className="w-5 h-5 text-gray-500 mr-3 mt-0.5" />
+              <div>
+                <h3 className="font-medium">가는 방법</h3>
+                <p className="text-sm text-gray-600">{temple.direction || "정보 없음"}</p>
+              </div>
+            </div>
+          
             {/* Opening Hours */}
             <div className="flex items-start">
               <Clock className="w-5 h-5 text-gray-500 mr-3 mt-0.5" />

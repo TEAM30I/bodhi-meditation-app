@@ -1,13 +1,12 @@
 
-// Import from the index.ts file
-import { templeStays, TempleStay } from './templeStayData/index';
+import { templeStays, TempleStay } from '../public/data/templeStayData/templeStayRepository';
 
 // Function to get temple stay by ID
 export const getTempleStayById = (id: string): TempleStay | undefined => {
   return templeStays[id];
 };
 
-// Re-export from templeStayData/index.ts
+// Re-export from templeStayRepository
 export { 
   templeStays,
   getTempleStayList,
@@ -15,7 +14,7 @@ export {
   searchTempleStays,
   filterTempleStaysByTag,
   locations
-} from './templeStayData/index';
+} from '../public/data/templeStayData/templeStayRepository';
 
 // Export TempleStay interface
-export type { TempleStay } from './templeStayData/types';
+export type { TempleStay } from '../public/data/templeStayData/templeStayRepository';

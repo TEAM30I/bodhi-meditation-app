@@ -1,17 +1,12 @@
 
-// This file re-exports everything from the public/data folder
-// Import from templeRepository for consistency
 import { 
   temples,
   getTempleList,
   getTopLikedTemples,
   filterTemplesByTag,
   searchTemples,
-  regionTags
-} from '@/data/templeData/repository';
-
-// Import nearbyTemples from templeData
-import { nearbyTemples } from '@/data/templeData/templeData';
+  regionTags 
+} from '../../public/data/templeData/templeRepository';
 
 // Export everything from templeRepository
 export {
@@ -20,12 +15,11 @@ export {
   getTopLikedTemples,
   filterTemplesByTag,
   searchTemples,
-  regionTags,
-  nearbyTemples
+  regionTags
 };
 
 // Export Temple interface
-export type { Temple } from '@/data/templeData/repository';
+export type { Temple } from '../../public/data/templeData/templeRepository';
 
 // Additional utility function - get temple by ID
 export const getTempleById = (id: string) => {

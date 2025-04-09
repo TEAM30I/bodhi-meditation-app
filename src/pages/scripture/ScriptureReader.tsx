@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bookmark, Share2, Settings, Search, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
-import { scriptureTexts } from '@/data/scriptureData';
+import { getScriptureById, updateReadingProgress, addBookmark } from '@/data/scriptureData';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 const ScriptureReader = () => {
   const navigate = useNavigate();
@@ -12,17 +13,42 @@ const ScriptureReader = () => {
   const [fontSize, setFontSize] = useState(16);
   const [showSettings, setShowSettings] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [lineHeight, setLineHeight] = useState(1.6);
   const [showControls, setShowControls] = useState(true);
   
   const contentRef = useRef<HTMLDivElement>(null);
   
-  const scripture = id ? scriptureTexts[id as keyof typeof scriptureTexts] : undefined;
+  const scripture = id ? getScriptureById(id) : undefined;
   
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [currentPage]);
+    
+    // Load the last read position if available
+    if (scripture && scripture.hasStarted) {
+      const lastChapterIndex = scripture.chapters.findIndex(ch => ch.id === scripture.lastReadChapter);
+      if (lastChapterIndex !== -1) {
+        setCurrentChapterIndex(lastChapterIndex);
+        setCurrentPageIndex(scripture.lastPageIndex || 0);
+      }
+    }
+  }, [scripture]);
+
+  // Save reading progress
+  useEffect(() => {
+    if (scripture) {
+      const progress = ((currentChapterIndex * 100) / scripture.chapters.length) + 
+                      ((currentPageIndex * 100) / 10) / scripture.chapters.length;
+      
+      updateReadingProgress(
+        scripture.id, 
+        Math.min(100, progress), 
+        scripture.chapters[currentChapterIndex].id,
+        currentPageIndex
+      );
+    }
+  }, [currentChapterIndex, currentPageIndex, scripture]);
 
   if (!scripture) {
     return (
@@ -32,16 +58,48 @@ const ScriptureReader = () => {
     );
   }
 
-  // For this implementation we're using the first chapter
-  const currentChapter = scripture.chapters && scripture.chapters.length > 0 ? scripture.chapters[0] : null;
+  const currentChapter = scripture.chapters[currentChapterIndex];
   const content = currentChapter ? (activeTab === 'original' ? currentChapter.original : currentChapter.explanation) : '';
+  
+  // Simulate page content (in a real app, this would be properly paginated)
+  const pageContent = content.split('\n');
   
   const handleBackClick = () => {
     navigate('/scripture');
   };
 
+  const handlePrevPage = () => {
+    if (currentPageIndex > 0) {
+      setCurrentPageIndex(currentPageIndex - 1);
+    } else if (currentChapterIndex > 0) {
+      // Move to the last page of the previous chapter
+      setCurrentChapterIndex(currentChapterIndex - 1);
+      setCurrentPageIndex(4); // Assume 5 pages per chapter for this example
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPageIndex < 4) { // Assume 5 pages per chapter for this example
+      setCurrentPageIndex(currentPageIndex + 1);
+    } else if (currentChapterIndex < scripture.chapters.length - 1) {
+      // Move to the first page of the next chapter
+      setCurrentChapterIndex(currentChapterIndex + 1);
+      setCurrentPageIndex(0);
+    }
+  };
+
   const toggleControls = () => {
     setShowControls(!showControls);
+  };
+
+  const handleBookmark = () => {
+    addBookmark(
+      'user1', // Default user ID
+      scripture.id,
+      currentChapter.id,
+      currentPageIndex,
+      `${currentChapter.title} - 페이지 ${currentPageIndex + 1}`
+    );
   };
 
   return (
@@ -63,7 +121,10 @@ const ScriptureReader = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            <button>
+            <button onClick={(e) => {
+              e.stopPropagation();
+              handleBookmark();
+            }}>
               <Bookmark size={20} className={darkMode ? 'text-white' : 'text-black'} />
             </button>
             <button>
@@ -119,11 +180,14 @@ const ScriptureReader = () => {
           <>
             <h2 className="font-bold text-lg mb-4">{currentChapter.title}</h2>
             <div className="mb-4">
-              {content.split('\n').map((paragraph, index) => (
+              {pageContent.map((paragraph, index) => (
                 <p key={index} className="mb-4 leading-relaxed">
                   {paragraph}
                 </p>
               ))}
+              <p className="text-right text-sm mt-6">
+                페이지 {currentPageIndex + 1}/5 • 장 {currentChapterIndex + 1}/{scripture.chapters.length}
+              </p>
             </div>
           </>
         )}
@@ -132,30 +196,31 @@ const ScriptureReader = () => {
       {/* Page navigation buttons - Only show when controls are visible */}
       {showControls && (
         <div className="fixed bottom-20 left-0 right-0 flex justify-between items-center px-5">
-          <button 
+          <Button 
             onClick={(e) => {
               e.stopPropagation();
-              if (currentPage > 1) setCurrentPage(currentPage - 1);
+              handlePrevPage();
             }}
             className={`flex items-center justify-center w-12 h-12 rounded-full ${
               darkMode ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-800'
-            } ${currentPage === 1 ? 'opacity-50' : ''}`}
-            disabled={currentPage === 1}
+            } ${currentChapterIndex === 0 && currentPageIndex === 0 ? 'opacity-50' : ''}`}
+            disabled={currentChapterIndex === 0 && currentPageIndex === 0}
           >
             <ChevronLeft size={24} />
-          </button>
+          </Button>
           
-          <button 
+          <Button 
             onClick={(e) => {
               e.stopPropagation();
-              setCurrentPage(currentPage + 1);
+              handleNextPage();
             }}
             className={`flex items-center justify-center w-12 h-12 rounded-full ${
               darkMode ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-800'
-            }`}
+            } ${currentChapterIndex === scripture.chapters.length - 1 && currentPageIndex === 4 ? 'opacity-50' : ''}`}
+            disabled={currentChapterIndex === scripture.chapters.length - 1 && currentPageIndex === 4}
           >
             <ChevronRight size={24} />
-          </button>
+          </Button>
         </div>
       )}
       
@@ -229,14 +294,14 @@ const ScriptureReader = () => {
                 </label>
               </div>
               
-              <button
+              <Button
                 className={`w-full py-3 rounded-lg ${
                   darkMode ? 'bg-orange-600 text-white' : 'bg-orange-500 text-white'
                 } font-medium`}
                 onClick={() => setShowSettings(false)}
               >
                 적용하기
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -260,7 +325,7 @@ const ScriptureReader = () => {
             className="flex flex-col items-center"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/scripture/bookmarks?scripture=${id}`);
+              handleBookmark();
             }}
           >
             <Bookmark size={24} className={darkMode ? 'text-gray-300' : 'text-gray-700'} />

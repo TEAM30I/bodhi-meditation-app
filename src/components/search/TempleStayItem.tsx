@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
-import { TempleStay } from '@/data/templeStayData/types';
+import { MapPin, Heart } from 'lucide-react';
+import { TempleStay } from '@/data/templeStayData';
 
 interface TempleStayItemProps {
   templeStay: TempleStay;
@@ -26,12 +26,19 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay }) => {
           alt={templeStay.templeName} 
           className="w-full h-full object-cover"
         />
+        <div className="absolute top-2 right-2 bg-white/80 rounded-full p-1">
+          <Heart className="w-4 h-4 text-red-500" />
+        </div>
       </div>
       <div className="p-3">
         <h3 className="font-bold text-base mb-1">{templeStay.templeName}</h3>
-        <div className="flex items-center text-gray-600 mb-2">
+        <div className="flex items-center text-gray-600 mb-1">
           <MapPin className="w-3 h-3 mr-1 shrink-0" />
           <span className="text-xs truncate">{templeStay.location}</span>
+        </div>
+        <div className="flex items-center text-gray-600 mb-2">
+          <Heart className="w-3 h-3 mr-1 text-red-500" />
+          <span className="text-xs">{templeStay.likeCount}명이 찜함</span>
         </div>
         <p className="text-xs text-gray-500 mb-2 line-clamp-2">{templeStay.description}</p>
         <div className="flex justify-between items-center">

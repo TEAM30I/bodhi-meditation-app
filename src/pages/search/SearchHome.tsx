@@ -31,19 +31,26 @@ export default function SearchHome() {
   // Default to 2 adults
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  
+  // Show date picker and guest selector panels
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showGuestSelector, setShowGuestSelector] = useState(false);
 
   const handleRegionClick = (query: string) => {
-    const path = activeTab === 'temple' 
-      ? `/search/temple/results?query=${query}` 
-      : `/search/temple-stay/results?query=${query}`;
-    navigate(path);
+    if (activeTab === 'temple') {
+      navigate(`/search/temple/results?query=${query}`);
+    } else {
+      // For temple stay, use default values
+      navigate(`/search/temple-stay/results?query=${query}&dateFrom=${formatDate(dateRange.from)}&dateTo=${formatDate(dateRange.to)}&guests=${adults + children}`);
+    }
   };
 
   const handleSearch = () => {
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${searchQuery || '서울'}`);
     } else {
-      navigate(`/search/temple-stay/results?query=${searchQuery || '서울'}`);
+      // For temple stay, use default values
+      navigate(`/search/temple-stay/results?query=${searchQuery || '서울'}&dateFrom=${formatDate(dateRange.from)}&dateTo=${formatDate(dateRange.to)}&guests=${adults + children}`);
     }
   };
 
@@ -59,16 +66,22 @@ export default function SearchHome() {
       navigate(`/search/temple/results?query=nearby`);
     } else {
       setSearchQuery("내 주변");
-      navigate(`/search/temple-stay/results?query=nearby`);
+      navigate(`/search/temple-stay/results?query=nearby&dateFrom=${formatDate(dateRange.from)}&dateTo=${formatDate(dateRange.to)}&guests=${adults + children}`);
     }
+  };
+
+  const formatDate = (date?: Date) => {
+    if (!date) return '';
+    return date.toISOString().split('T')[0];
   };
 
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range);
   };
 
-  const handleGuestChange = (value: number) => {
-    setAdults(value);
+  const handleGuestChange = (adults: number, children: number) => {
+    setAdults(adults);
+    setChildren(children);
   };
 
   return (
@@ -89,7 +102,11 @@ export default function SearchHome() {
         <div className="border-b border-[#E5E5EC]">
           <Tabs 
             value={activeTab} 
-            onValueChange={(value) => setActiveTab(value as "temple" | "templeStay")}
+            onValueChange={(value) => {
+              setActiveTab(value as "temple" | "templeStay");
+              setShowDatePicker(false);
+              setShowGuestSelector(false);
+            }}
             className="w-full"
           >
             <TabsList className="w-full grid grid-cols-2 bg-transparent h-12">
@@ -128,25 +145,56 @@ export default function SearchHome() {
         {/* Date and Guest Selection - Only for Temple Stay */}
         {activeTab === "templeStay" && (
           <div className="flex border-b border-[#E5E5EC]">
-            <div className="flex-1 px-4 py-3 border-r border-[#E5E5EC]">
-              <DateRangePicker 
-                dateRange={dateRange}
-                onChange={handleDateRangeChange}
-                onDateRangeChange={setDateRange}
-                onClose={() => {}}
-              />
+            <div 
+              className="flex-1 px-4 py-3 border-r border-[#E5E5EC] cursor-pointer"
+              onClick={() => {
+                setShowDatePicker(!showDatePicker);
+                setShowGuestSelector(false);
+              }}
+            >
+              <p className="text-xs text-gray-500 mb-1">날짜</p>
+              <p className="text-sm font-medium">
+                {dateRange.from ? `${dateRange.from.getMonth() + 1}월 ${dateRange.from.getDate()}일` : '날짜 추가'} - 
+                {dateRange.to ? ` ${dateRange.to.getMonth() + 1}월 ${dateRange.to.getDate()}일` : ''}
+              </p>
             </div>
-            <div className="flex-1 px-4 py-3">
-              <GuestSelector 
-                value={adults}
-                onChange={handleGuestChange}
-                adults={adults}
-                children={children}
-                onAdultsChange={setAdults}
-                onChildrenChange={setChildren}
-                onClose={() => {}}
-              />
+            <div 
+              className="flex-1 px-4 py-3 cursor-pointer"
+              onClick={() => {
+                setShowGuestSelector(!showGuestSelector);
+                setShowDatePicker(false);
+              }}
+            >
+              <p className="text-xs text-gray-500 mb-1">인원</p>
+              <p className="text-sm font-medium">
+                성인 {adults}명 {children > 0 ? `, 어린이 ${children}명` : ''}
+              </p>
             </div>
+          </div>
+        )}
+
+        {/* Date Picker Panel */}
+        {showDatePicker && (
+          <div className="border-b border-[#E5E5EC] p-4">
+            <DateRangePicker 
+              dateRange={dateRange}
+              onChange={handleDateRangeChange}
+              onDateRangeChange={setDateRange}
+              onClose={() => setShowDatePicker(false)}
+            />
+          </div>
+        )}
+
+        {/* Guest Selector Panel */}
+        {showGuestSelector && (
+          <div className="border-b border-[#E5E5EC] p-4">
+            <GuestSelector 
+              adults={adults}
+              children={children}
+              onAdultsChange={setAdults}
+              onChildrenChange={setChildren}
+              onClose={() => setShowGuestSelector(false)}
+            />
           </div>
         )}
 
@@ -195,4 +243,4 @@ export default function SearchHome() {
       <BottomNav />
     </div>
   );
-}
+};
