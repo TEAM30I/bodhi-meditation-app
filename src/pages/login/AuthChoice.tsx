@@ -20,22 +20,20 @@ const AuthChoice: React.FC = () => {
           />
         </div>
         
-        <h1 className="text-white text-2xl font-bold text-center mb-16">
+        <h1 className="text-white text-2xl font-bold text-center mb-10">
           BODHI와 함께 시작해보세요
         </h1>
         
-        <div className="w-full space-y-4">
+        <div className="w-full mt-auto">
           <AuthButton 
             label="로그인" 
             onClick={() => navigate('/login')} 
-            className="w-full"
+            className="w-full mb-4"
           />
           
-          <AuthButton 
-            label="회원가입" 
-            onClick={() => navigate('/signup')} 
-            className="w-full bg-transparent border border-app-orange"
-          />
+          <p className="text-gray-500 text-center mb-4">
+            아직 회원이 아니신가요? <span className="text-app-orange" onClick={() => navigate('/signup')}>회원가입</span>
+          </p>
         </div>
       </div>
     </div>

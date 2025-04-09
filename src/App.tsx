@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Amplify } from 'aws-amplify';
+import awsConfig from "./aws-config";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -16,6 +18,11 @@ import SignUp from "./pages/login/SignUp";
 import FindCredentialsChoice from "./pages/login/FindCredentialsChoice";
 import FindId from "./pages/login/FindId";
 import FindPassword from "./pages/login/FindPassword";
+import ProfileSetup from "./pages/login/ProfileSetup";
+import TermsAgreement from "./pages/login/TermsAgreement";
+
+// Configure Amplify
+Amplify.configure(awsConfig);
 
 const queryClient = new QueryClient();
 
@@ -34,6 +41,8 @@ const App = () => (
           <Route path="/find-credentials-choice" element={<FindCredentialsChoice />} />
           <Route path="/find-id" element={<FindId />} />
           <Route path="/find-password" element={<FindPassword />} />
+          <Route path="/profile-setup" element={<ProfileSetup />} />
+          <Route path="/terms-agreement" element={<TermsAgreement />} />
           <Route path="/home" element={<Index />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

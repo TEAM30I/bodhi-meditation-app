@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Auth } from 'aws-amplify';
 import StatusBar from '@/components/StatusBar';
 import BackButton from '@/components/BackButton';
 import InputField from '@/components/InputField';
@@ -14,9 +15,10 @@ const Login: React.FC = () => {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(true); // Default to true as requested
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       toast({
         title: "로그인 실패",
@@ -26,12 +28,33 @@ const Login: React.FC = () => {
       return;
     }
     
-    // Here you would typically handle API authentication
-    toast({
-      title: "로그인 성공",
-      description: "환영합니다!",
-    });
-    navigate('/');
+    setIsLoading(true);
+    
+    try {
+      await Auth.signIn(email, password);
+      toast({
+        title: "로그인 성공",
+        description: "환영합니다!",
+      });
+      navigate('/home');
+    } catch (error: any) {
+      let errorMessage = "로그인 중 오류가 발생했습니다.";
+      if (error.code === 'UserNotFoundException') {
+        errorMessage = "존재하지 않는 사용자입니다.";
+      } else if (error.code === 'NotAuthorizedException') {
+        errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
+      } else if (error.code === 'UserNotConfirmedException') {
+        errorMessage = "이메일 인증이 완료되지 않았습니다.";
+      }
+      
+      toast({
+        title: "로그인 실패",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -75,8 +98,9 @@ const Login: React.FC = () => {
         </div>
         
         <AuthButton 
-          label="로그인" 
+          label={isLoading ? "로그인 중..." : "로그인"}
           onClick={handleLogin}
+          disabled={isLoading}
           className="mb-10"
         />
         
