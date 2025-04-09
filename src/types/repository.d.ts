@@ -126,6 +126,13 @@ declare module '/public/data/scriptureData/scriptureRepository' {
     date: string;
   }
 
+  export interface ReadingProgress {
+    scriptureId: string;
+    chapterId: string;
+    pageIndex: number;
+    progress: number;
+  }
+
   export interface ReadingScheduleItem {
     id: number;
     scriptureId: string;
@@ -156,4 +163,12 @@ declare module '/public/data/scriptureData/scriptureRepository' {
   export function getScriptureById(id: string): Scripture | undefined;
   export function updateReadingProgress(scriptureId: string, progress: number, chapterId: string, pageIndex: number): void;
   export function addBookmark(userId: string, scriptureId: string, chapterId: string, pageIndex: number, title: string): Bookmark;
+}
+
+declare module '/public/data/dataRepository' {
+  export * from '/public/data/templeData/templeRepository';
+  export * from '/public/data/templeStayData/templeStayRepository';
+  export * from '/public/data/scriptureData/scriptureRepository';
+  export * from '/public/data/searchRankingRepository';
+  export * from '/public/data/imageRepository';
 }

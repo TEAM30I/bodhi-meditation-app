@@ -20,3 +20,11 @@ export function assertType<T>(value: unknown): asserts value is T {
 export function castToType<T>(value: unknown): T {
   return value as T;
 }
+
+/**
+ * Use this to definitively type unknown data from repositories
+ * Especially useful in components that are rendering repository data
+ */
+export function castRepository<T>(data: unknown): T {
+  return data as T;
+}

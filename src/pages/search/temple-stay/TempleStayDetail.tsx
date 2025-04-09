@@ -1,16 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Calendar, Clock, Heart, Share, Globe, ChevronRight } from 'lucide-react';
 import { templeStays, TempleStay } from '/public/data/templeStayData/templeStayRepository';
+import { castRepository } from '@/utils/typeAssertions';
+import { toast } from '@/components/ui/use-toast';
 
 const TempleStayDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [isFavorite, setIsFavorite] = useState(false);
   
-  const templeStay: TempleStay | undefined = id ? 
-    Object.values(templeStays).find(t => t.id === id) : 
-    undefined;
+  const templeStayObj = id ? Object.values(templeStays).find(t => t.id === id) : undefined;
+  const templeStay = castRepository<TempleStay>(templeStayObj);
   
   if (!templeStay) {
     return (
@@ -19,6 +21,21 @@ const TempleStayDetail: React.FC = () => {
       </div>
     );
   }
+
+  const handleToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    if (!isFavorite) {
+      toast({
+        title: "찜 목록에 추가되었습니다.",
+        description: `${templeStay.templeName}이(가) 찜 목록에 추가되었습니다.`,
+      });
+    } else {
+      toast({
+        title: "찜 목록에서 제거되었습니다.",
+        description: `${templeStay.templeName}이(가) 찜 목록에서 제거되었습니다.`,
+      });
+    }
+  };
 
   return (
     <div className="bg-[#F5F5F5] min-h-screen pb-20">
@@ -41,25 +58,45 @@ const TempleStayDetail: React.FC = () => {
           alt={templeStay.templeName} 
           className="w-full h-full object-cover"
         />
+        <div className="absolute top-4 right-4">
+          <button 
+            onClick={handleToggleFavorite}
+            className="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md"
+          >
+            <Heart size={20} className={isFavorite ? "text-red-500 fill-red-500" : "text-gray-600"} />
+          </button>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent text-white">
+          <h2 className="text-xl font-bold">{templeStay.templeName}</h2>
+          <div className="flex items-center mt-1">
+            <MapPin size={14} className="mr-1" />
+            <span className="text-sm">{templeStay.location}</span>
+          </div>
+        </div>
       </div>
 
       {/* Temple Info */}
       <div className="px-5 py-4 bg-white">
-        <div className="flex items-center text-gray-500 text-sm mb-2">
-          <MapPin className="w-4 h-4 mr-1" />
-          {templeStay.location}
-        </div>
-        
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">{templeStay.templeName}</h2>
-        </div>
-        
-        <div className="flex items-center gap-2 mb-1">
-          <span className="bg-gray-100 text-gray-700 text-sm px-2 py-0.5 rounded-full">{templeStay.location}</span>
-          <span className="bg-gray-100 text-gray-700 text-sm px-2 py-0.5 rounded-full">{templeStay.duration}</span>
+        <div className="flex items-center text-sm mb-2 gap-2">
+          <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">{templeStay.location}</span>
+          <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">{templeStay.duration}</span>
           {templeStay.tags && templeStay.tags.map((tag, index) => (
-            <span key={index} className="bg-gray-100 text-gray-700 text-sm px-2 py-0.5 rounded-full">{tag}</span>
+            <span key={index} className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">{tag}</span>
           ))}
+        </div>
+        
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center">
+            <Heart size={18} className="text-red-500 mr-1" />
+            <span className="text-sm font-medium">{templeStay.likeCount}명이 찜했습니다</span>
+          </div>
+          <button 
+            onClick={() => {/* Share functionality */}}
+            className="text-gray-500 flex items-center"
+          >
+            <Share size={18} className="mr-1" />
+            <span className="text-sm">공유</span>
+          </button>
         </div>
       </div>
       
@@ -109,13 +146,12 @@ const TempleStayDetail: React.FC = () => {
             <span className="text-lg font-bold">{templeStay.price.toLocaleString()}원</span>
             <span className="text-sm text-gray-500">/ 인</span>
           </div>
-          <div className="flex space-x-2">
-            <button className="p-2 rounded-full border border-gray-200">
-              <Heart className="w-5 h-5 text-gray-500" />
-            </button>
-            <button className="p-2 rounded-full border border-gray-200">
-              <Share className="w-5 h-5 text-gray-500" />
-            </button>
+          <div className="flex items-center">
+            <span className="text-sm text-gray-500 mr-2">찜</span>
+            <div className="flex items-center">
+              <Heart size={16} className="text-red-500 mr-1" />
+              <span className="text-sm font-medium">{templeStay.likeCount}</span>
+            </div>
           </div>
         </div>
         <button className="w-full bg-[#DE7834] text-white py-3 rounded-lg font-medium">

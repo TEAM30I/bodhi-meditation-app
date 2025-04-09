@@ -2,15 +2,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { imageRepository } from '/public/data/imageRepository';
+import { castRepository } from '@/utils/typeAssertions';
 
 const TempleBanner = () => {
   const navigate = useNavigate();
+  const typedImageRepo = castRepository<typeof imageRepository>(imageRepository);
 
   return (
     <div className="w-full px-[24px] mb-[20px]">
       <div className="w-full h-[130px] rounded-[10px] bg-gray-200 relative overflow-hidden">
         <img 
-          src={imageRepository.templeBanner.default} 
+          src={typedImageRepo.templeBanner.default} 
           alt="메인 배너" 
           className="w-full h-full object-cover"
         />
