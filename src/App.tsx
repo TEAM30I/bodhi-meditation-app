@@ -23,6 +23,7 @@ import TermsAgreement from "./pages/login/TermsAgreement";
 
 // Configure Amplify with the aws-config
 try {
+  console.log("Attempting to configure Amplify...");
   Amplify.configure(awsConfig);
   console.log("Amplify configuration successful");
 } catch (error) {

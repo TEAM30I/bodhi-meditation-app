@@ -2,17 +2,20 @@
 // Polyfills for Node.js globals needed by AWS Amplify
 // These must be at the very top, before any imports
 if (typeof window !== 'undefined') {
-  // Add global to window
+  // Add global to window with a full implementation
+  // @ts-ignore
   window.global = window;
   
   // Add process if it doesn't exist
   if (typeof process === 'undefined') {
-    window.process = { env: {} } as any;
+    // @ts-ignore
+    window.process = { env: {} };
   }
   
   // Add Buffer if it doesn't exist
-  if (typeof window.Buffer === 'undefined') {
-    window.Buffer = {} as any;
+  if (typeof Buffer === 'undefined') {
+    // @ts-ignore
+    window.Buffer = require('buffer/').Buffer;
   }
 }
 
