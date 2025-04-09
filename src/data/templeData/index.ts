@@ -8,10 +8,10 @@ import {
   filterTemplesByTag,
   searchTemples,
   regionTags
-} from '../../../public/data/templeData/templeRepository';
+} from '@/data/templeData/repository';
 
 // Import nearbyTemples from templeData
-import { nearbyTemples } from '../../../public/data/templeData/templeData';
+import { nearbyTemples } from '@/data/templeData/templeData';
 
 // Export everything from templeRepository
 export {
@@ -25,4 +25,9 @@ export {
 };
 
 // Export Temple interface
-export type { Temple } from '../../../public/data/templeData/templeRepository';
+export type { Temple } from '@/data/templeData/repository';
+
+// Additional utility function - get temple by ID
+export const getTempleById = (id: string) => {
+  return temples[id];
+};

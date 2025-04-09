@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
-import { TempleStay } from '@/data/templeStayData';
+import { TempleStay } from '@/data/templeStayData/types';
 
 interface TempleStayItemProps {
   templeStay: TempleStay;

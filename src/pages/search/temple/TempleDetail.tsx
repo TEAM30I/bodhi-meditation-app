@@ -46,16 +46,14 @@ const TempleDetail = () => {
   // Default image if none available
   const defaultImage = "https://images.unsplash.com/photo-1624456735729-03594a40c5fb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=300&q=80";
   
-  // Safely access images or use default
-  const images = temple.imageUrl ? [temple.imageUrl] : [defaultImage];
+  // We need to use the imageUrl directly since Temple type doesn't have images field
+  const imageUrl = temple.imageUrl || defaultImage;
   
-  // Phone fallback
+  // Get contact info
   const phoneNumber = temple.contact?.phone || '정보 없음';
-  
-  // Website fallback
   const website = temple.websiteUrl || '';
   
-  // Social media fallbacks
+  // Social media fallbacks - these fields may not exist in Temple interface
   const instagram = temple.social?.instagram || '';
   const facebook = temple.social?.facebook || '';
   
@@ -82,7 +80,7 @@ const TempleDetail = () => {
       {/* Temple Image Gallery */}
       <div className="relative w-full h-[250px] bg-gray-200">
         <img 
-          src={images[0]} 
+          src={imageUrl} 
           alt={temple.name}
           className="w-full h-full object-cover"
         />

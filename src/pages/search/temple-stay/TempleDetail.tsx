@@ -1,20 +1,33 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share, MapPin, Clock, Calendar, Home, Globe } from 'lucide-react';
-import { templeStays } from '@/data/templeStayData';
+import { getTempleStayById, TempleStay } from '@/data/templeStayData';
 import BottomNav from '@/components/BottomNav';
 
 const TempleStayDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
+  const [templeStay, setTempleStay] = useState<TempleStay | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Find the temple stay by id
-  const templeStay = Object.values(templeStays).find(ts => ts.id === id);
+  useEffect(() => {
+    if (id) {
+      const foundTempleStay = getTempleStayById(id);
+      if (foundTempleStay) {
+        setTempleStay(foundTempleStay);
+      }
+      setLoading(false);
+    }
+  }, [id]);
+
+  if (loading) {
+    return <div className="p-5 text-center">템플스테이 정보를 불러오는 중...</div>;
+  }
 
   if (!templeStay) {
-    return <div>템플스테이를 찾을 수 없습니다.</div>;
+    return <div className="p-5 text-center">템플스테이를 찾을 수 없습니다.</div>;
   }
 
   const formatPrice = (price: number) => {
@@ -100,15 +113,15 @@ const TempleStayDetail = () => {
           {/* Price Information */}
           <h2 className="text-base font-bold text-[#222] mb-4">이용요금</h2>
           <div className="mb-6">
-            <p className="text-lg font-bold text-[#DE7834]">{formatPrice(templeStay.price || 50000)}</p>
-            <p className="text-xs text-gray-500">총 {templeStay.duration || '1박 2일'} (세금 포함)</p>
+            <p className="text-lg font-bold text-[#DE7834]">{formatPrice(templeStay.price)}</p>
+            <p className="text-xs text-gray-500">총 {templeStay.duration} (세금 포함)</p>
           </div>
           
           {/* Notes */}
           <h2 className="text-base font-bold text-[#222] mb-4">유의사항</h2>
           <div className="mb-6">
             <p className="text-sm text-[#555] leading-relaxed">
-              {templeStay.description || '해당 템플스테이는 예약 시 진행되는 프로그램과 일정이 변경될 수 있습니다. 자세한 내용은 예약 전 문의 바랍니다.'}
+              {templeStay.description}
             </p>
           </div>
           
