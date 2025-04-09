@@ -1,24 +1,31 @@
 
-// IMPORTANT: These polyfills must be defined BEFORE any imports
-// Create a more robust global polyfill for AWS Amplify
+// IMPORTANT: These polyfills must run BEFORE any imports
+// Define global explicitly for the entire app
 window.global = window;
-// @ts-ignore - we need to set the global object for AWS Amplify
+// @ts-ignore - this assignment is needed for AWS Amplify to work
 global = window;
 
-// Add Buffer if needed (with proper error handling)
+// Add Buffer polyfill
 if (!window.Buffer) {
   try {
-    // @ts-ignore - Buffer is required by AWS Amplify
+    // @ts-ignore - Buffer polyfill for browser environment
     window.Buffer = require('buffer/').Buffer;
   } catch (e) {
     console.error('Failed to load Buffer polyfill:', e);
   }
 }
 
-// Add process if it doesn't exist
-// @ts-ignore - simplified process object for browser environment
+// Add a minimal process object
 if (!window.process) {
-  window.process = { env: {} };
+  // @ts-ignore - we use a simplified process object that's compatible with AWS Amplify requirements
+  window.process = { 
+    env: {},
+    // Add minimal required properties to avoid type errors
+    nextTick: (fn) => setTimeout(fn, 0),
+    version: '',
+    versions: {},
+    platform: 'browser'
+  };
 }
 
 import { createRoot } from 'react-dom/client'

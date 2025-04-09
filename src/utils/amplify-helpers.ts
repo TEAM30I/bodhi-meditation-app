@@ -9,41 +9,54 @@ export const initializeAmplify = () => {
   try {
     console.log("Initializing Amplify...");
     
-    // Verify global polyfills are in place
-    if (typeof window === 'undefined' || typeof global === 'undefined') {
-      console.error("Global object not available - polyfills not loaded correctly");
-      
-      // Apply emergency polyfill if in browser context
-      if (typeof window !== 'undefined') {
-        console.warn("Applying emergency global polyfill");
-        // @ts-ignore
+    // Double-check global polyfills before configuring
+    if (typeof window !== 'undefined') {
+      // Re-apply global polyfill if needed
+      if (typeof global === 'undefined') {
+        console.warn("Re-applying global polyfill");
+        // @ts-ignore - this assignment is needed for AWS Amplify
         window.global = window;
-        // @ts-ignore
+        // @ts-ignore - this assignment is needed for AWS Amplify
         global = window;
-      } else {
-        return false;
       }
+      
+      // Re-apply Buffer polyfill if needed
+      if (typeof Buffer === 'undefined') {
+        console.warn("Re-applying Buffer polyfill");
+        try {
+          // @ts-ignore - Buffer polyfill for browser
+          window.Buffer = require('buffer/').Buffer;
+        } catch (e) {
+          console.error("Failed to apply Buffer polyfill:", e);
+          return false;
+        }
+      }
+      
+      // Re-apply process polyfill if needed
+      if (typeof process === 'undefined') {
+        console.warn("Re-applying process polyfill");
+        // @ts-ignore - simplified process object for browser
+        window.process = { 
+          env: {},
+          nextTick: (fn) => setTimeout(fn, 0),
+          version: '',
+          versions: {},
+          platform: 'browser'
+        };
+      }
+    } else {
+      console.error("Window object not available - cannot initialize Amplify");
+      return false;
     }
     
-    // Verify Buffer polyfill
-    if (typeof Buffer === 'undefined' && typeof window !== 'undefined') {
-      console.warn("Buffer polyfill not detected, applying emergency polyfill");
-      try {
-        // @ts-ignore
-        window.Buffer = require('buffer/').Buffer;
-      } catch (e) {
-        console.error("Failed to apply Buffer polyfill:", e);
-      }
-    }
-    
-    // Verify process polyfill
-    if (typeof process === 'undefined' && typeof window !== 'undefined') {
-      console.warn("Process polyfill not detected, applying emergency polyfill");
-      // @ts-ignore - simplified process object
-      window.process = { env: {} };
+    // Verify our polyfills worked
+    if (typeof global === 'undefined') {
+      console.error("Global object still not defined after polyfill attempt");
+      return false;
     }
     
     // Configure Amplify
+    console.log("Applying Amplify configuration...");
     Amplify.configure(awsConfig);
     console.log("Amplify initialized successfully");
     return true;
