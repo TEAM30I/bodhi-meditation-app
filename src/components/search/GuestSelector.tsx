@@ -1,121 +1,80 @@
-
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronUp, ChevronDown } from 'lucide-react';
 
-export interface GuestSelectorProps {
-  value: { adults: number; children: number };
-  onChange: (value: { adults: number; children: number }) => void;
-  onClose?: () => void;
+export interface GuestCount {
+  adults: number;
+  children: number;
 }
 
-const GuestSelector: React.FC<GuestSelectorProps> = ({ 
-  value, 
-  onChange, 
-  onClose 
-}) => {
-  const handleIncrease = (type: 'adults' | 'children') => {
-    const newValue = {...value};
-    if (type === 'adults') {
-      newValue.adults = Math.min(10, newValue.adults + 1);
-    } else {
-      newValue.children = Math.min(10, newValue.children + 1);
-    }
-    onChange(newValue);
+export interface GuestSelectorProps {
+  value: GuestCount;
+  onChange: (guests: GuestCount) => void;
+}
+
+export const GuestSelector: React.FC<GuestSelectorProps> = ({ value, onChange }) => {
+  const handleIncrement = (type: 'adults' | 'children') => {
+    onChange({
+      ...value,
+      [type]: value[type] + 1
+    });
   };
 
-  const handleDecrease = (type: 'adults' | 'children') => {
-    const newValue = {...value};
-    if (type === 'adults') {
-      newValue.adults = Math.max(1, newValue.adults - 1);
-    } else {
-      newValue.children = Math.max(0, newValue.children - 1);
-    }
-    onChange(newValue);
+  const handleDecrement = (type: 'adults' | 'children') => {
+    if (type === 'adults' && value.adults <= 1) return;
+    if (type === 'children' && value.children <= 0) return;
+    
+    onChange({
+      ...value,
+      [type]: value[type] - 1
+    });
   };
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-lg">
-      <div className="mb-6">
-        <h3 className="text-lg font-medium mb-6">투숙객</h3>
-        
-        <div className="space-y-6">
-          {/* Adults */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">성인</p>
-              <p className="text-sm text-gray-500">만 18세 이상</p>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-full"
-                onClick={() => handleDecrease('adults')}
-                disabled={value.adults <= 1}
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              
-              <span className="w-5 text-center">{value.adults}</span>
-              
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-full"
-                onClick={() => handleIncrease('adults')}
-                disabled={value.adults >= 10}
-              >
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
-          {/* Children */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">어린이</p>
-              <p className="text-sm text-gray-500">만 17세 이하</p>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-full"
-                onClick={() => handleDecrease('children')}
-                disabled={value.children <= 0}
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              
-              <span className="w-5 text-center">{value.children}</span>
-              
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8 rounded-full"
-                onClick={() => handleIncrease('children')}
-                disabled={value.children >= 10}
-              >
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+    <div className="bg-white rounded-lg p-4 mt-2 border border-gray-200">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h4 className="font-medium">성인</h4>
+          <p className="text-sm text-gray-500">만 18세 이상</p>
+        </div>
+        <div className="flex items-center">
+          <button 
+            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+            onClick={() => handleDecrement('adults')}
+            disabled={value.adults <= 1}
+          >
+            <span className="text-lg">-</span>
+          </button>
+          <span className="mx-3 w-6 text-center">{value.adults}</span>
+          <button 
+            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+            onClick={() => handleIncrement('adults')}
+          >
+            <span className="text-lg">+</span>
+          </button>
         </div>
       </div>
       
-      {onClose && (
-        <Button 
-          className="w-full"
-          onClick={onClose}
-        >
-          확인
-        </Button>
-      )}
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="font-medium">어린이</h4>
+          <p className="text-sm text-gray-500">만 18세 미만</p>
+        </div>
+        <div className="flex items-center">
+          <button 
+            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+            onClick={() => handleDecrement('children')}
+            disabled={value.children <= 0}
+          >
+            <span className="text-lg">-</span>
+          </button>
+          <span className="mx-3 w-6 text-center">{value.children}</span>
+          <button 
+            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center"
+            onClick={() => handleIncrement('children')}
+          >
+            <span className="text-lg">+</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
-
-export default GuestSelector;

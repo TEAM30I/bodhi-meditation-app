@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookmarks, scriptures } from '/public/data/scriptureData/scriptureRepository';
 import { ChevronRight } from 'lucide-react';
+import { castToType } from '@/utils/typeAssertions';
 
 const BookmarkList: React.FC = () => {
   const navigate = useNavigate();
@@ -43,10 +44,10 @@ const BookmarkList: React.FC = () => {
       {/* Bookmarks */}
       <div className="space-y-3">
         {bookmarks.filter(b => activeTab === 'all' || b.scriptureId === activeTab).map((bookmark) => {
-          const scripture = Object.values(scriptures).find(s => s.id === bookmark.scriptureId);
+          const scripture = castToType<any>(Object.values(scriptures).find(s => s.id === bookmark.scriptureId));
           if (!scripture) return null;
           
-          const chapter = scripture.chapters.find(ch => ch.id === bookmark.chapterId);
+          const chapter = scripture.chapters.find((ch: any) => ch.id === bookmark.chapterId);
           
           return (
             <div 
