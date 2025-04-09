@@ -1,4 +1,13 @@
 
 // This file re-exports everything from the public/data folder to maintain backwards compatibility
-export * from '../../../public/data/scriptureData';
-export * from '../../../public/data/scriptureRepository';
+// Export only what we need and avoid duplicate exports
+export { scriptureTexts } from '../../../public/data/scriptureData';
+export { 
+  Scripture,
+  Bookmark,
+  ReadingProgress,
+  scriptureCategories,
+  readingSchedule,
+  bookmarks,
+  scriptures
+} from '../../../public/data/scriptureData/scriptureRepository';
