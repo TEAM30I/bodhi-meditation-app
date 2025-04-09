@@ -14,7 +14,7 @@ import { typedData } from '@/utils/typeUtils';
 
 const SearchHome = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'temple-stay' | 'temple'>('temple');
+  const [activeTab, setActiveTab] = useState<'temple' | 'temple-stay'>('temple');
   const [searchValue, setSearchValue] = useState('');
   
   // Set default dates to tomorrow and day after tomorrow
@@ -56,7 +56,7 @@ const SearchHome = () => {
     setSearchValue(e.target.value);
   };
 
-  const handleTabChange = (tab: 'temple-stay' | 'temple') => {
+  const handleTabChange = (tab: 'temple' | 'temple-stay') => {
     setActiveTab(tab);
   };
 
@@ -86,6 +86,15 @@ const SearchHome = () => {
     return '날짜 선택';
   };
 
+  const handleRankingItemClick = (term: string) => {
+    setSearchValue(term);
+    if (activeTab === 'temple') {
+      navigate(`/search/temple/results?query=${term}`);
+    } else {
+      navigate(`/search/temple-stay/results?query=${term}`);
+    }
+  };
+
   const activeSearchRankings = activeTab === 'temple' 
     ? typedData<SearchRanking[]>(regionSearchRankings)
     : typedData<SearchRanking[]>(templeStaySearchRankings);
@@ -103,16 +112,16 @@ const SearchHome = () => {
         
         <div className="flex border-b border-[#E5E5EC]">
           <button 
-            className={`flex-1 py-3 text-center font-medium ${activeTab === 'temple-stay' ? 'text-[#DE7834] border-b-2 border-[#DE7834]' : 'text-gray-600'}`}
-            onClick={() => handleTabChange('temple-stay')}
-          >
-            템플스테이
-          </button>
-          <button 
             className={`flex-1 py-3 text-center font-medium ${activeTab === 'temple' ? 'text-[#DE7834] border-b-2 border-[#DE7834]' : 'text-gray-600'}`}
             onClick={() => handleTabChange('temple')}
           >
             사찰
+          </button>
+          <button 
+            className={`flex-1 py-3 text-center font-medium ${activeTab === 'temple-stay' ? 'text-[#DE7834] border-b-2 border-[#DE7834]' : 'text-gray-600'}`}
+            onClick={() => handleTabChange('temple-stay')}
+          >
+            템플스테이
           </button>
         </div>
       </div>
@@ -206,10 +215,7 @@ const SearchHome = () => {
                 <span className="text-[#DE7834] font-bold w-6">{index + 1}</span>
                 <span 
                   className="text-gray-800 cursor-pointer hover:underline"
-                  onClick={() => {
-                    setSearchValue(item.term);
-                    handleSearch();
-                  }}
+                  onClick={() => handleRankingItemClick(item.term)}
                 >
                   {item.term}
                 </span>

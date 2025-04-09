@@ -19,8 +19,8 @@ const NavItem = ({ icon, isActive, onClick }: NavItemProps) => (
 );
 
 interface ScriptureBottomNavProps {
-  activeTab?: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings' | null;
-  onTabChange: (tab: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings') => void;
+  activeTab?: 'calendar' | 'bookmark' | 'share' | 'settings' | null;
+  onTabChange: (tab: 'calendar' | 'bookmark' | 'share' | 'settings') => void;
 }
 
 const ScriptureBottomNav: React.FC<ScriptureBottomNavProps> = ({ 
@@ -41,11 +41,6 @@ const ScriptureBottomNav: React.FC<ScriptureBottomNavProps> = ({
     <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white z-10">
       <div className="flex justify-around items-center h-16 max-w-screen-lg mx-auto">
         <NavItem
-          icon={<Book size={24} />}
-          isActive={activeTab === 'reading'}
-          onClick={() => onTabChange('reading')}
-        />
-        <NavItem
           icon={<Calendar size={24} />}
           isActive={activeTab === 'calendar'}
           onClick={handleCalendarClick}
@@ -65,9 +60,6 @@ const ScriptureBottomNav: React.FC<ScriptureBottomNavProps> = ({
           isActive={activeTab === 'settings'}
           onClick={() => onTabChange('settings')}
         />
-      </div>
-      <div className="h-9 bg-white flex justify-center items-center">
-        <div className="w-32 h-1.5 bg-black rounded-full"></div>
       </div>
     </div>
   );

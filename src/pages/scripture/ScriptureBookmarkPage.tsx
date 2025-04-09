@@ -63,24 +63,18 @@ const ScriptureBookmarkPage = () => {
       </div>
       
       {/* Scripture filters */}
-      <div className="flex gap-0 px-5 overflow-x-auto border-b border-[#EAECEE] bg-white">
+      <div className="flex gap-2 px-5 py-3 overflow-x-auto border-b border-[#EAECEE] bg-white">
         {typedScriptureCategories.map((scripture) => (
           <div 
             key={scripture.id}
-            className={`flex items-center h-[32px] px-3 border-2 cursor-pointer ${
+            className={`flex items-center h-[32px] px-3 rounded-full cursor-pointer ${
               activeScripture === scripture.id 
-              ? 'border-[#DE7834]' 
-              : 'border-[rgba(118,118,118,0.5)]'
+              ? 'bg-[#DE7834] text-white' 
+              : 'bg-gray-100 text-[#767676]'
             }`}
             onClick={() => handleScriptureClick(scripture.id)}
           >
-            <span 
-              className={`text-sm font-bold ${
-                activeScripture === scripture.id 
-                ? 'text-[#DE7834]' 
-                : 'text-[#767676]'
-              }`}
-            >
+            <span className="text-sm font-medium">
               {typedScriptures[scripture.id]?.title || scripture.name}
             </span>
           </div>

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronRight, Home } from 'lucide-react';
+import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +42,9 @@ const FindTempleStay = () => {
       temple.location.includes(region)
     );
     setFilteredTempleStays(filtered.length ? filtered : templeStayArray);
+    
+    // Navigate to results with the region as query
+    navigate(`/search/temple-stay/results?query=${region}`);
   };
 
   const handleTempleStayClick = (id: string) => {
@@ -70,13 +73,10 @@ const FindTempleStay = () => {
   return (
     <div className="bg-white min-h-screen">
       <div className="sticky top-0 z-10 bg-white px-5 py-3 flex items-center border-b border-[#E5E5EC]">
-        <button onClick={() => navigate('/search')} className="mr-4">
+        <button onClick={() => navigate('/main')} className="mr-4">
           <ArrowLeft className="h-6 w-6" />
         </button>
         <h1 className="text-lg font-bold flex-1 text-center">템플스테이</h1>
-        <button onClick={() => navigate('/main')}>
-          <Home className="h-6 w-6" />
-        </button>
       </div>
 
       <div className="px-5 py-4">

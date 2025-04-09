@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, ChevronRight, Home } from 'lucide-react';
+import { ArrowLeft, Search, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { regionTags } from '/public/data/templeData/templeRepository';
 import { regionSearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
@@ -51,13 +51,10 @@ const FindTemple = () => {
   return (
     <div className="bg-white min-h-screen">
       <div className="sticky top-0 z-10 bg-white px-5 py-3 flex items-center border-b border-[#E5E5EC]">
-        <button onClick={() => navigate('/search')} className="mr-4">
+        <button onClick={() => navigate('/main')} className="mr-4">
           <ArrowLeft className="h-6 w-6" />
         </button>
         <h1 className="text-lg font-bold flex-1 text-center">사찰</h1>
-        <button onClick={() => navigate('/main')}>
-          <Home className="h-6 w-6" />
-        </button>
       </div>
 
       <div className="px-5 py-4">
