@@ -1,8 +1,8 @@
 
 /**
- * A type utility function that preserves the type of repository data
- * while making TypeScript happy
+ * A utility function that returns the input with a specific type.
+ * This helps TypeScript understand the type of our data at runtime.
  */
-export function typedData<T>(data: any): T {
+export function typedData<T>(data: unknown): T {
   return data as T;
 }

@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
-// Use relative import
+// Use path that matches our wildcard type definition
 import { calendarData } from '../../../public/data/scriptureData/scriptureRepository';
 
 export const ScriptureCalendar = () => {
@@ -36,50 +35,56 @@ export const ScriptureCalendar = () => {
     <div className="space-y-4">
       <h2 className="text-lg font-medium">캘린더</h2>
       
-      <div className="bg-white p-5 rounded-lg shadow-sm">
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-base font-medium">{currentYear}년 {currentMonth + 1}월</h3>
-          <span className="text-sm text-gray-500">{formattedDate}</span>
+          <h3 className="text-base font-medium">{formattedDate}</h3>
+          <button 
+            className="text-sm text-blue-600"
+            onClick={() => navigate('/scripture/calendar')}
+          >
+            전체 캘린더 보기
+          </button>
         </div>
         
-        <div className="relative h-2 bg-gray-200 rounded-full mb-4">
-          <div
-            className="absolute top-0 left-0 h-2 bg-[#DE7834] rounded-full"
+        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-3">
+          <div 
+            className="h-full bg-blue-500 rounded-full"
             style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
         
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">이번 달 진행률: {progressPercentage.toFixed(1)}%</span>
-          <span className="text-gray-500">{completedDays}/{totalDays} 완료</span>
-        </div>
+        <p className="text-sm text-gray-500 mb-3">
+          이번 달 경전 읽기: {completedDays}/{totalDays} 일
+        </p>
         
-        <button
-          className="w-full mt-4 py-2 bg-[#F5F5F5] rounded-lg text-sm text-center"
-          onClick={() => navigate('/scripture/calendar')}
-        >
-          월간 캘린더 보기
-        </button>
+        <div className="space-y-3">
+          {thisMonthData.slice(0, 3).map((item, index) => (
+            <div key={index} className="flex items-center">
+              <div className={`w-3 h-3 rounded-full ${item.completed ? 'bg-green-500' : 'bg-gray-300'} mr-3`}></div>
+              <div className="flex-1">
+                <p className="text-sm">{item.title}</p>
+                <div className="flex items-center">
+                  <div className="w-16 h-1 bg-gray-200 rounded-full overflow-hidden mr-2">
+                    <div 
+                      className="h-full bg-blue-500 rounded-full"
+                      style={{ width: `${item.progress}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-gray-500">{item.progress}%</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       
-      <div className="bg-white p-5 rounded-lg shadow-sm">
-        <h3 className="text-base font-medium mb-3">오늘의 추천 경전</h3>
-        
-        <div className="flex items-start space-x-3">
-          <Calendar className="h-5 w-5 text-[#DE7834] mt-0.5" />
-          <div>
-            <p className="text-sm font-medium">법구경 제1품 쌍품</p>
-            <p className="text-xs text-gray-500">8분 소요</p>
-          </div>
-        </div>
-        
-        <button
-          className="w-full mt-4 py-2 bg-[#DE7834] text-white rounded-lg text-sm"
-          onClick={() => navigate('/scripture/diamond-sutra')}
-        >
-          지금 읽기
-        </button>
-      </div>
+      <button 
+        className="w-full py-3 bg-gray-100 rounded-lg text-center text-gray-700 text-sm"
+        onClick={() => navigate('/scripture/calendar')}
+      >
+        <Calendar className="inline-block mr-2 h-4 w-4" />
+        달력으로 보기
+      </button>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
-// Update import path to use relative imports
+// Import using a correct relative path
 import { TempleStay } from '../../../public/data/templeStayData/templeStayRepository';
 
 interface TempleStayItemProps {

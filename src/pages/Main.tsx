@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BodhiLogo from '@/components/BodhiLogo';
@@ -37,6 +36,7 @@ const Main = () => {
     );
   }
 
+  // Type data for safety
   const templeList = getTempleList();
   const typedTempleList = typedData<typeof templeList>(templeList);
   const recommendedTemples = typedTempleList.slice(0, 3);

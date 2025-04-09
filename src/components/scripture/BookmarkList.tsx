@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 
-// Use relative import
+// Use path that matches our wildcard type definition
 import { bookmarks, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
 
 const BookmarkList = () => {
