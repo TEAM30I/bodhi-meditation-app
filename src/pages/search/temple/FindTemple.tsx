@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowLeft, Home } from 'lucide-react';
-import { nearbyTemples, regionTags } from '/public/data/templeData';
+import { nearbyTemples, regionTags } from '@/data/templeData';
 import { temples } from '/public/data/templeRepository'; 
 import BottomNav from '@/components/BottomNav';
 
