@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import React from "react";
 
@@ -48,7 +48,7 @@ import ScriptureBookmarkPage from "@/pages/scripture/ScriptureBookmarkPage";
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/login/onboarding1" />} />
         <Route path="/index" element={<Index />} />
@@ -105,7 +105,7 @@ const App: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
-    </BrowserRouter>
+    </Router>
   );
 };
 

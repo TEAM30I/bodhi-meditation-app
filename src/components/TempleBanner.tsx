@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { imageRepository } from '/public/data/imageRepository';
+import { imageRepository } from '../utils/typeUtils';
 import { typedData } from '@/utils/typeUtils';
 
 const TempleBanner = () => {
