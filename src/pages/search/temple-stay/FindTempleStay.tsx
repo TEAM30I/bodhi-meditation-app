@@ -1,39 +1,24 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, X, Calendar, Users, MapPin } from 'lucide-react';
+import { ArrowLeft, Search, Calendar, Users, ChevronRight, Home } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
-import { GuestSelector } from '@/components/search/GuestSelector';
-import { locations } from '/public/data/templeStayData/templeStayRepository';
+import { locations, templeStays } from '/public/data/templeStayData/templeStayRepository';
 import { templeStaySearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { typedData } from '@/utils/typeUtils';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
+  const [activeRegion, setActiveRegion] = useState('서울');
   
-  // Set default dates to tomorrow and day after tomorrow
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  
-  const dayAfterTomorrow = new Date();
-  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-  
-  const [dateRange, setDateRange] = useState<DateRange>({ 
-    from: tomorrow, 
-    to: dayAfterTomorrow 
-  });
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showGuestSelector, setShowGuestSelector] = useState(false);
-  const [guestCount, setGuestCount] = useState(1);
-
   // Properly type the data using the typedData utility
   const typedLocations = typedData<typeof locations>(locations);
   const typedSearchRankings = typedData<SearchRanking[]>(templeStaySearchRankings);
+  
+  // Get templestay data
+  const allTempleStays = Object.values(templeStays);
+  const typedTempleStays = typedData(allTempleStays);
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
@@ -41,173 +26,166 @@ const FindTempleStay = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    let queryParams = `query=${searchValue}`;
-    
-    if (dateRange.from) {
-      queryParams += `&from=${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })}`;
-    }
-    
-    if (dateRange.to) {
-      queryParams += `&to=${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
-    }
-    
-    queryParams += `&guests=${guestCount}`;
-    
-    navigate(`/search/temple-stay/results?${queryParams}`);
-  };
-
-  const handleNearbySearch = () => {
-    navigate('/search/temple-stay/results?nearby=true');
-  };
-
-  const handleClearSearch = () => {
-    setSearchValue('');
+    navigate(`/search/temple-stay/results?query=${searchValue}`);
   };
 
   const handleRegionClick = (region: string) => {
+    setActiveRegion(region);
     navigate(`/search/temple-stay/results?region=${region}`);
   };
 
-  const handleDateRangeChange = (range: DateRange) => {
-    setDateRange(range);
-    if (range.from && range.to) {
-      setShowDatePicker(false);
-    }
+  const handleTempleStayClick = (id: string) => {
+    navigate(`/search/temple-stay/detail/${id}`);
   };
 
-  const handleGuestCountChange = (count: number) => {
-    setGuestCount(count);
+  const handleViewMoreClick = (section: string) => {
+    navigate(`/search/temple-stay/results?section=${section}`);
   };
 
-  const formatDateRange = () => {
-    if (dateRange.from && dateRange.to) {
-      return `${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })} - ${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
-    }
-    return '날짜 선택';
+  const handleDateSelection = () => {
+    // This would open a date picker in a real app
+    console.log('Opening date selection');
+  };
+
+  const handleGuestSelection = () => {
+    // This would open a guest selector in a real app
+    console.log('Opening guest selection');
   };
 
   return (
-    <div className="bg-[#F8F8F8] min-h-screen pb-16">
-      <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
-        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
-          <button onClick={() => navigate('/search')}>
-            <ArrowLeft className="h-6 w-6" />
-          </button>
-          
-          <h1 className="text-lg font-bold">템플스테이 찾기</h1>
-        </div>
+    <div className="bg-white min-h-screen">
+      <div className="sticky top-0 z-10 bg-white px-5 py-3 flex items-center border-b border-[#E5E5EC]">
+        <button onClick={() => navigate('/search')} className="mr-4">
+          <ArrowLeft className="h-6 w-6" />
+        </button>
+        <h1 className="text-lg font-bold flex-1 text-center">템플스테이</h1>
+        <button onClick={() => navigate('/main')}>
+          <Home className="h-6 w-6" />
+        </button>
       </div>
 
-      <div className="max-w-[480px] mx-auto px-5 py-6">
+      <div className="px-5 py-4">
         <div className="mb-6">
-          <form onSubmit={handleSearchSubmit} className="relative mb-3">
+          <form onSubmit={handleSearchSubmit} className="relative">
             <Input
               value={searchValue}
               onChange={handleSearchInputChange}
               placeholder="도시, 지역, 지하철역"
-              className="w-full pl-10 pr-10 py-3 rounded-lg bg-white border-gray-200"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white border border-gray-300"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            {searchValue && (
-              <button 
-                type="button"
-                onClick={handleClearSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              >
-                <X className="h-5 w-5 text-gray-400" />
-              </button>
-            )}
           </form>
-
-          <div className="flex gap-3 mt-3">
-            <div 
-              className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-3 border border-gray-200 cursor-pointer"
-              onClick={() => setShowDatePicker(!showDatePicker)}
+          
+          <div className="flex mt-3 gap-3">
+            <button 
+              className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-2 border border-gray-300"
+              onClick={handleDateSelection}
             >
               <Calendar className="h-5 w-5 text-gray-500" />
-              <span className="text-sm text-gray-600">{formatDateRange()}</span>
-            </div>
-            <div 
-              className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-3 border border-gray-200 cursor-pointer"
-              onClick={() => setShowGuestSelector(!showGuestSelector)}
+              <span className="text-sm text-gray-700">날짜 선택</span>
+            </button>
+            <button 
+              className="flex-1 flex items-center justify-center gap-2 bg-white rounded-lg p-2 border border-gray-300"
+              onClick={handleGuestSelection}
             >
               <Users className="h-5 w-5 text-gray-500" />
-              <span className="text-sm text-gray-600">성인 {guestCount}명</span>
-            </div>
+              <span className="text-sm text-gray-700">인원 선택</span>
+            </button>
           </div>
-          
-          {showDatePicker && (
-            <div className="mt-2">
-              <DateRangePicker 
-                dateRange={dateRange} 
-                onChange={handleDateRangeChange} 
-              />
-            </div>
-          )}
-          
-          {showGuestSelector && (
-            <div className="mt-2">
-              <GuestSelector 
-                value={guestCount} 
-                onChange={handleGuestCountChange} 
-              />
-            </div>
-          )}
-          
-          <Button 
-            className="w-full mt-4 bg-[#DE7834] hover:bg-[#C56A2D]"
-            onClick={handleSearchSubmit}
-          >
-            검색하기
-          </Button>
-          
-          <button 
-            className="flex items-center gap-2 bg-white rounded-full px-4 py-2 border border-[#DE7834] mt-4 w-full justify-center"
-            onClick={handleNearbySearch}
-          >
-            <MapPin className="h-4 w-4 text-[#DE7834]" />
-            <span className="text-sm text-[#DE7834] font-medium">내 주변에서 검색</span>
-          </button>
         </div>
 
+        {/* 최신 템플스테이 */}
         <div className="mb-6">
-          <h2 className="text-base font-bold mb-3">지역</h2>
-          <div className="flex flex-wrap gap-2">
-            {typedLocations.map((location) => (
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-base font-bold">최신 템플스테이</h2>
+            <button 
+              className="text-sm text-gray-500 flex items-center"
+              onClick={() => handleViewMoreClick('latest')}
+            >
+              더보기 <ChevronRight className="h-4 w-4 ml-1" />
+            </button>
+          </div>
+
+          <div className="flex overflow-x-auto gap-2 pb-2 mb-3 scrollbar-hide">
+            {typedLocations.map((location, index) => (
               <button
-                key={location.name}
+                key={index}
                 onClick={() => handleRegionClick(location.name)}
-                className={`px-3 py-1.5 rounded-full text-sm ${
-                  location.active 
+                className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
+                  activeRegion === location.name 
                     ? 'bg-[#DE7834] text-white' 
-                    : 'bg-white text-gray-700 border border-gray-200'
+                    : 'bg-gray-100 text-gray-800'
                 }`}
               >
                 {location.name}
               </button>
             ))}
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {typedTempleStays.slice(0, 2).map((templestay) => (
+              <div 
+                key={templestay.id} 
+                className="bg-gray-200 rounded-lg p-2 h-[120px] relative cursor-pointer"
+                onClick={() => handleTempleStayClick(templestay.id)}
+              >
+                {templestay.likeCount && (
+                  <div className="absolute bottom-2 left-2 bg-yellow-400 text-xs px-1.5 py-0.5 rounded flex items-center">
+                    <span>★ 4.5</span>
+                  </div>
+                )}
+                <div className="mt-auto">
+                  <p className="text-xs text-gray-700">{templestay.location} {templestay.templeName}</p>
+                  <p className="text-xs font-medium">{templestay.price.toLocaleString()}원</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
+        {/* 많이 찾는 템플스테이 */}
         <div>
-          <h2 className="text-base font-bold mb-4">많이 찾는 키워드</h2>
-          <div className="grid grid-cols-2 gap-y-3">
-            {typedSearchRankings.slice(0, 8).map((item, index) => (
-              <div key={item.id} className="flex items-center">
-                <span className="text-[#DE7834] font-bold w-6">{index + 1}</span>
-                <div className="flex items-center">
-                  <span 
-                    className="text-gray-800 cursor-pointer hover:underline"
-                    onClick={() => {
-                      navigate(`/search/temple-stay/results?query=${item.term}`);
-                    }}
-                  >
-                    {item.term}
-                  </span>
-                  {item.trend === 'up' && <span className="text-red-500 text-xs ml-1">▲</span>}
-                  {item.trend === 'down' && <span className="text-blue-500 text-xs ml-1">▼</span>}
-                  {item.trend === 'new' && <span className="text-green-500 text-xs ml-1">N</span>}
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-base font-bold">많이 찾는 템플스테이</h2>
+            <button 
+              className="text-sm text-gray-500 flex items-center"
+              onClick={() => handleViewMoreClick('popular')}
+            >
+              더보기 <ChevronRight className="h-4 w-4 ml-1" />
+            </button>
+          </div>
+
+          <div className="flex overflow-x-auto gap-2 pb-2 mb-3 scrollbar-hide">
+            {typedLocations.map((location, index) => (
+              <button
+                key={index}
+                onClick={() => handleRegionClick(location.name)}
+                className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
+                  activeRegion === location.name 
+                    ? 'bg-[#DE7834] text-white' 
+                    : 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                {location.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {typedTempleStays.slice(2, 6).map((templestay) => (
+              <div 
+                key={templestay.id} 
+                className="bg-gray-200 rounded-lg p-2 h-[120px] relative cursor-pointer"
+                onClick={() => handleTempleStayClick(templestay.id)}
+              >
+                {templestay.likeCount && (
+                  <div className="absolute bottom-2 left-2 bg-yellow-400 text-xs px-1.5 py-0.5 rounded flex items-center">
+                    <span>★ 4.5</span>
+                  </div>
+                )}
+                <div className="mt-auto">
+                  <p className="text-xs text-gray-700">{templestay.location} {templestay.templeName}</p>
+                  <p className="text-xs font-medium">{templestay.price.toLocaleString()}원</p>
                 </div>
               </div>
             ))}
