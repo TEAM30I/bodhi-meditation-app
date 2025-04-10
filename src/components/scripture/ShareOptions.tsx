@@ -19,7 +19,7 @@ const ShareOption = ({ icon, label, onClick }: {
   </button>
 );
 
-export const ShareOptions: React.FC = () => {
+const ShareOptions: React.FC = () => {
   const handleShare = (method: string) => {
     toast({
       title: "공유하기",

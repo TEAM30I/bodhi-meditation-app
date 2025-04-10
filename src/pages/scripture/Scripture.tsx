@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, ChevronRight } from 'lucide-react';
@@ -29,19 +28,14 @@ const Scripture: React.FC = () => {
   /* 캘린더 화면으로 이동 */
   const handleNavigateToCalendar = () => navigate('/scripture/calendar');
 
-  /* 메인 페이지로 이동 */
-  const handleNavigateToMain = () => navigate('/main');
-
   return (
     <div className="bg-[#F1F3F5] min-h-screen pb-20 font-['Pretendard']">
       {/* ───── 헤더 ───── */}
-      <div className="sticky top-0 z-10 bg-white h-[56px] flex items-center justify-between border-b border-[#E5E5EC] px-5">
-        <div className="flex items-center">
-          <button onClick={handleNavigateToMain} className="mr-4">
-            <Home size={24} />
-          </button>
-          <h1 className="text-lg font-bold">경전 읽기</h1>
-        </div>
+      <div className="sticky top-0 z-10 bg-white h-[56px] flex items-center border-b border-[#E5E5EC] px-5">
+        <button onClick={() => navigate('/main')} className="mr-4">
+          <Home size={24} />
+        </button>
+        <h1 className="text-lg font-bold text-center flex-1">경전 읽기</h1>
         <button onClick={() => navigate('/scripture/bookmarks')}>
           {/* 북마크 아이콘(SVG) */}
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
