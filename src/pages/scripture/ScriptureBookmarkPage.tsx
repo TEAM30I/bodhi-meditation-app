@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Home } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { bookmarks, scriptures, scriptureCategories } from '@/utils/repository';
 import { typedData } from '@/utils/typeUtils';
@@ -40,7 +40,12 @@ const ScriptureBookmarkPage = () => {
   };
   
   const handleBackClick = () => {
-    navigate('/scripture');
+    // Go back to previous page instead of always redirecting to /scripture
+    navigate(-1);
+  };
+
+  const handleHomeClick = () => {
+    navigate('/main');
   };
   
   const handleBookmarkClick = (bookmarkId: string) => {
@@ -60,6 +65,9 @@ const ScriptureBookmarkPage = () => {
           </button>
           <h1 className="text-xl font-bold text-[#111]">북마크</h1>
         </div>
+        <button onClick={handleHomeClick}>
+          <Home className="w-6 h-6" />
+        </button>
       </div>
       
       {/* Scripture filters */}

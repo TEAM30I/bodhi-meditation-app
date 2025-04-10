@@ -1,13 +1,13 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Share2, ChevronLeft, ChevronRight, ChevronDown, Calendar } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, Search, Share2, ChevronLeft, ChevronRight, ChevronDown, Calendar, Home } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { getScriptureById, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
 import SettingsPanel from '@/components/scripture/SettingsPanel';
 
 const ScriptureReader = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<'original' | 'explanation'>('explanation');
   const [fontSize, setFontSize] = useState(16);
@@ -23,6 +23,7 @@ const ScriptureReader = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{index: number, text: string}[]>([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  const [showShare, setShowShare] = useState(false);
   
   const contentRef = useRef<HTMLDivElement>(null);
   
@@ -112,6 +113,20 @@ const ScriptureReader = () => {
     }
   }, [searchQuery, scripture]);
 
+  const handleBackClick = () => {
+    // Go back to previous page instead of always redirecting to /scripture
+    navigate(-1);
+  };
+
+  const handleHomeClick = () => {
+    navigate('/main');
+  };
+
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowShare(true);
+  };
+
   if (!scripture) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -122,10 +137,6 @@ const ScriptureReader = () => {
 
   const currentChapter = scripture.chapters[currentChapterIndex];
   
-  const handleBackClick = () => {
-    navigate('/scripture');
-  };
-
   const handlePrevPage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (currentPageIndex > 0) {
@@ -297,265 +308,25 @@ const ScriptureReader = () => {
     ? 'font-serif' 
     : 'font-sans';
 
-  return (
-    <div 
-      className={`min-h-screen ${contentClasses} font-['Pretendard']`}
-      onClick={toggleControls}
-    >
-      {/* Header */}
-      <div className={`w-full ${theme === 'dark' ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
-        <div className="flex items-center justify-between px-5 py-3">
-          <div className="flex items-center gap-2">
-            <button onClick={handleBackClick}>
-              <ArrowLeft size={28} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </button>
-            <div 
-              className="flex items-center cursor-pointer"
-              onClick={toggleChapterDropdown}
-            >
-              <span className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                {scripture.title}
-              </span>
-              <ChevronDown size={20} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <button onClick={toggleSearch}>
-              <Search size={24} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </button>
-          </div>
-        </div>
-        
-        {/* Chapter Dropdown */}
-        {showChapterDropdown && (
-          <div 
-            className={`absolute z-50 mt-1 w-64 rounded-md shadow-lg ${
-              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="py-1">
-              {scripture.chapters.map((chapter, index) => (
-                <button
-                  key={chapter.id}
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    theme === 'dark' 
-                      ? 'text-white hover:bg-gray-700' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  } ${currentChapterIndex === index ? 'font-bold' : ''}`}
-                  onClick={() => selectChapter(index)}
-                >
-                  {chapter.title}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Search Bar */}
-        {showSearch && (
-          <div 
-            className={`p-3 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="검색어를 입력하세요"
-                value={searchQuery}
-                onChange={handleSearchQueryChange}
-                className={`flex-1 p-2 rounded-md ${
-                  theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-black'
-                }`}
-                autoFocus
-              />
-              <button 
-                onClick={() => navigateSearchResult('prev')}
-                disabled={searchResults.length === 0}
-                className={`p-2 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}
-              >
-                <ChevronLeft size={20} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-              </button>
-              <button 
-                onClick={() => navigateSearchResult('next')}
-                disabled={searchResults.length === 0}
-                className={`p-2 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}
-              >
-                <ChevronRight size={20} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-              </button>
-              <span className={theme === 'dark' ? 'text-white' : 'text-black'}>
-                {searchResults.length > 0 ? `${currentSearchIndex + 1}/${searchResults.length}` : '0/0'}
-              </span>
-            </div>
-          </div>
-        )}
-        
-        {/* Tabs */}
-        <div className="flex px-8 py-4 gap-2">
-          <button
-            className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
-              activeTab === 'original' 
-                ? 'bg-[#21212F] text-white font-bold' 
-                : `${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#EDEDED]'} border ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTabChange('original');
-            }}
-          >
-            원문
+  // If showShare is true, render the share screen
+  if (showShare) {
+    return (
+      <div className={`min-h-screen ${contentClasses}`}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+          <button onClick={() => setShowShare(false)}>
+            <ArrowLeft size={24} className={theme === 'dark' ? 'text-white' : 'text-black'} />
           </button>
-          <button
-            className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
-              activeTab === 'explanation' 
-                ? 'bg-[#21212F] text-white font-bold' 
-                : `${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#EDEDED]'} border ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTabChange('explanation');
-            }}
-          >
-            해석본
+          <h1 className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+            공유하기
+          </h1>
+          <button onClick={handleHomeClick}>
+            <Home size={24} className={theme === 'dark' ? 'text-white' : 'text-black'} />
           </button>
         </div>
-      </div>
-      
-      {/* Content */}
-      <div 
-        ref={contentRef}
-        className={`px-10 py-4 overflow-y-auto ${contentClasses} ${fontFamilyClasses}`}
-        style={{ 
-          fontSize: `${fontSize}px`,
-          lineHeight: lineHeight,
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {currentChapter && (
-          <>
-            <h2 className={`font-bold text-xl mb-3 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-              {currentChapter.title}
-            </h2>
-            <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'} mb-8`}>
-              {activeTab === 'original' ? '원문' : '해설'} - 페이지 {currentPageIndex + 1}
-            </p>
-            <div className="mb-4">
-              {renderContent()}
-            </div>
-          </>
-        )}
-      </div>
-      
-      {/* Page Navigation Buttons */}
-      {showControls && (
-        <div className="fixed bottom-24 left-0 right-0 flex justify-center">
-          <div className="flex justify-between w-[270px]">
-            <button 
-              onClick={handlePrevPage}
-              className={`w-[53px] h-[53px] flex items-center justify-center rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-md`}
-              disabled={currentChapterIndex === 0 && currentPageIndex === 0}
-            >
-              <ChevronLeft size={24} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </button>
-            
-            <button 
-              onClick={handleNextPage}
-              className={`w-[53px] h-[53px] flex items-center justify-center rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-md`}
-              disabled={currentChapterIndex === scripture.chapters.length - 1 && currentPageIndex === 4}
-            >
-              <ChevronRight size={24} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {/* Bottom Navigation */}
-      {showControls && (
-        <div className="fixed bottom-10 left-0 right-0 flex justify-center">
-          <div className={`flex items-center justify-between px-3 h-14 ${theme === 'dark' ? 'bg-gray-800/80' : 'bg-white/80'} backdrop-blur-md shadow-lg rounded-full mx-8`}>
-            <button 
-              className="w-[67px] h-14 flex items-center justify-center"
-              onClick={handleNavigateToCalendar}
-            >
-              <Calendar size={28} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </button>
-            
-            <button 
-              className="w-[67px] h-14 flex items-center justify-center"
-              onClick={handleNavigateToBookmark}
-            >
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path 
-                  d="M5 7.8C5 6.11984 5 5.27976 5.32698 4.63803C5.6146 4.07354 6.07354 3.6146 6.63803 3.32698C7.27976 3 8.11984 3 9.8 3H14.2C15.8802 3 16.7202 3 17.362 3.32698C17.9265 3.6146 18.3854 4.07354 18.673 4.63803C19 5.27976 19 6.11984 19 7.8V21L12 17L5 21V7.8Z" 
-                  stroke={theme === 'dark' ? "#FFFFFF" : "#111111"} 
-                  strokeWidth="1.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            
-            <button 
-              className="w-[67px] h-14 flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Share2 size={28} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </button>
-            
-            <button 
-              className="w-[67px] h-14 flex items-center justify-center"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowSettings(true);
-              }}
-            >
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path 
-                  d="M14 9.33301C11.4227 9.33301 9.33334 11.4223 9.33334 13.9997C9.33334 16.577 11.4227 18.6663 14 18.6663C16.5774 18.6663 18.6667 16.577 18.6667 13.9997C18.6667 11.4223 16.5774 9.33301 14 9.33301Z" 
-                  stroke={theme === 'dark' ? "#FFFFFF" : "#111111"} 
-                  strokeWidth="1.5" 
-                  strokeLinejoin="round"
-                />
-                <path 
-                  d="M19.0467 21.7004L17.64 20.2938C17.4467 20.1004 17.15 20.0671 16.9217 20.2004L16.8067 20.2704C16.5667 20.4104 16.24 20.3304 16.1 20.0904C15.7067 19.3071 15.4167 18.4638 15.24 17.5771C15.1867 17.3004 15.3667 17.0371 15.65 16.9838L15.785 16.9538C16.0567 16.9004 16.24 16.6604 16.24 16.3888V14.9654C16.24 14.6821 16.0567 14.4538 15.785 14.4004L15.65 14.3704C15.3667 14.3171 15.1867 14.0538 15.24 13.7771C15.4167 12.8788 15.7067 12.0354 16.1 11.2638C16.24 11.0238 16.5667 10.9438 16.8067 11.0838L16.9217 11.1538C17.15 11.2871 17.4467 11.2538 17.64 11.0604L19.0467 9.65375C19.3067 9.39375 19.3067 8.98042 19.0467 8.72042L18.8883 8.56209C18.6983 8.37209 18.6633 8.07542 18.8067 7.85209L18.8767 7.73709C19.0167 7.49709 18.9367 7.17042 18.6967 7.03042C17.9233 6.63042 17.07 6.34042 16.1833 6.16375C15.9067 6.11042 15.6433 6.29042 15.59 6.57375L15.56 6.70876C15.5067 6.98042 15.2667 7.16375 14.995 7.16375H13.5833C13.3 7.16375 13.0717 6.98042 13.0183 6.70876L12.9883 6.57375C12.935 6.29042 12.6717 6.11042 12.395 6.16375C11.4967 6.34042 10.6533 6.63042 9.88167 7.03042C9.64168 7.17042 9.56168 7.49709 9.70168 7.73709L9.77168 7.85209C9.90502 8.07542 9.87168 8.37209 9.68168 8.56209L9.52334 8.72042C9.26334 8.98042 9.26334 9.39375 9.52334 9.65375L10.93 11.0604C11.1233 11.2538 11.42 11.2871 11.6483 11.1538L11.7633 11.0838C12.0033 10.9438 12.33 11.0238 12.47 11.2638C12.8633 12.0471 13.1533 12.8904 13.33 13.7771C13.3833 14.0538 13.2033 14.3171 12.92 14.3704L12.785 14.4004C12.5133 14.4538 12.33 14.6938 12.33 14.9654V16.3888C12.33 16.6721 12.5133 16.9004 12.785 16.9538L12.92 16.9838C13.2033 17.0371 13.3833 17.3004 13.33 17.5771C13.1533 18.4754 12.8633 19.3188 12.47 20.0904C12.33 20.3304 12.0033 20.4104 11.7633 20.2704L11.6483 20.2004C11.42 20.0671 11.1233 20.1004 10.93 20.2938L9.52334 21.7004C9.26334 21.9604 9.26334 22.3738 9.52334 22.6338L9.68168 22.7921C9.87168 22.9821 9.90502 23.2788 9.77168 23.5021L9.70168 23.6171C9.56168 23.8571 9.64168 24.1838 9.88167 24.3238C10.655 24.7238 11.5083 25.0138 12.395 25.1904C12.6717 25.2438 12.935 25.0638 12.9883 24.7804L13.0183 24.6454C13.0717 24.3738 13.3117 24.1904 13.5833 24.1904H14.995C15.2783 24.1904 15.5067 24.3738 15.56 24.6454L15.59 24.7804C15.6433 25.0638 15.9067 25.2438 16.1833 25.1904C17.0817 25.0138 17.925 24.7238 18.6967 24.3238C18.9367 24.1838 19.0167 23.8571 18.8767 23.6171L18.8067 23.5021C18.6733 23.2788 18.7067 22.9821 18.8967 22.7921L19.055 22.6338C19.3067 22.3738 19.3067 21.9604 19.0467 21.7004Z" 
-                  stroke={theme === 'dark' ? "#FFFFFF" : "#111111"} 
-                  strokeWidth="1.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {/* Settings Panel */}
-      {showSettings && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/50 flex items-end" 
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowSettings(false);
-          }}
-        >
-          <div 
-            className="w-full p-5 bg-white rounded-t-3xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SettingsPanel 
-              onFontSizeChange={setFontSize}
-              onFontFamilyChange={setFontFamily}
-              onThemeChange={setTheme}
-              initialFontSize={Math.round((fontSize / 16) * 100)}
-              initialFontFamily={fontFamily}
-              initialTheme={theme}
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default ScriptureReader;
+        
+        <div className="p-6">
+          <div className="flex flex-wrap justify-center gap-6 mt-8">
+            <ShareOption 
+              icon={
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 13C10.4295 13 10.8388 13.1321 11.1679 13.3634C11.497 13.5947 11.7274 13.9118 11.8247 14.2729C11.922 14.634 11.8811 15.0142 11.7075 15.3509C11.5339 15.6877 11.2384 15.9613 10.8701 16.1226L10.7336 16.1784L10.7336 16.1784C10.5125 16.2648 10.2747 16.3112 10.0343 16.315C9.79388 16.3188 9.55443 16.28 9.32962 16.2006C9.10481 16.1212 8.8988 16.0028 8.72373 15.8515C8.54866 15.7002 8.4075 15.519 8.30765 15.3181C8.20781 15.1173 8.15114 14.9009 8.14107 14.6811C8.131 14.4613 8.16773 14.2415 8.24926 14.0335C8.3308 13.8256 8.45562 13.6339 8.61651 13.4701C8.7774 13.3064 8.97107 13.1737 9.18723 13.0785L9.3 13.023C9.52155 12.9346 9.75934 12.8881 10 12.8881C10.2407 12.8881 10.4784 12.9346 10.7 13.023L10.8128 13.0785C11.0289 13.1737 11.2226 13.3064 11.3835 13.4701C11.5444 13.6339 11.6692 13.8256 11.7507 14.0335C11.8323 14.2415 11.869 14.4613 11.8589 14.6811C11.8489 14.9009 11.7922 15.1173 11.6923 15.3181C11.5925 15.519 11.4513 15.7002 11.2763 15.8515C11.1012 16.0028 10.8952 16.1212 10.6704 16.2006C10.4456 16.28 10.2061 16.3188 9.96567 16.315C9.72526 16.3112 9.48751 16.2648 9.26637 16.1784L9.12991 16.1226C8.76157 15.9613 8.4661 15.6877 8.29251 15.3509C8.11892 15.0142 8.07796 14.634 8.17528 14.2729C8.2726 13.9118 8.50297 13.5947 8.8321 13.3634C9.16124 13.1321 9.57046 13 10 13ZM10 13L10 7M14 7C14.4295 7 14.8388 7.13211 15.1679 7.36338C15.497 7.59465 15.7274 7.91175 15.8247 8.27285C15.922 8.63395 15.8811 9.01417 15.7075 9.35093C15.5339 9.68769 15.2384 9.96127 14.8701 10.1226L14.7336 10.1784C14.5125 10.2648 14.2747 10.3112 14.0343 10.315C13.7939 10.3188 13.5544 10.28 13.3296 10.2006C13.1048 10.1212 12.8988 10.0028 12.7237 9.85151C12.5487 9.70022 12.4075 9.51896 12.3076 9.31812C12.2078 9.11727 12.1511 8.90093 12.1411 8.68112C12.131 8.4613 12.1677 8.24151 12.2493 8.03354C12.3308 7.82558 12.4556 7.63393 12.6165 7.47016C12.7774 7.30638 12.9711 7.17366 13.1872 7.07847L13.3 7.02304C13.5215 6.93465 13.7593 6.88806 14 6.88806C14.2407 6.88806 14.4784 6.93465 14.7 7.02304L14.8128 7.07847C15.0289 7.17366 15.2226 7.30638 15.3835 7.47016C15.5444 7.63393 15.6692 7.82558 15.7507 8.03354C15.8323 8.24151 15.869 8.4613 15.8589 8.68112C15.8489 8.90093 15.7922 9.11727 15.6923 9.31812C15.5925 9.51896 15.4513 9.70022 15.2763 9.85151C15.1012 10.0028 14.8952 10.1212 14.6704 10.2006C14.4456 10.28 14.2061 10.3188 13.9657 10.315C13.7253 10.3112 13.4875 10.2648 13.2664 10.1784L13.1299 10.1226C12.7616 9.96127 12.4661 9.68769 12.2925 9.35093C12.1189 9.01417 12.078 8.63395 12.1753 8.27285C12.2726 7.91175 12.503 7.59465 12.8321 7.36338C13.1612 7.13211 13.5705 7 14 7ZM14 7L14 11M6 11C6.42954 11 6.83876 11.1321 7.1679 11.3634C7.49703 11.5947 7.7274 11.9118 7.82472 12.2729C7.92204 12.634 7.88108 13.0142 7.70749 13.3509C7.5339 13.6877 7.23843 13.9613 6.87009 14.1226L6.73363 14.1784C6.51249 14.2648 6.27474 14.3112 6.03433 14.315C5.7939 14.3188 5.55443 14.28 5.32962 14.2006C5.10481 14.1212 4.8988 14.0028 4.72373 13.8515C4.54866 13.7002 4.4075 13.519 4.30765 13.3181C4.20781 13.1173 4.15114 12.9009 4.14107 12.6811C4.131 12.4613 4.16773 12.2415 4.24926 12.0335C4.3308 11.8256 4.45562 11.6339 4.61651 11.4701C4.7774 11.3064 4.97107 11.1737 5.18723 11.0785L5.3 11.023C5.52155 10.9346 5.75934 10.8881 6 10.8881C6.24065 10.8881 6.47844 10.9346 6.7 11.023L6.81277 11.0785C7.02893 11.1737 7.2226 11.3064 7.38349 11.4701C7.54438 11.6339 7.6692 11.8256 7.75074 12.0335C7.83227 12.2415 7.869 12.4613 7.85893 12.6811C7.84886 12.9009 7.79219 13.1173 7.69235 13.3181C7.5925 13.519 7.45134 13.7002 7.27627 13.8515C7.1012 14.0028 6.89519 14.1212 6.67038 14.2006C6.44557 14.28 6.2061 14.3188 5.96567 14.315C5.72526 14.3112 5.48751 14.2648 5.26637 14.1784L5.12991 14.1226C4.76157 13.9613 4.4661 13.6877 4.29251 13.3509C4.11892 13.0142 4.07796 12.634 4.17528 12.2729C4.2726 11.9118 4.50297 11.5947 4.8321 11.3634C5.16124 11.1321 5.57046 11 6 11ZM6 11L6 7M18 7C18.4295 7 18.8388 7.13211 19.1679 7.36338C19.497 7.59465 19.7274 7.91175 19.8247 8.27285C19.922 8.63395 19.8811 9.01417 19.7075 9.35093C19.5339 9.68769 19.2384 9.96127 18.8701 10.1226L18.7336 10.1784C18.5125 10.2648 18.2747 10.3112 18.0343 10.315C17.7939 10.3188 17.5544 10.28 17.3296 10.2006C17.1048 10.1212 16.8988 10.0028 16.7237 9.85151C16.5487 9.70022 16.4075 9.51896 16.3076 9.31812C16.2078 9.11727 16.1511 8.90093 16.1411 8.68112C16.131 8.4613 16.1677 8.24151 16.2493 8.03354C16.3308 7.82558 16.4556 7.63393 16.6165 7.47016C16.7774 7.30638 16.9711 7.17366 17.1872 7.07847L17.3 7.02304C17.5215 6.93465 17.7593 6.88806 18 6.88806C18.2407 6.88806 18.4784 6.93465 18.7 7.02304L18.8128 7.07847C19.0289 7.17366 19.2226 7.30638 19.3835 7.47016C19.5444 7.63393 19.6692 7.82558 19.7507 8.03354C19.8323 8.24151 19.869 8.4613 19.8589 8.68112C19.8489 8.90093 19.7922 9.11727 19.6923 9.31812C19.5925 9.51896 19.4513 9.70022 19.2763 9.85151C19.1012 10.0028 18.8952 10.1212 18.6704 10.2006C18.4456 10.28 18.2061 10.3188 17.9657 10.315C17.7253 10.3112 17.4875 10.2648 17.2664 10.1784L17.1299 10.1226C16.7616 9.96127 16.4661 9.68769 16.2925 9.35093C16.1189 9.01417 16.078 8.63395 16.1753 8.27285C16.2726 7.91175 16.503 7.59465 16.8321 7.36338C17.1612 7.13211 17
