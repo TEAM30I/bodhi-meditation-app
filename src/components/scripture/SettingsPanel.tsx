@@ -1,42 +1,69 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
 interface SettingsPanelProps {
+  // Original callback-style props
   onFontSizeChange?: (size: number) => void;
   onFontFamilyChange?: (family: 'gothic' | 'serif') => void;
   onThemeChange?: (theme: 'light' | 'dark') => void;
   initialFontSize?: number;
   initialFontFamily?: 'gothic' | 'serif';
   initialTheme?: 'light' | 'dark';
+  
+  // Direct state management props (new)
+  fontSize?: number;
+  setFontSize?: Dispatch<SetStateAction<number>>;
+  fontFamily?: 'gothic' | 'serif';
+  setFontFamily?: Dispatch<SetStateAction<'gothic' | 'serif'>>;
+  theme?: 'light' | 'dark';
+  setTheme?: Dispatch<SetStateAction<'light' | 'dark'>>;
+  lineHeight?: number;
+  setLineHeight?: Dispatch<SetStateAction<number>>;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
+  // Original callback props
   onFontSizeChange, 
   onFontFamilyChange,
   onThemeChange,
   initialFontSize = 90,
   initialFontFamily = 'gothic',
-  initialTheme = 'light'
+  initialTheme = 'light',
+  
+  // Direct state management props
+  fontSize: externalFontSize,
+  setFontSize: externalSetFontSize,
+  fontFamily: externalFontFamily,
+  setFontFamily: externalSetFontFamily,
+  theme: externalTheme,
+  setTheme: externalSetTheme,
+  lineHeight: externalLineHeight,
+  setLineHeight: externalSetLineHeight
 }) => {
-  const [fontSize, setFontSize] = useState(initialFontSize);
-  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>(initialFontFamily);
-  const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
+  // Use external state if provided, otherwise manage internally
+  const [fontSize, setFontSize] = useState(externalFontSize || initialFontSize);
+  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>(externalFontFamily || initialFontFamily);
+  const [theme, setTheme] = useState<'light' | 'dark'>(externalTheme || initialTheme);
 
   useEffect(() => {
-    // Immediately apply initial settings
-    if (onFontSizeChange) onFontSizeChange((initialFontSize / 100) * 16);
-    if (onFontFamilyChange) onFontFamilyChange(initialFontFamily);
-    if (onThemeChange) onThemeChange(initialTheme);
+    // Only apply initial settings if using internal state management
+    if (!externalFontSize && onFontSizeChange) onFontSizeChange((initialFontSize / 100) * 16);
+    if (!externalFontFamily && onFontFamilyChange) onFontFamilyChange(initialFontFamily);
+    if (!externalTheme && onThemeChange) onThemeChange(initialTheme);
   }, []);
 
   const decreaseFontSize = () => {
     if (fontSize > 50) {
       const newSize = fontSize - 10;
-      setFontSize(newSize);
-      if (onFontSizeChange) {
-        onFontSizeChange((newSize / 100) * 16);
+      if (externalSetFontSize) {
+        externalSetFontSize(newSize);
+      } else {
+        setFontSize(newSize);
+        if (onFontSizeChange) {
+          onFontSizeChange((newSize / 100) * 16);
+        }
       }
     }
   };
@@ -44,24 +71,36 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const increaseFontSize = () => {
     if (fontSize < 150) {
       const newSize = fontSize + 10;
-      setFontSize(newSize);
-      if (onFontSizeChange) {
-        onFontSizeChange((newSize / 100) * 16);
+      if (externalSetFontSize) {
+        externalSetFontSize(newSize);
+      } else {
+        setFontSize(newSize);
+        if (onFontSizeChange) {
+          onFontSizeChange((newSize / 100) * 16);
+        }
       }
     }
   };
 
   const handleFontFamilyChange = (family: 'gothic' | 'serif') => {
-    setFontFamily(family);
-    if (onFontFamilyChange) {
-      onFontFamilyChange(family);
+    if (externalSetFontFamily) {
+      externalSetFontFamily(family);
+    } else {
+      setFontFamily(family);
+      if (onFontFamilyChange) {
+        onFontFamilyChange(family);
+      }
     }
   };
 
   const handleThemeChange = (themeMode: 'light' | 'dark') => {
-    setTheme(themeMode);
-    if (onThemeChange) {
-      onThemeChange(themeMode);
+    if (externalSetTheme) {
+      externalSetTheme(themeMode);
+    } else {
+      setTheme(themeMode);
+      if (onThemeChange) {
+        onThemeChange(themeMode);
+      }
     }
   };
 
