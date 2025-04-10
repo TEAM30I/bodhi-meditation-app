@@ -5,149 +5,135 @@ import boto3
 from botocore.exceptions import ClientError
 import os
 import json
+import logging
+from datetime import datetime, timedelta
 
-# AWS Configuration from config file
-config = {
-    "aws_project_region": "ap-northeast-2",
-    "aws_cognito_region": "ap-northeast-2",
-    "aws_user_pools_id": "ap-northeast-2_asbht9MBG",
-    "aws_user_pools_web_client_id": "3bmg89p73cggqdhpc35v35g2fo"
-}
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Initialize Cognito client
-client = boto3.client(
-    'cognito-idp',
-    region_name=config['aws_cognito_region']
+# 설정 파일에서 AWS 정보 가져오기
+with open('../src/config/amplifyconfiguration.json', 'r') as config_file:
+    config = json.load(config_file)
+
+# 인증 코드 저장소 (메모리 캐시, 실제 환경에서는 Redis 등 사용 권장)
+verification_codes = {}
+
+# Initialize AWS clients
+sns_client = boto3.client(
+    'sns',
+    region_name=config['aws_project_region'],
+    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
 )
 
-def generate_verification_code():
-    """Generate a random 4-digit verification code"""
-    return ''.join(random.choices(string.digits, k=4))
+cognito_client = boto3.client(
+    'cognito-idp',
+    region_name=config['aws_cognito_region'],
+    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
+)
+
+def generate_verification_code(length=6):
+    """Generate a random 6-digit verification code"""
+    return ''.join(random.choices(string.digits, k=length))
 
 def send_verification_code(phone_number):
-    code = generate_verification_code()
-    
-    # SNS 클라이언트 생성
-    sns_client = boto3.client('sns', region_name=config['aws_cognito_region'])
-    
+    """Send verification code via AWS SNS"""
     try:
+        code = generate_verification_code()
+        
+        # 한국어 메시지 내용
+        message = f"[보디] 인증번호는 [{code}]입니다. 3분 안에 입력해주세요."
+        
+        # AWS SNS를 통해 SMS 발송
         response = sns_client.publish(
             PhoneNumber=phone_number,
-            Message=f"Your verification code is: {code}"
-        )
-        # 코드와 response를 데이터베이스나 캐시에 저장하여 나중에 검증할 수 있도록 함
-        return code
-    except ClientError as e:
-        print(f"Error sending SMS: {e}")
-        return None
-
-
-def verify_phone_number(phone_number, code):
-    """Verify the phone number with the provided code"""
-    # In a real implementation, you'd check the code against what was stored
-    # Return True if valid, False otherwise
-    return True  # Mocked for demo
-
-def find_user_by_phone(phone_number):
-    """Find a user by phone number in Cognito"""
-    try:
-        response = client.list_users(
-            UserPoolId=config['aws_user_pools_id'],
-            Filter=f'phone_number = "{phone_number}"'
+            Message=message,
+            MessageAttributes={
+                'AWS.SNS.SMS.SenderID': {
+                    'DataType': 'String',
+                    'StringValue': 'BODHI'
+                },
+                'AWS.SNS.SMS.SMSType': {
+                    'DataType': 'String',
+                    'StringValue': 'Transactional'
+                }
+            }
         )
         
-        if response['Users']:
-            # Found user with this phone number
-            user = response['Users'][0]
-            username = next((attr['Value'] for attr in user['Attributes'] 
-                            if attr['Name'] == 'preferred_username'), 
-                           user['Username'])
-            return username
-        else:
-            return None
+        # 인증코드 메모리에 저장 (3분 유효)
+        expiry_time = datetime.now() + timedelta(minutes=3)
+        verification_codes[phone_number] = {
+            'code': code,
+            'expires_at': expiry_time
+        }
+        
+        logger.info(f"Verification code sent to {phone_number}: {code}")
+        return code
+        
     except ClientError as e:
-        print(f"Error finding user: {e}")
+        logger.error(f"Error sending SMS: {e}")
         return None
 
-def reset_password(username):
-    """Initiate password reset for a user"""
-    try:
-        response = client.forgot_password(
-            ClientId=config['aws_user_pools_web_client_id'],
-            Username=username
-        )
-        return response
-    except ClientError as e:
-        print(f"Error resetting password: {e}")
-        return None
-
-def confirm_forgot_password(username, code, new_password):
-    """Confirm password reset with verification code"""
-    try:
-        response = client.confirm_forgot_password(
-            ClientId=config['aws_user_pools_web_client_id'],
-            Username=username,
-            ConfirmationCode=code,
-            Password=new_password
-        )
-        return True
-    except ClientError as e:
-        print(f"Error confirming password reset: {e}")
+def verify_verification_code(phone_number, code):
+    """Verify the provided code against stored code"""
+    if phone_number not in verification_codes:
+        logger.warning(f"No verification code found for {phone_number}")
         return False
+    
+    stored_data = verification_codes[phone_number]
+    
+    # 만료 시간 확인
+    if datetime.now() > stored_data['expires_at']:
+        # 만료된 코드 삭제
+        del verification_codes[phone_number]
+        logger.warning(f"Verification code for {phone_number} has expired")
+        return False
+    
+    # 코드 일치 확인
+    if stored_data['code'] == code:
+        # 검증 성공 시 삭제
+        del verification_codes[phone_number]
+        logger.info(f"Verification successful for {phone_number}")
+        return True
+    
+    logger.warning(f"Invalid verification code for {phone_number}")
+    return False
 
-def register_user(username, password, email, phone_number):
+def check_username_exists(username):
+    """Check if a username already exists in Cognito"""
+    try:
+        response = cognito_client.list_users(
+            UserPoolId=config['aws_user_pools_id'],
+            Filter=f'username = "{username}"',
+            Limit=1
+        )
+        
+        return len(response.get('Users', [])) > 0
+    
+    except ClientError as e:
+        logger.error(f"Error checking username: {e}")
+        raise e
+
+def register_user(username, password, user_attributes):
     """Register a new user in Cognito"""
     try:
-        response = client.sign_up(
+        response = cognito_client.sign_up(
             ClientId=config['aws_user_pools_web_client_id'],
             Username=username,
             Password=password,
             UserAttributes=[
-                {
-                    'Name': 'email',
-                    'Value': email
-                },
-                {
-                    'Name': 'phone_number',
-                    'Value': phone_number
-                }
+                {'Name': key, 'Value': value} for key, value in user_attributes.items()
             ]
         )
         return response
     except ClientError as e:
-        print(f"Error registering user: {e}")
-        return None
-
-def update_user_attributes(username, attributes):
-    """Update user attributes in Cognito"""
-    try:
-        # Get access token for the user
-        auth_response = client.admin_initiate_auth(
-            UserPoolId=config['aws_user_pools_id'],
-            ClientId=config['aws_user_pools_web_client_id'],
-            AuthFlow='ADMIN_NO_SRP_AUTH',
-            AuthParameters={
-                'USERNAME': username,
-                'SECRET_HASH': 'your_secret_hash'  # You'd calculate this in a real app
-            }
-        )
-        
-        access_token = auth_response['AuthenticationResult']['AccessToken']
-        
-        # Convert attributes dict to Cognito format
-        user_attributes = [{'Name': k, 'Value': v} for k, v in attributes.items()]
-        
-        response = client.update_user_attributes(
-            AccessToken=access_token,
-            UserAttributes=user_attributes
-        )
-        
-        return response
-    except ClientError as e:
-        print(f"Error updating user attributes: {e}")
-        return None
+        logger.error(f"Error registering user: {e}")
+        raise e
 
 if __name__ == "__main__":
-    # Example usage
-    code = send_verification_code("+821012345678")
-    print(f"Verification code: {code}")
+    # 테스트용
+    print("Testing verification code generation:")
+    code = generate_verification_code()
+    print(f"Generated code: {code}")

@@ -7,7 +7,7 @@ interface VerificationOptions {
   initialValue?: string;
   validationFn: (value: string) => boolean;
   sendVerificationFn: (value: string) => Promise<any>;
-  verifyCodeFn: (value: string, code: string) => Promise<any>;
+  verifyCodeFn: (code: string) => Promise<any>;
   timerMinutes?: number;
   timerSeconds?: number;
 }
@@ -72,7 +72,7 @@ export function useVerification({
 
         toast({
           title: "인증 코드 발송",
-          description: `인증 코드가 발송되었습니다.`,
+          description: result.message || "인증 코드가 발송되었습니다.",
         });
       } else {
         toast({
@@ -107,14 +107,14 @@ export function useVerification({
     setIsLoading(true);
 
     try {
-      const result = await verifyCodeFn(value, verificationCode);
+      const result = await verifyCodeFn(verificationCode);
 
       if (result.success) {
         setVerificationComplete(true);
         
         toast({
           title: "인증 완료",
-          description: "인증이 완료되었습니다.",
+          description: result.message || "인증이 완료되었습니다.",
         });
       } else {
         toast({

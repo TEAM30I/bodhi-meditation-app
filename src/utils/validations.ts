@@ -5,8 +5,8 @@ export const validateEmail = (email: string): boolean => {
 };
 
 export const validatePhone = (phone: string): boolean => {
-  // 숫자, 하이픈만 허용하며 전체 길이는 12-13자(010-1234-5678 또는 010-123-4567)
-  const phoneRegex = /^(01[016789])-?([0-9]{3,4})-?([0-9]{4})$/;
+  // 한국 휴대폰 번호 형식 검사 (010-xxxx-xxxx 또는 010-xxx-xxxx)
+  const phoneRegex = /^01[0-9]-\d{3,4}-\d{4}$/;
   return phoneRegex.test(phone);
 };
 
@@ -44,4 +44,17 @@ export const formatPhoneNumberForDisplay = (phoneNumber: string): string => {
   }
   
   return phoneNumber;
+};
+
+// 010-1234-5678 형식의 전화번호 입력을 자동으로 하이픈 추가하는 유틸리티 함수
+export const formatPhoneWithHyphen = (phone: string): string => {
+  const digits = phone.replace(/\D/g, '');
+  
+  if (digits.length <= 3) {
+    return digits;
+  } else if (digits.length <= 7) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  } else {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
+  }
 };

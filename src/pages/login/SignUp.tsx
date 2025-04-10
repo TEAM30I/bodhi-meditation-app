@@ -1,41 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signUp, confirmSignUp } from 'aws-amplify/auth';
 import StatusBar from '@/components/login/StatusBar';
 import BackButton from '@/components/login/BackButton';
 import InputField from '@/components/login/InputField';
 import CheckboxField from '@/components/login/CheckboxField';
 import AuthButton from '@/components/login/AuthButton';
 import { useToast } from '@/hooks/use-toast';
-import { formatPhoneNumber } from '@/utils/validations';
-
-// AWS Cognito 아이디 체크는 모의 구현으로 대체 (실제로는 API 호출 필요)
-const mockCheckUsername = async (username: string) => {
-  // 실제 환경에서는 API 호출로 대체
-  console.log("Checking username:", username);
-  
-  // 3글자 미만인 경우
-  if (username.length < 3) {
-    return {
-      isAvailable: false,
-      message: "아이디는 3글자 이상이어야 합니다"
-    };
-  }
-  
-  // 테스트 환경에서 "test"로 시작하는 아이디는 이미 사용 중인 것으로 간주
-  if (username.startsWith("test")) {
-    return {
-      isAvailable: false,
-      message: "이미 사용 중인 아이디입니다"
-    };
-  }
-  
-  return {
-    isAvailable: true,
-    message: "사용 가능한 아이디입니다"
-  };
-};
+import { formatPhoneNumber, validatePhone } from '@/utils/validations';
+import { checkUsernameAvailability } from '@/services/authService';
+import { usePhoneVerification } from '@/hooks/usePhoneVerification';
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
@@ -43,34 +17,32 @@ const SignUp: React.FC = () => {
   
   // 상태 관리
   const [username, setUsername] = useState('');
-  const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [showVerification, setShowVerification] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<'default' | 'error' | 'success'>('default');
   const [usernameMessage, setUsernameMessage] = useState('');
   const [isChecking, setIsChecking] = useState(false);
   const [verification, setVerification] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   
-  // 타이머 관리
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    
-    if (timeLeft > 0) {
-      timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-    }
-    
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [timeLeft]);
+  // 전화번호 인증 hook 사용
+  const phoneVerification = usePhoneVerification({ 
+    name: name,
+    email: username
+  });
   
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' + secs : secs}`;
+  // 입력된 전화번호의 형식 자동 변환 (xxx-xxxx-xxxx)
+  const formatPhoneInput = (input: string) => {
+    // 숫자만 추출
+    const digits = input.replace(/\D/g, '');
+    
+    if (digits.length <= 3) {
+      return digits;
+    } else if (digits.length <= 7) {
+      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    } else {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
+    }
   };
   
   // 아이디 중복 확인
@@ -87,8 +59,8 @@ const SignUp: React.FC = () => {
     setIsChecking(true);
     
     try {
-      // 모의 중복 확인 함수 호출
-      const result = await mockCheckUsername(username);
+      // 실제 아이디 중복 확인 API 호출
+      const result = await checkUsernameAvailability(username);
       
       if (result.isAvailable) {
         setUsernameStatus('success');
@@ -97,7 +69,7 @@ const SignUp: React.FC = () => {
       }
       setUsernameMessage(result.message);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Username check error:', error);
       toast({
         title: "오류",
@@ -112,59 +84,9 @@ const SignUp: React.FC = () => {
     }
   };
   
-  // 인증번호 발송
-  const sendVerificationCode = async () => {
-    if (!phone) {
-      toast({
-        title: "오류",
-        description: "전화번호를 입력해주세요.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      // 전화번호 형식 검사 (010-xxxx-xxxx 형식)
-      const phoneRegex = /^01[0-9]-[0-9]{3,4}-[0-9]{4}$/;
-      
-      if (!phoneRegex.test(phone)) {
-        toast({
-          title: "오류",
-          description: "올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // 테스트 환경에서는 성공으로 처리
-      // 인증 코드 발송 성공으로 간주
-      
-      // 3분 타이머 시작
-      setTimeLeft(180);
-      
-      toast({
-        title: "인증번호 발송",
-        description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요. (테스트: 123456)",
-      });
-      
-      setShowVerification(true);
-      console.log('Phone verification initiated: 테스트 환경에서는 123456을 사용하세요.');
-    } catch (error: any) {
-      console.error('Phone verification error:', error);
-      
-      let errorMessage = "인증번호 발송에 실패했습니다.";
-      
-      toast({
-        title: "오류",
-        description: errorMessage,
-        variant: "destructive"
-      });
-    }
-  };
-  
   // 회원가입 처리
   const handleSignUp = async () => {
-    if (!username || !phone || !password) {
+    if (!username || !phoneVerification.value || !password || !name) {
       toast({
         title: "회원가입 실패",
         description: "모든 필드를 입력해주세요.",
@@ -182,10 +104,10 @@ const SignUp: React.FC = () => {
       return;
     }
     
-    if (showVerification && !verificationCode) {
+    if (!phoneVerification.verificationComplete) {
       toast({
         title: "회원가입 실패",
-        description: "인증번호를 입력해주세요.",
+        description: "전화번호 인증이 필요합니다.",
         variant: "destructive"
       });
       return;
@@ -203,34 +125,19 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // 테스트 환경에서는 전화번호 인증 검증 생략 (실제로는 인증 확인 필요)
-      let isPhoneVerified = true;
-      
-      if (showVerification) {
-        // 테스트 환경: 123456 또는 6자리 숫자면 인증 성공으로 간주
-        isPhoneVerified = verificationCode === '123456' || (verificationCode.length === 6 && /^\d{6}$/.test(verificationCode));
-        
-        if (!isPhoneVerified) {
-          toast({
-            title: "인증 실패",
-            description: "인증 코드가 올바르지 않습니다.",
-            variant: "destructive"
-          });
-          setIsLoading(false);
-          return;
-        }
-      }
-      
       // 전화번호 포맷팅 (010-1234-5678 -> +821012345678)
-      const formattedPhone = formatPhoneNumber(phone);
+      const formattedPhone = formatPhoneNumber(phoneVerification.value);
       
       console.log("회원가입 시도:", { 
         username, 
+        name,
         password: "********", 
         phone: formattedPhone 
       });
       
-      // 테스트 환경에서는 회원가입 성공으로 간주
+      // 회원가입 API 호출 (현재는 mock 구현)
+      // 실제 환경에서는 API 호출로 대체
+      
       toast({
         title: "회원가입 성공",
         description: "프로필 설정 단계로 이동합니다.",
@@ -242,15 +149,6 @@ const SignUp: React.FC = () => {
       console.error('SignUp error:', error);
       
       let errorMessage = "회원가입 중 오류가 발생했습니다.";
-      if (error.name === 'UsernameExistsException') {
-        errorMessage = "이미 존재하는 사용자 아이디입니다.";
-      } else if (error.name === 'InvalidPasswordException') {
-        errorMessage = "비밀번호는 8자 이상이어야 합니다.";
-      } else if (error.name === 'InvalidParameterException') {
-        errorMessage = "입력된 정보가 올바르지 않습니다.";
-      } else if (error.name === 'CodeMismatchException') {
-        errorMessage = "인증 코드가 올바르지 않습니다.";
-      }
       
       toast({
         title: "회원가입 실패",
@@ -276,11 +174,24 @@ const SignUp: React.FC = () => {
   // 인증코드 발송 버튼
   const SendCodeButton = () => (
     <button
-      onClick={sendVerificationCode}
+      onClick={phoneVerification.handleSendVerification}
       className="text-white text-sm bg-app-orange px-4 py-1 rounded-md"
-      disabled={timeLeft > 0}
+      disabled={phoneVerification.isLoading || !phoneVerification.isValid || (!phoneVerification.timerExpired && phoneVerification.verificationSent)}
     >
-      {timeLeft > 0 ? "재발송" : "인증코드 발송"}
+      {phoneVerification.isLoading ? "발송 중..." : 
+        (phoneVerification.verificationSent && !phoneVerification.timerExpired) ? "재발송" : "인증코드 발송"}
+    </button>
+  );
+  
+  // 인증코드 확인 버튼
+  const VerifyCodeButton = () => (
+    <button
+      onClick={phoneVerification.handleVerifyCode}
+      className="text-white text-sm bg-app-orange px-4 py-1 rounded-md"
+      disabled={phoneVerification.isLoading || phoneVerification.verificationComplete}
+    >
+      {phoneVerification.isLoading ? "확인 중..." : 
+        phoneVerification.verificationComplete ? "인증 완료" : "확인"}
     </button>
   );
   
@@ -326,35 +237,53 @@ const SignUp: React.FC = () => {
             <span className="ml-2">{usernameMessage}</span>
           </div>
         )}
+
+        <InputField
+          type="text"
+          label="이름"
+          placeholder="이름을 입력해 주세요"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          icon="user"
+        />
         
         <InputField
           type="tel"
           label="전화번호"
           placeholder="전화번호를 입력해 주세요 (010-0000-0000)"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          value={phoneVerification.value}
+          onChange={(e) => {
+            const formatted = formatPhoneInput(e.target.value);
+            phoneVerification.setValue(formatted);
+          }}
           icon="phone"
           rightElement={<SendCodeButton />}
         />
         
-        {showVerification && (
+        {phoneVerification.verificationSent && (
           <div>
             <InputField
               type="text"
               label="인증코드"
               placeholder="인증코드를 입력해 주세요"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
+              value={phoneVerification.verificationCode}
+              onChange={(e) => phoneVerification.setVerificationCode(e.target.value)}
+              rightElement={<VerifyCodeButton />}
               className="mb-1"
             />
-            {timeLeft > 0 && (
+            {phoneVerification.timer > 0 && (
               <div className="text-right text-app-orange text-sm mb-4">
-                남은 시간: {formatTime(timeLeft)}
+                남은 시간: {phoneVerification.formatTime(phoneVerification.timer)}
               </div>
             )}
-            {timeLeft === 0 && showVerification && (
+            {phoneVerification.timerExpired && phoneVerification.verificationSent && !phoneVerification.verificationComplete && (
               <div className="text-right text-red-500 text-sm mb-4">
                 인증 시간이 만료되었습니다. 재발송해주세요.
+              </div>
+            )}
+            {phoneVerification.verificationComplete && (
+              <div className="text-right text-green-500 text-sm mb-4">
+                인증이 완료되었습니다.
               </div>
             )}
           </div>
