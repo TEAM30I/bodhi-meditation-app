@@ -3,7 +3,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '@/components/login/StatusBar';
 import AuthButton from '@/components/login/AuthButton';
-import onboarding1 from '../../../public/onboarding1.png'
 
 const Onboarding1: React.FC = () => {
   const navigate = useNavigate();
@@ -14,8 +13,7 @@ const Onboarding1: React.FC = () => {
       
       <div className="flex-1 flex flex-col items-center justify-center p-6 animate-fade-in">
         <div className="w-60 h-60 mb-10">
-          <img src={onboarding1} alt="Onboarding Image" />
-          <div/>
+          <img src="/onboarding1.png" alt="Onboarding Image" />
         </div>
         
         <h1 className="text-white text-2xl font-bold text-center mb-2">

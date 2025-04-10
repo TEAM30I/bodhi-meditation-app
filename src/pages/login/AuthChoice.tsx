@@ -3,7 +3,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '@/components/login/StatusBar';
 import AuthButton from '@/components/login/AuthButton';
-import authchoice from '../../../public/authchoice.png'
 
 const AuthChoice: React.FC = () => {
   const navigate = useNavigate();
@@ -14,7 +13,7 @@ const AuthChoice: React.FC = () => {
       
       <div className="flex-1 flex flex-col items-center justify-center p-6 animate-fade-in">
         <div className="w-60 h-60 mb-10">
-          <img src={authchoice} alt="authchoice image" />
+          <img src="/authchoice.png" alt="authchoice image" />
         </div>
         
         <h1 className="text-white text-2xl font-bold text-center mb-10">

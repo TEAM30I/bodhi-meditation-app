@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import React from "react";
@@ -60,7 +61,7 @@ const App: React.FC = () => {
       <AuthProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<Navigate to="/login/onboarding1" />} />
+            <Route path="/" element={<Onboarding1 />} />
             <Route path="/index" element={<Index />} />
             <Route path="/main" element={<Main />} />
             
@@ -100,7 +101,6 @@ const App: React.FC = () => {
             <Route path="/temple-stay/:id" element={<Navigate to="/search/temple-stay/detail/:id" replace />} />
 
             {/* Signup and Login */}
-            <Route path="/" element={<Onboarding1 />} />
             <Route path="/onboarding2" element={<Onboarding2 />} />
             <Route path="/auth-choice" element={<AuthChoice />} />
             <Route path="/login" element={<Login />} />
@@ -111,7 +111,6 @@ const App: React.FC = () => {
             <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/terms-agreement" element={<TermsAgreement />} />
             <Route path="/home" element={<Index />} />
-
 
             <Route path="*" element={<NotFound />} />
           </Routes>
