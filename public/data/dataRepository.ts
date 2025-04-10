@@ -52,7 +52,7 @@ import {
   type SearchRanking,
 } from "./searchRankingRepository";
 
-import { imageRepository } from "./imageRepository";
+import { imageRepository } from "./image/imageRepository";
 
 /* ────────────────────────────────────────────────────────────
  * 2. 도메인 통합 컬렉션

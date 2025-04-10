@@ -55,11 +55,12 @@ const SearchResults = () => {
   const handleTempleClick = (id: string) => {
     navigate(`/search/temple/detail/${id}`);
   };
-
+  const handleSearch = () => navigate(`/search/temple/results?query=${searchValue}`);
   return (
     <div className="bg-[#F8F8F8] min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
         <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
+          
           <button onClick={() => navigate('/main')}>
             <ArrowLeft className="h-6 w-6" />
           </button>
@@ -72,6 +73,7 @@ const SearchResults = () => {
               className="w-full pl-9 pr-8 py-2 rounded-full bg-[#F5F5F5] border-none"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+
             {searchValue && (
               <button 
                 type="button"
@@ -83,8 +85,15 @@ const SearchResults = () => {
             )}
           </form>
         </div>
+        {/* ✅ 검색하기 버튼 (위치 검색어만 있으므로 바로) */}
+            <Button
+          className="w-full h-11 mb-4 bg-[#DE7834] hover:bg-[#c96b2e]"
+          onClick={handleSearch}
+        >
+          검색하기
+        </Button>
       </div>
-
+      
       <div className="max-w-[480px] mx-auto px-5 py-3">
         <div className="flex gap-2 mb-4">
           <Button

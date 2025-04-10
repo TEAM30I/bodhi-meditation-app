@@ -103,10 +103,7 @@ const ScriptureCalendarPage: React.FC = () => {
 
   return (
     <div className="bg-[#F8F8F8] min-h-screen">
-      <div className="sticky top-0 z-10 bg-white w-full h-[44px] flex items-center justify-between px-5">
-        <span className="text-[15px] text-[#111111]">9:41</span>
-      </div>
-      
+
       <div className="sticky top-[44px] z-10 bg-white w-full h-[56px] flex items-center px-5">
         <button 
           onClick={() => navigate('/scripture')}

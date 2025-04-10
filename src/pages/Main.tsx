@@ -6,6 +6,7 @@ import { Search, Bell, ChevronRight, Home, Book, UserCircle, Heart } from 'lucid
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/context/AuthContext';
 import { typedData } from '@/utils/typeUtils';
+import { ScriptureCalendarPrev } from '@/components/scripture/ScriptureCalendar_prev';
 import { 
   getTempleList, 
   getTempleStayList, 
@@ -46,7 +47,7 @@ const Main = () => {
 
   const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
   const typedScriptures = typedData<typeof scriptures>(scriptures);
-
+  const handleNavigateToCalendar = () => navigate('/scripture/calendar');
   return (
     <div className="w-full min-h-screen bg-[#F8F8F8] font-['Pretendard']">
       <div className="w-full bg-white shadow-sm">
@@ -72,6 +73,20 @@ const Main = () => {
       </div>
 
       <div className="w-full max-w-[480px] mx-auto pb-20 px-5">
+        <div
+          className="mb-3 cursor-pointer"
+          onClick={handleNavigateToCalendar}
+        >
+          <div className="flex items-center">
+            <h2 className="text-lg font-bold">경전 캘린더</h2>
+            <ChevronRight size={18} className="text-gray-400 ml-1" />
+          </div>
+          <div className="mb-6">
+          <ScriptureCalendarPrev />
+          </div>
+        </div>
+        
+        
         <div className="py-4 mb-8">
           <div className="flex items-center gap-2 mb-4">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -228,9 +243,6 @@ const Main = () => {
           >
             <UserCircle size={28} />
           </button>
-        </div>
-        <div className="h-9 bg-white flex justify-center items-center">
-          <div className="w-32 h-1.5 bg-black rounded-full"></div>
         </div>
       </div>
     </div>

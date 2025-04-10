@@ -1,7 +1,5 @@
 
-// Central repository import file for consistent imports across the app
-import { lazy } from 'react';
-
+import ScriptureReader from '@/pages/scripture/ScriptureReader';
 // Repository exports with consistent static imports
 export { 
   regionSearchRankings, 
@@ -49,4 +47,4 @@ export {
 } from '/public/data/scriptureData/scriptureRepository';
 
 // Lazy loaded components for dynamic imports
-export const LazyScriptureReader = lazy(() => import('@/pages/scripture/ScriptureReader'));
+export const LazyScriptureReader = ScriptureReader;
