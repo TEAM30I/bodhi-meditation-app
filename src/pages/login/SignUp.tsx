@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '@/components/login/StatusBar';
@@ -237,7 +236,7 @@ const SignUp: React.FC = () => {
             <span className="ml-2">{usernameMessage}</span>
           </div>
         )}
-
+        
         <InputField
           type="text"
           label="이름"
@@ -271,9 +270,9 @@ const SignUp: React.FC = () => {
               rightElement={<VerifyCodeButton />}
               className="mb-1"
             />
-            {phoneVerification.timer > 0 && (
+            {phoneVerification.timer.minutes > 0 || phoneVerification.timer.seconds > 0 && (
               <div className="text-right text-app-orange text-sm mb-4">
-                남은 시간: {phoneVerification.formatTime(phoneVerification.timer)}
+                남은 시간: {phoneVerification.formatTime(phoneVerification.timer.minutes)}:{phoneVerification.formatTime(phoneVerification.timer.seconds)}
               </div>
             )}
             {phoneVerification.timerExpired && phoneVerification.verificationSent && !phoneVerification.verificationComplete && (

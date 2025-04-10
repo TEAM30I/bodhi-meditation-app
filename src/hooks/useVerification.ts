@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useTimer } from './useTimer';
+import { useTimer, Timer } from './useTimer';
 import { toast } from '@/components/ui/use-toast';
 
 interface VerificationOptions {

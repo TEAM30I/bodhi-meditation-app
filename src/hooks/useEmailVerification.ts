@@ -13,8 +13,9 @@ export const useEmailVerification = ({ name }: UseEmailVerificationProps) => {
     sendVerificationFn: async (email: string) => {
       return await initiateEmailVerification(email, name);
     },
-    verifyCodeFn: async (email: string, code: string) => {
-      return await verifyEmailCode(email, code);
+    verifyCodeFn: async (code: string) => {
+      // Pass the current email value from the useVerification hook
+      return await verifyEmailCode(emailVerification.value, code);
     }
   });
 
