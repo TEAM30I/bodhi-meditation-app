@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Auth } from 'aws-amplify';
+import { fetchUserAttributes, updateUserAttributes } from 'aws-amplify/auth';
 import { Pencil } from 'lucide-react';
 import StatusBar from '@/components/login/StatusBar';
 import BackButton from '@/components/login/BackButton';
@@ -34,12 +34,15 @@ const ProfileSetup: React.FC = () => {
     
     try {
       // Update user attributes in Cognito
-      const user = await Auth.currentAuthenticatedUser();
-      await Auth.updateUserAttributes(user, {
-        'name': name,
-        'email': email,
-        'nickname': nickname,
-        // You can add custom attributes for age group and gender
+      await updateUserAttributes({
+        userAttributes: {
+          name: name,
+          email: email,
+          'custom:nickname': nickname,
+          // You can add custom attributes for age group and gender
+          'custom:ageGroup': ageGroup,
+          'custom:gender': gender
+        }
       });
       
       toast({
@@ -55,6 +58,7 @@ const ProfileSetup: React.FC = () => {
         description: "프로필 저장 중 오류가 발생했습니다.",
         variant: "destructive"
       });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

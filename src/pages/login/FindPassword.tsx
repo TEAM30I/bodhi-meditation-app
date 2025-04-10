@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Auth } from 'aws-amplify';
+import { resetPassword, confirmResetPassword } from 'aws-amplify/auth';
 import StatusBar from '@/components/login/StatusBar';
 import BackButton from '@/components/login/BackButton';
 import InputField from '@/components/login/InputField';
@@ -40,7 +40,7 @@ const FindPassword: React.FC = () => {
     return `${mins}:${secs < 10 ? '0' + secs : secs}`;
   };
   
-  const sendVerificationCode = () => {
+  const sendVerificationCode = async () => {
     if (!username || !phone) {
       toast({
         title: "오류",
@@ -53,16 +53,23 @@ const FindPassword: React.FC = () => {
     // Start countdown timer for 3 minutes (180 seconds)
     setTimeLeft(180);
     
-    // Generate random 4 digit code
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    console.log("Verification code:", code); // In real app, send via SMS
-    
-    toast({
-      title: "인증번호 발송",
-      description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
-    });
-    
-    setShowVerification(true);
+    try {
+      // In a real app we would call Amplify's resetPassword
+      await resetPassword({ username });
+      
+      toast({
+        title: "인증번호 발송",
+        description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
+      });
+      
+      setShowVerification(true);
+    } catch (error: any) {
+      toast({
+        title: "오류",
+        description: "인증코드 발송 중 문제가 발생했습니다.",
+        variant: "destructive"
+      });
+    }
   };
   
   const verifyCodeAndShowResetForm = async () => {
@@ -111,7 +118,7 @@ const FindPassword: React.FC = () => {
     }
   };
   
-  const resetPassword = async () => {
+  const resetPasswordHandler = async () => {
     if (!newPassword || !confirmPassword) {
       toast({
         title: "오류",
@@ -142,8 +149,12 @@ const FindPassword: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // In a real app, reset password via Cognito
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // In a real app we would call Amplify's confirmResetPassword
+      await confirmResetPassword({ 
+        username, 
+        confirmationCode: verificationCode, 
+        newPassword
+      });
       
       toast({
         title: "성공",
@@ -204,7 +215,7 @@ const FindPassword: React.FC = () => {
           
           <AuthButton 
             label={isLoading ? "변경 중..." : "비밀번호 변경"}
-            onClick={resetPassword}
+            onClick={resetPasswordHandler}
             disabled={isLoading}
           />
         </div>

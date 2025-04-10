@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Auth } from 'aws-amplify';
+import { signIn } from 'aws-amplify/auth';
 import StatusBar from '@/components/login/StatusBar';
 import BackButton from '@/components/login/BackButton';
-import InputField from '@/components/InputField';
+import InputField from '@/components/login/InputField';
 import CheckboxField from '@/components/login/CheckboxField';
 import AuthButton from '@/components/login/AuthButton';
 import { useToast } from '@/hooks/use-toast';
@@ -31,7 +31,7 @@ const Login: React.FC = () => {
     setIsLoading(true);
     
     try {
-      await Auth.signIn(email, password);
+      await signIn({ username: email, password });
       toast({
         title: "로그인 성공",
         description: "환영합니다!",

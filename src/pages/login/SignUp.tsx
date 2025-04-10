@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Auth } from 'aws-amplify';
+import { signUp, confirmSignUp } from 'aws-amplify/auth';
 import StatusBar from '@/components/login/StatusBar';
 import BackButton from '@/components/login/BackButton';
 import InputField from '@/components/login/InputField';
@@ -171,21 +171,33 @@ const SignUp: React.FC = () => {
     
     try {
       // Register the user with Cognito
-      await Auth.signUp({
+      const { isSignUpComplete, userId } = await signUp({
         username,
         password,
-        attributes: {
-          phone_number: phone,
+        options: {
+          userAttributes: {
+            phone_number: phone,
+          },
+          autoSignIn: true
         }
       });
       
-      toast({
-        title: "회원가입 성공",
-        description: "프로필 설정 단계로 이동합니다.",
-      });
-      
-      // Navigate to profile setup
-      navigate('/profile-setup');
+      // If phone verification is required, we'd handle confirmSignUp here
+      if (!isSignUpComplete) {
+        toast({
+          title: "회원가입 진행 중",
+          description: "추가 인증이 필요합니다.",
+        });
+        // Handle verification flow here
+      } else {
+        toast({
+          title: "회원가입 성공",
+          description: "프로필 설정 단계로 이동합니다.",
+        });
+        
+        // Navigate to profile setup
+        navigate('/profile-setup');
+      }
     } catch (error: any) {
       let errorMessage = "회원가입 중 오류가 발생했습니다.";
       if (error.code === 'UsernameExistsException') {
@@ -201,6 +213,7 @@ const SignUp: React.FC = () => {
         description: errorMessage,
         variant: "destructive"
       });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
