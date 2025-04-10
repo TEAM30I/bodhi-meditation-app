@@ -35,13 +35,16 @@ import TempleStaySearchResults from "@/pages/search/temple-stay/SearchResults";
 import TempleStayDetail from "@/pages/search/temple-stay/TempleStayDetail";
 
 // Login Module
-import Onboarding1 from "@/pages/login/Onboarding1";
-import Onboarding2 from "@/pages/login/Onboarding2";
-import AuthSelection from "@/pages/login/AuthSelection";
-import Signup from "@/pages/login/Signup";
-import Login from "@/pages/login/Login";
-import FindAccount from "@/pages/login/FindAccount";
-import ResetPassword from "@/pages/login/ResetPassword";
+import Onboarding1 from "./pages/login/Onboarding1";
+import Onboarding2 from "./pages/login/Onboarding2";
+import AuthChoice from "./pages/login/AuthChoice";
+import Login from "./pages/login/Login";
+import SignUp from "./pages/login/SignUp";
+import FindCredentialsChoice from "./pages/login/FindCredentialsChoice";
+import FindId from "./pages/login/FindId";
+import FindPassword from "./pages/login/FindPassword";
+import ProfileSetup from "./pages/login/ProfileSetup";
+import TermsAgreement from "./pages/login/TermsAgreement";
 
 // Scripture Subpages
 import ScriptureCalendarPage from "@/pages/scripture/ScriptureCalendarPage";
@@ -97,18 +100,19 @@ const App: React.FC = () => {
             <Route path="/temple-stay/:id" element={<Navigate to="/search/temple-stay/detail/:id" replace />} />
 
             {/* Signup and Login */}
-            <Route path="/login/onboarding1" element={<Onboarding1 />} />
-            <Route path="/login/onboarding2" element={<Onboarding2 />} />
-            <Route path="/login/auth" element={<AuthSelection />} />
-            <Route path="/login/signup" element={<Signup />} />
-            <Route path="/login/login" element={<Login />} />
+            <Route path="/" element={<Onboarding1 />} />
+            <Route path="/onboarding2" element={<Onboarding2 />} />
+            <Route path="/auth-choice" element={<AuthChoice />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Navigate to="/login/signup" />} />
-            
-            {/* Account Recovery */}
-            <Route path="/login/find-account" element={<FindAccount />} />
-            <Route path="/login/reset-password" element={<ResetPassword />} />
-            
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/find-credentials-choice" element={<FindCredentialsChoice />} />
+            <Route path="/find-id" element={<FindId />} />
+            <Route path="/find-password" element={<FindPassword />} />
+            <Route path="/profile-setup" element={<ProfileSetup />} />
+            <Route path="/terms-agreement" element={<TermsAgreement />} />
+            <Route path="/home" element={<Index />} />
+
+
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
