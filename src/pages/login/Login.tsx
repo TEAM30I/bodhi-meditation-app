@@ -15,7 +15,7 @@ const Login: React.FC = () => {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true); // Default to true as requested
+  const [rememberMe, setRememberMe] = useState(true); 
   const [isLoading, setIsLoading] = useState(false);
   
   const handleLogin = async () => {
@@ -31,19 +31,30 @@ const Login: React.FC = () => {
     setIsLoading(true);
     
     try {
-      await signIn({ username: email, password });
-      toast({
-        title: "로그인 성공",
-        description: "환영합니다!",
-      });
-      navigate('/home');
+      const { isSignedIn, nextStep } = await signIn({ username: email, password });
+      
+      if (isSignedIn) {
+        toast({
+          title: "로그인 성공",
+          description: "환영합니다!",
+        });
+        navigate('/home');
+      } else if (nextStep.signInStep === 'CONFIRM_SIGN_UP') {
+        toast({
+          title: "계정 확인 필요",
+          description: "이메일 인증이 완료되지 않았습니다.",
+          variant: "destructive"
+        });
+      }
     } catch (error: any) {
+      console.error('Login error:', error);
+      
       let errorMessage = "로그인 중 오류가 발생했습니다.";
-      if (error.code === 'UserNotFoundException') {
+      if (error.name === 'UserNotFoundException') {
         errorMessage = "존재하지 않는 사용자입니다.";
-      } else if (error.code === 'NotAuthorizedException') {
+      } else if (error.name === 'NotAuthorizedException') {
         errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
-      } else if (error.code === 'UserNotConfirmedException') {
+      } else if (error.name === 'UserNotConfirmedException') {
         errorMessage = "이메일 인증이 완료되지 않았습니다.";
       }
       

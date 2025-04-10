@@ -8,7 +8,8 @@ import InputField from '@/components/login/InputField';
 import CheckboxField from '@/components/login/CheckboxField';
 import AuthButton from '@/components/login/AuthButton';
 import { useToast } from '@/hooks/use-toast';
-
+import { ListUsersCommand, CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
+import { awsconfig } from '@/config/aws-config';
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
@@ -38,7 +39,6 @@ const SignUp: React.FC = () => {
     };
   }, [timeLeft]);
   
-  
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -57,12 +57,21 @@ const SignUp: React.FC = () => {
     
     setIsChecking(true);
     
-    // We would typically check against Cognito here
     try {
-      // Simulate a check against Cognito
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use ListUsers API to check if the username already exists
+      const client = new CognitoIdentityProviderClient({
+        region: awsconfig.aws_project_region
+      });
       
-      if (username === 'bodhi4') {
+      const command = new ListUsersCommand({
+        UserPoolId: awsconfig.aws_user_pools_id,
+        Filter: `username = "${username}"`,
+        Limit: 1
+      });
+      
+      const { Users } = await client.send(command);
+      
+      if (Users && Users.length > 0) {
         setUsernameStatus('error');
         setUsernameMessage('사용 불가능한 아이디입니다');
       } else if (username.length > 3) {
@@ -73,6 +82,7 @@ const SignUp: React.FC = () => {
         setUsernameMessage('아이디는 3글자 이상이어야 합니다');
       }
     } catch (error) {
+      console.error('Username check error:', error);
       toast({
         title: "오류",
         description: "아이디 확인 중 문제가 발생했습니다.",
@@ -91,44 +101,50 @@ const SignUp: React.FC = () => {
         variant: "destructive"
       });
       return;
-
-      
     }
-  
+    
     try {
-      const response = await fetch('/api/send-sms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ phone_number: phone })
+      // Initiate sign up but only to send the verification code
+      // Use AWS Cognito directly
+      const { isSignUpComplete, userId, nextStep } = await signUp({
+        username: `temp_${Date.now()}`, // Temporary username
+        password: `TempPw${Date.now()}!`, // Temporary password
+        options: {
+          userAttributes: {
+            phone_number: phone
+          },
+          autoSignIn: false
+        }
       });
-      const data = await response.json();
-  
-      if (data.success) {
-        // Start countdown timer for 3 minutes (180 seconds)
-        setTimeLeft(180);
-        toast({
-          title: "인증번호 발송",
-          description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
-        });
-        setShowVerification(true);
-      } else {
-        toast({
-          title: "오류",
-          description: "SMS 전송에 실패했습니다.",
-          variant: "destructive"
-        });
+      
+      // Start countdown timer for 3 minutes (180 seconds)
+      setTimeLeft(180);
+      toast({
+        title: "인증번호 발송",
+        description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
+      });
+      setShowVerification(true);
+      
+      console.log('Phone verification initiated:', { isSignUpComplete, userId, nextStep });
+    } catch (error: any) {
+      console.error('Phone verification error:', error);
+      
+      // Provide a better error message
+      let errorMessage = "인증번호 발송에 실패했습니다.";
+      
+      if (error.name === 'InvalidParameterException') {
+        errorMessage = "올바른 전화번호 형식이 아닙니다. 국가 코드를 포함해주세요 (예: +8210...)";
+      } else if (error.name === 'LimitExceededException') {
+        errorMessage = "너무 많은 요청을 보냈습니다. 잠시 후 다시 시도해주세요.";
       }
-    } catch (error) {
+      
       toast({
         title: "오류",
-        description: "네트워크 오류가 발생했습니다.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
   };
-  
   
   const handleSignUp = async () => {
     if (!username || !phone || !password) {
@@ -171,7 +187,7 @@ const SignUp: React.FC = () => {
     
     try {
       // Register the user with Cognito
-      const { isSignUpComplete, userId } = await signUp({
+      const { isSignUpComplete, userId, nextStep } = await signUp({
         username,
         password,
         options: {
@@ -182,14 +198,34 @@ const SignUp: React.FC = () => {
         }
       });
       
-      // If phone verification is required, we'd handle confirmSignUp here
-      if (!isSignUpComplete) {
+      if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
         toast({
           title: "회원가입 진행 중",
-          description: "추가 인증이 필요합니다.",
+          description: "인증이 필요합니다.",
         });
-        // Handle verification flow here
-      } else {
+        
+        // Verify the code
+        const confirmResult = await confirmSignUp({
+          username,
+          confirmationCode: verificationCode
+        });
+        
+        if (confirmResult.isSignUpComplete) {
+          toast({
+            title: "회원가입 성공",
+            description: "프로필 설정 단계로 이동합니다.",
+          });
+          
+          // Navigate to profile setup
+          navigate('/profile-setup');
+        } else {
+          toast({
+            title: "인증 실패",
+            description: "인증 코드가 올바르지 않습니다.",
+            variant: "destructive"
+          });
+        }
+      } else if (isSignUpComplete) {
         toast({
           title: "회원가입 성공",
           description: "프로필 설정 단계로 이동합니다.",
@@ -199,13 +235,17 @@ const SignUp: React.FC = () => {
         navigate('/profile-setup');
       }
     } catch (error: any) {
+      console.error('SignUp error:', error);
+      
       let errorMessage = "회원가입 중 오류가 발생했습니다.";
-      if (error.code === 'UsernameExistsException') {
+      if (error.name === 'UsernameExistsException') {
         errorMessage = "이미 존재하는 사용자 아이디입니다.";
-      } else if (error.code === 'InvalidPasswordException') {
+      } else if (error.name === 'InvalidPasswordException') {
         errorMessage = "비밀번호는 8자 이상이어야 합니다.";
-      } else if (error.code === 'InvalidParameterException') {
+      } else if (error.name === 'InvalidParameterException') {
         errorMessage = "입력된 정보가 올바르지 않습니다.";
+      } else if (error.name === 'CodeMismatchException') {
+        errorMessage = "인증 코드가 올바르지 않습니다.";
       }
       
       toast({
@@ -213,7 +253,6 @@ const SignUp: React.FC = () => {
         description: errorMessage,
         variant: "destructive"
       });
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -287,7 +326,7 @@ const SignUp: React.FC = () => {
         <InputField
           type="tel"
           label="전화번호"
-          placeholder="전화번호를 입력해 주세요"
+          placeholder="전화번호를 입력해 주세요 (+8210...)"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           icon="phone"
