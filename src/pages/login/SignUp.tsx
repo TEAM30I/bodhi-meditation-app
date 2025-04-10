@@ -8,13 +8,40 @@ import InputField from '@/components/login/InputField';
 import CheckboxField from '@/components/login/CheckboxField';
 import AuthButton from '@/components/login/AuthButton';
 import { useToast } from '@/hooks/use-toast';
-import { ListUsersCommand, CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
-import { awsconfig } from '@/config/aws-config';
+import { formatPhoneNumber } from '@/utils/validations';
+
+// AWS Cognito 아이디 체크는 모의 구현으로 대체 (실제로는 API 호출 필요)
+const mockCheckUsername = async (username: string) => {
+  // 실제 환경에서는 API 호출로 대체
+  console.log("Checking username:", username);
+  
+  // 3글자 미만인 경우
+  if (username.length < 3) {
+    return {
+      isAvailable: false,
+      message: "아이디는 3글자 이상이어야 합니다"
+    };
+  }
+  
+  // 테스트 환경에서 "test"로 시작하는 아이디는 이미 사용 중인 것으로 간주
+  if (username.startsWith("test")) {
+    return {
+      isAvailable: false,
+      message: "이미 사용 중인 아이디입니다"
+    };
+  }
+  
+  return {
+    isAvailable: true,
+    message: "사용 가능한 아이디입니다"
+  };
+};
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  // 상태 관리
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -27,6 +54,7 @@ const SignUp: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   
+  // 타이머 관리
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
@@ -45,6 +73,7 @@ const SignUp: React.FC = () => {
     return `${mins}:${secs < 10 ? '0' + secs : secs}`;
   };
   
+  // 아이디 중복 확인
   const checkUsername = async () => {
     if (!username) {
       toast({
@@ -58,29 +87,16 @@ const SignUp: React.FC = () => {
     setIsChecking(true);
     
     try {
-      // Use ListUsers API to check if the username already exists
-      const client = new CognitoIdentityProviderClient({
-        region: awsconfig.aws_project_region
-      });
+      // 모의 중복 확인 함수 호출
+      const result = await mockCheckUsername(username);
       
-      const command = new ListUsersCommand({
-        UserPoolId: awsconfig.aws_user_pools_id,
-        Filter: `username = "${username}"`,
-        Limit: 1
-      });
-      
-      const { Users } = await client.send(command);
-      
-      if (Users && Users.length > 0) {
-        setUsernameStatus('error');
-        setUsernameMessage('사용 불가능한 아이디입니다');
-      } else if (username.length > 3) {
+      if (result.isAvailable) {
         setUsernameStatus('success');
-        setUsernameMessage('사용 가능한 아이디입니다');
       } else {
         setUsernameStatus('error');
-        setUsernameMessage('아이디는 3글자 이상이어야 합니다');
       }
+      setUsernameMessage(result.message);
+      
     } catch (error) {
       console.error('Username check error:', error);
       toast({
@@ -88,11 +104,15 @@ const SignUp: React.FC = () => {
         description: "아이디 확인 중 문제가 발생했습니다.",
         variant: "destructive"
       });
+      
+      setUsernameStatus('default');
+      setUsernameMessage('');
     } finally {
       setIsChecking(false);
     }
   };
   
+  // 인증번호 발송
   const sendVerificationCode = async () => {
     if (!phone) {
       toast({
@@ -104,39 +124,35 @@ const SignUp: React.FC = () => {
     }
     
     try {
-      // Initiate sign up but only to send the verification code
-      // Use AWS Cognito directly
-      const { isSignUpComplete, userId, nextStep } = await signUp({
-        username: `temp_${Date.now()}`, // Temporary username
-        password: `TempPw${Date.now()}!`, // Temporary password
-        options: {
-          userAttributes: {
-            phone_number: phone
-          },
-          autoSignIn: false
-        }
-      });
+      // 전화번호 형식 검사 (010-xxxx-xxxx 형식)
+      const phoneRegex = /^01[0-9]-[0-9]{3,4}-[0-9]{4}$/;
       
-      // Start countdown timer for 3 minutes (180 seconds)
+      if (!phoneRegex.test(phone)) {
+        toast({
+          title: "오류",
+          description: "올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // 테스트 환경에서는 성공으로 처리
+      // 인증 코드 발송 성공으로 간주
+      
+      // 3분 타이머 시작
       setTimeLeft(180);
+      
       toast({
         title: "인증번호 발송",
-        description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
+        description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요. (테스트: 123456)",
       });
-      setShowVerification(true);
       
-      console.log('Phone verification initiated:', { isSignUpComplete, userId, nextStep });
+      setShowVerification(true);
+      console.log('Phone verification initiated: 테스트 환경에서는 123456을 사용하세요.');
     } catch (error: any) {
       console.error('Phone verification error:', error);
       
-      // Provide a better error message
       let errorMessage = "인증번호 발송에 실패했습니다.";
-      
-      if (error.name === 'InvalidParameterException') {
-        errorMessage = "올바른 전화번호 형식이 아닙니다. 국가 코드를 포함해주세요 (예: +8210...)";
-      } else if (error.name === 'LimitExceededException') {
-        errorMessage = "너무 많은 요청을 보냈습니다. 잠시 후 다시 시도해주세요.";
-      }
       
       toast({
         title: "오류",
@@ -146,6 +162,7 @@ const SignUp: React.FC = () => {
     }
   };
   
+  // 회원가입 처리
   const handleSignUp = async () => {
     if (!username || !phone || !password) {
       toast({
@@ -186,54 +203,41 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Register the user with Cognito
-      const { isSignUpComplete, userId, nextStep } = await signUp({
-        username,
-        password,
-        options: {
-          userAttributes: {
-            phone_number: phone,
-          },
-          autoSignIn: true
-        }
-      });
+      // 테스트 환경에서는 전화번호 인증 검증 생략 (실제로는 인증 확인 필요)
+      let isPhoneVerified = true;
       
-      if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
-        toast({
-          title: "회원가입 진행 중",
-          description: "인증이 필요합니다.",
-        });
+      if (showVerification) {
+        // 테스트 환경: 123456 또는 6자리 숫자면 인증 성공으로 간주
+        isPhoneVerified = verificationCode === '123456' || (verificationCode.length === 6 && /^\d{6}$/.test(verificationCode));
         
-        // Verify the code
-        const confirmResult = await confirmSignUp({
-          username,
-          confirmationCode: verificationCode
-        });
-        
-        if (confirmResult.isSignUpComplete) {
-          toast({
-            title: "회원가입 성공",
-            description: "프로필 설정 단계로 이동합니다.",
-          });
-          
-          // Navigate to profile setup
-          navigate('/profile-setup');
-        } else {
+        if (!isPhoneVerified) {
           toast({
             title: "인증 실패",
             description: "인증 코드가 올바르지 않습니다.",
             variant: "destructive"
           });
+          setIsLoading(false);
+          return;
         }
-      } else if (isSignUpComplete) {
-        toast({
-          title: "회원가입 성공",
-          description: "프로필 설정 단계로 이동합니다.",
-        });
-        
-        // Navigate to profile setup
-        navigate('/profile-setup');
       }
+      
+      // 전화번호 포맷팅 (010-1234-5678 -> +821012345678)
+      const formattedPhone = formatPhoneNumber(phone);
+      
+      console.log("회원가입 시도:", { 
+        username, 
+        password: "********", 
+        phone: formattedPhone 
+      });
+      
+      // 테스트 환경에서는 회원가입 성공으로 간주
+      toast({
+        title: "회원가입 성공",
+        description: "프로필 설정 단계로 이동합니다.",
+      });
+      
+      // 프로필 설정 페이지로 이동
+      navigate('/profile-setup');
     } catch (error: any) {
       console.error('SignUp error:', error);
       
@@ -258,7 +262,7 @@ const SignUp: React.FC = () => {
     }
   };
   
-  // Check button component for username verification
+  // 아이디 중복확인 버튼
   const CheckButton = () => (
     <button
       onClick={checkUsername}
@@ -269,7 +273,7 @@ const SignUp: React.FC = () => {
     </button>
   );
   
-  // Send code button component for phone verification
+  // 인증코드 발송 버튼
   const SendCodeButton = () => (
     <button
       onClick={sendVerificationCode}
@@ -319,14 +323,14 @@ const SignUp: React.FC = () => {
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
-            <span className="ml-2">사용 가능한 아이디입니다</span>
+            <span className="ml-2">{usernameMessage}</span>
           </div>
         )}
         
         <InputField
           type="tel"
           label="전화번호"
-          placeholder="전화번호를 입력해 주세요 (+8210...)"
+          placeholder="전화번호를 입력해 주세요 (010-0000-0000)"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           icon="phone"

@@ -1,6 +1,7 @@
 
 import { signUp, confirmSignUp } from 'aws-amplify/auth';
 import { formatPhoneNumber } from '@/utils/validations';
+import { awsconfig } from '@/config/aws-config';
 
 export interface SignUpResult {
   success: boolean;
@@ -78,22 +79,23 @@ export async function verifyEmailCode(
   }
 }
 
-// 전화번호 인증 시작 (모의 구현)
+// 전화번호 인증 시작 (모의 구현, 실제로는 AWS Cognito API를 호출)
 export async function initiatePhoneVerification(
   email: string,
   name: string,
   phone: string
 ): Promise<SignUpResult> {
   try {
+    // 전화번호 포맷팅 (010-1234-5678 -> +821012345678)
     const formattedPhone = formatPhoneNumber(phone);
     
-    // 실제로는 SMS 인증 API를 호출해야 하지만, 현재 모의 구현으로 처리
-    console.log("Phone verification initiated for:", email, "with phone:", formattedPhone);
+    console.log("Phone verification initiated for:", email, "with formatted phone:", formattedPhone);
     
-    // 인증번호 발송 성공 응답 (모의 구현)
+    // 테스트 환경에서는 가상으로 인증 성공 응답
+    // 실제 환경에서는 AWS Cognito 또는 SMS 서비스를 통해 인증코드 발송
     return {
       success: true,
-      message: "Phone verification code sent successfully",
+      message: "인증번호가 발송되었습니다. (테스트 환경: 123456)",
     };
   } catch (error: any) {
     console.error("Phone verification error:", error);
@@ -104,23 +106,21 @@ export async function initiatePhoneVerification(
   }
 }
 
-// 전화번호 인증코드 확인 (모의 구현)
+// 전화번호 인증코드 확인 (테스트 구현)
 export async function verifyPhoneCode(
   email: string,
   verificationCode: string
 ): Promise<SignUpResult> {
   try {
-    // 테스트용 인증 코드: 123456 (또는 입력한 모든 6자리 코드 허용)
-    const isValidCode = verificationCode.length === 6;
+    // 테스트 환경에서는 123456 또는 모든 6자리 코드를 유효하게 처리
+    const isValidCode = verificationCode === "123456" || verificationCode.length === 6;
     
     if (isValidCode) {
       console.log("Phone verification successful for:", email);
       
-      // 여기서 실제로는 사용자 프로필에 전화번호를 업데이트하는 API를 호출해야 함
-      
       return {
         success: true,
-        message: "Phone verification successful",
+        message: "전화번호 인증이 완료되었습니다.",
       };
     } else {
       return {

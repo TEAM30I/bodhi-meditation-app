@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Eye, EyeOff, User, Lock, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -58,48 +58,48 @@ const InputField: React.FC<InputFieldProps> = ({
     }
   };
 
-  // onBlur 핸들러는 기존 방식대로 남겨두되,
-  // 추가로 useEffect를 이용해 값이 완전히 입력되었을 때도 자동으로 포맷하도록 합니다.
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    setIsFocused(false);
-    if (type === 'tel') {
-      let formattedValue = e.target.value.trim();
-      if (formattedValue && formattedValue[0] === '0' && !formattedValue.startsWith('+')) {
-        formattedValue = '+82' + formattedValue.substring(1);
-        const syntheticEvent = {
-          ...e,
-          target: {
-            ...e.target,
-            value: formattedValue,
-          },
-        };
-        onChange(syntheticEvent as React.ChangeEvent<HTMLInputElement>);
-      }
+  // 전화번호 형식 변환 (입력 중)
+  const formatPhoneInput = (input: string) => {
+    if (type !== 'tel') return input;
+    
+    // 숫자와 하이픈만 남기기
+    const cleaned = input.replace(/[^\d-]/g, '');
+    
+    // 이미 하이픈이 포함된 경우 그대로 반환
+    if (cleaned.includes('-')) {
+      return cleaned;
+    }
+    
+    // 숫자만 추출
+    const digits = cleaned.replace(/-/g, '');
+    
+    // 전화번호 형식으로 변환 (010-xxxx-xxxx 또는 010-xxx-xxxx)
+    if (digits.length <= 3) {
+      return digits;
+    } else if (digits.length > 3 && digits.length <= 7) {
+      return `${digits.substring(0, 3)}-${digits.substring(3)}`;
+    } else {
+      return `${digits.substring(0, 3)}-${digits.substring(3, 7)}-${digits.substring(7, 11)}`;
     }
   };
 
-  // useEffect를 사용하여 전화번호가 완성되면 자동 포맷
-  useEffect(() => {
+  // 입력값 변경 핸들러
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (type === 'tel') {
-      const trimmed = value.trim();
-      // 여기서는 숫자만 입력되었다고 가정하고, 길이가 10 또는 11자리면 포맷을 적용합니다.
-      if (
-        trimmed &&
-        trimmed[0] === '0' &&
-        !trimmed.startsWith('+') &&
-        (trimmed.length === 10 || trimmed.length === 11)
-      ) {
-        const formattedValue = '+82' + trimmed.substring(1);
-        if (formattedValue !== value) {
-          // 부모 onChange 콜백을 통해 값 업데이트
-          const syntheticEvent = {
-            target: { value: formattedValue },
-          } as React.ChangeEvent<HTMLInputElement>;
-          onChange(syntheticEvent);
+      // 전화번호 형식 변환
+      const formattedValue = formatPhoneInput(e.target.value);
+      const event = {
+        ...e,
+        target: {
+          ...e.target,
+          value: formattedValue
         }
-      }
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(event);
+    } else {
+      onChange(e);
     }
-  }, [value, type, onChange]);
+  };
 
   return (
     <div className={cn("mb-4", className)}>
@@ -115,9 +115,9 @@ const InputField: React.FC<InputFieldProps> = ({
           type={type === 'password' && showPassword ? 'text' : type}
           placeholder={placeholder}
           value={value}
-          onChange={onChange}
+          onChange={handleChange}
           onFocus={() => setIsFocused(true)}
-          onBlur={handleBlur}
+          onBlur={() => setIsFocused(false)}
           className={cn(
             "app-input",
             icon !== 'none' && "pl-10",
