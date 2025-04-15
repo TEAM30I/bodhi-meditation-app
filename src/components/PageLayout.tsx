@@ -49,7 +49,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
         )}
         
         {/* Page content */}
-        <div className={`w-full pt-4 pb-20 ${className}`}>
+        <div className={`w-full pb-20 ${className}`}>
           {children}
         </div>
       </div>
