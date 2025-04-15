@@ -1,147 +1,165 @@
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home, Heart, Share, MapPin, Globe, Calendar } from 'lucide-react';
-import { templeStays } from '@/data/templeStayRepository';
-import BottomNav from '@/components/BottomNav';
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, MapPin, Calendar, Clock, Heart, Share, Globe, ChevronRight, Home } from 'lucide-react';
+import { templeStays, TempleStay } from '@/utils/repository';
+import { castRepository } from '@/utils/typeAssertions';
+import { toast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 const TempleStayDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  const [templeStay, setTempleStay] = useState(templeStays.find(t => t.id === id));
+  const { id } = useParams<{ id: string }>();
   const [isFavorite, setIsFavorite] = useState(false);
   
-  useEffect(() => {
-    if (!templeStay) {
-      // If temple stay not found, navigate back to search
-      navigate('/search/temple-stay/results');
-    }
-    // Scroll to top when page loads
-    window.scrollTo(0, 0);
-  }, [templeStay, navigate]);
-
+  const templeStayObj = id ? Object.values(templeStays).find(t => t.id === id) : undefined;
+  const templeStay = castRepository<TempleStay>(templeStayObj);
+  
   if (!templeStay) {
-    return <div className="flex items-center justify-center h-screen">로딩 중...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>템플스테이를 찾을 수 없습니다.</p>
+      </div>
+    );
   }
 
-  const formatPrice = (price: number) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원";
+  const handleToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    if (!isFavorite) {
+      toast({
+        title: "찜 목록에 추가되었습니다.",
+        description: `${templeStay.templeName}이(가) 찜 목록에 추가되었습니다.`,
+      });
+    } else {
+      toast({
+        title: "찜 목록에서 제거되었습니다.",
+        description: `${templeStay.templeName}이(가) 찜 목록에서 제거되었습니다.`,
+      });
+    }
   };
 
-  // Mock schedule times for the temple stay
-  const scheduleTimes = [
-    { time: "10:00", activity: "도착 및 안내" },
-    { time: "10:30~11:40", activity: "참선 명상" },
-    { time: "11:50~13:00", activity: "스님과의 대화" }
-  ];
-
   return (
-    <div className="bg-[#F1F3F5] min-h-screen pb-20">
-      <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px] mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between h-[56px] px-5 bg-white">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeft size={28} />
+    <div className="bg-[#F8F8F8] min-h-screen pb-20">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center justify-between border-b border-[#E5E5EC] px-5">
+        <button 
+          onClick={() => navigate(-1)}
+          className="flex items-center space-x-1"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <div className="w-6" />
+        <button 
+          onClick={() => navigate('/main')}
+          className="flex items-center space-x-1"
+        >
+          <Home size={24} />
+        </button>
+      </div>
+
+      {/* Temple Stay Image */}
+      <div className="w-full h-[250px] relative">
+        <img 
+          src={templeStay.imageUrl} 
+          alt={templeStay.templeName} 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute top-4 right-4 flex space-x-2">
+          <button 
+            onClick={handleToggleFavorite}
+            className="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md"
+          >
+            <Heart size={20} className={isFavorite ? "text-red-500 fill-red-500" : "text-gray-600"} />
           </button>
-          <button onClick={() => navigate('/main')}>
-            <Home size={28} />
+          <button 
+            className="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md"
+          >
+            <Share size={20} className="text-gray-600" />
           </button>
         </div>
-
-        {/* Temple Stay Image */}
-        <div className="w-full h-[255px] bg-gray-200">
-          <img 
-            src={templeStay.imageUrl} 
-            alt={templeStay.name} 
-            className="w-full h-full object-cover"
-          />
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent text-white">
+          <h1 className="text-xl font-bold">{templeStay.templeName}</h1>
+          <div className="flex items-center mt-1">
+            <MapPin size={14} className="mr-1" />
+            <span className="text-sm">{templeStay.location}</span>
+          </div>
         </div>
+      </div>
 
-        {/* Temple Stay Information */}
-        <div className="px-5 py-4 bg-white">
-          <div className="flex justify-between items-start mb-1.5">
-            <h1 className="text-base font-bold text-[#222]">{templeStay.name}</h1>
-            <div className="flex items-center gap-2.5">
-              <button onClick={() => setIsFavorite(!isFavorite)}>
-                <Heart size={18} fill={isFavorite ? "#FF0000" : "none"} stroke={isFavorite ? "#FF0000" : "#111111"} />
-              </button>
-              <button>
-                <Share size={18} />
-              </button>
-            </div>
+      {/* Temple Stay Info */}
+      <div className="bg-white px-5 py-4 mb-2">
+        <div className="flex flex-wrap gap-2 mb-3">
+          <Badge variant="outline" className="rounded-full">
+            {templeStay.duration}
+          </Badge>
+          {templeStay.tags?.map((tag, index) => (
+            <Badge key={index} variant="outline" className="rounded-full">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+        
+        {templeStay.description && (
+          <p className="text-gray-700 text-sm mb-4">{templeStay.description}</p>
+        )}
+      </div>
+      
+      {/* Temple Stay Program */}
+      <div className="bg-white px-5 py-4 mb-2">
+        <h2 className="text-base font-bold mb-3">이용안내</h2>
+        
+        <div className="mb-3">
+          <h3 className="text-sm font-medium mb-2">위치</h3>
+          <div className="text-gray-700 text-sm mb-2">
+            {templeStay.direction}
           </div>
-          
-          {/* Location */}
-          <div className="flex items-center gap-1 mb-4">
-            <MapPin size={14} className="text-gray-500" />
-            <span className="text-xs text-[#111111]">
-              {templeStay.location} · 속리산터미널에서 도보 10분
-            </span>
+        </div>
+        
+        <div>
+          <h3 className="text-sm font-medium mb-2">유의사항</h3>
+          <div className="text-gray-700 text-sm">
+            <p>• 프로그램은 현장 상황에 따라 일부 변경될 수 있습니다.</p>
+            <p>• 사찰 내에서는 정숙하여 주시기 바랍니다.</p>
+            <p>• 자연을 훼손하는 행위는 삼가 주시기 바랍니다.</p>
           </div>
-          
-          {/* Website */}
-          <div className="flex items-center gap-1 mb-7">
-            <Globe size={10} className="text-gray-500" />
-            <span className="text-xs text-[#111111]">www.bodhis.com</span>
-          </div>
-          
-          {/* Schedule Box */}
-          <div className="w-full border border-[rgba(153,153,153,0.2)] rounded-xl p-3 mb-6 shadow-sm">
-            <div className="flex justify-between gap-2.5">
-              {scheduleTimes.map((schedule, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center justify-center bg-[#21212F] rounded-full px-1.5 py-0.5"
-                >
-                  <span className="text-white text-[8px] font-medium">{schedule.time}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-3">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="w-[99px] h-[51px] bg-[#C6C6C6]"></div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Price Information */}
-          <h2 className="text-base font-bold text-[#222] mb-4">이용요금</h2>
-          <div className="mb-6">
-            <p className="text-lg font-bold text-[#DE7834]">{formatPrice(templeStay.price || 50000)}</p>
-            <p className="text-xs text-gray-500">총 {templeStay.duration || '1박 2일'} (세금 포함)</p>
-          </div>
-          
-          {/* Notes */}
-          <h2 className="text-base font-bold text-[#222] mb-4">유의사항</h2>
-          <div className="mb-6">
-            <p className="text-sm text-[#555] leading-relaxed">
-              {templeStay.description || '해당 템플스테이는 예약 시 진행되는 프로그램과 일정이 변경될 수 있습니다. 자세한 내용은 예약 전 문의 바랍니다.'}
-            </p>
-          </div>
-          
-          {/* Program Schedule */}
-          <h2 className="text-base font-bold text-[#222] mb-4">프로그램 일정</h2>
-          <div className="space-y-3 mb-6">
-            {scheduleTimes.map((schedule, index) => (
-              <div key={index} className="flex">
-                <div className="w-24 text-sm font-medium">{schedule.time}</div>
-                <div>
-                  <p className="text-sm font-medium">{schedule.activity}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {/* Book Button */}
-          <button className="w-full bg-[#DE7834] text-white py-3 rounded-md text-base font-bold">
-            예약하기
-          </button>
         </div>
       </div>
       
-      {/* Bottom Navigation */}
-      <BottomNav />
+      {/* Temple Stay Website */}
+      {templeStay.websiteUrl && (
+        <div className="bg-white px-5 py-4 mb-2">
+          <button 
+            className="flex items-center justify-between w-full" 
+            onClick={() => window.open(templeStay.websiteUrl, '_blank')}
+          >
+            <div className="flex items-center text-gray-700">
+              <Globe className="w-5 h-5 mr-2" />
+              <span>공식 웹사이트</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+      )}
+      
+      {/* Booking Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-1">
+            <span className="text-lg font-bold">{templeStay.price.toLocaleString()}원</span>
+            <span className="text-sm text-gray-500">/ 인</span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-sm text-gray-500 mr-2">찜</span>
+            <div className="flex items-center">
+              <Heart size={16} className="text-red-500 mr-1" />
+              <span className="text-sm font-medium">{templeStay.likeCount}</span>
+            </div>
+          </div>
+        </div>
+        <button className="w-full bg-[#DE7834] text-white py-3 rounded-lg font-medium">
+          예약하기
+        </button>
+      </div>
     </div>
   );
 };

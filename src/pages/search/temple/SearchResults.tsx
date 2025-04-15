@@ -1,112 +1,144 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, ArrowLeft, Home } from 'lucide-react';
-import BottomNav from "@/components/BottomNav";
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import TempleItem from '@/components/search/TempleItem';
-import { allTemples } from '@/data/dataRepository';
+import { searchTemples, type Temple } from '@/utils/repository';
+import { typedData } from '@/utils/typeUtils';
 
-type SortOption = '추천순' | '최신순';
-
-const TempleSearchResults = () => {
-  const navigate = useNavigate();
+const SearchResults = () => {
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const initialQuery = queryParams.get('query') || '서울';
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get('query') || '';
+  const region = searchParams.get('region') || '';
+  const nearby = searchParams.get('nearby') === 'true';
   
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [sortBy, setSortBy] = useState<SortOption>('추천순');
-
-  // Filter results based on search query
-  const filteredTemples = allTemples.filter(temple => 
-    temple.name.includes(searchQuery) || 
-    temple.location.includes(searchQuery) ||
-    (temple.description && temple.description.includes(searchQuery))
-  );
-
-  const handleSearch = () => {
-    navigate(`/search/temple/results?query=${searchQuery}`);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
+  const [searchValue, setSearchValue] = useState(query || region);
+  const [temples, setTemples] = useState<Temple[]>([]);
+  const [activeFilter, setActiveFilter] = useState<'popular' | 'recent'>('popular');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setSearchQuery(initialQuery);
-  }, [initialQuery]);
+    setLoading(true);
+    // Search temples based on query or region
+    const searchTerm = query || region;
+    if (searchTerm) {
+      const results = searchTemples(searchTerm);
+      setTemples(typedData<Temple[]>(results));
+    } else if (nearby) {
+      // If nearby search, we'd typically use geolocation data
+      // For now, let's just return all temples as a placeholder
+      const results = searchTemples("");
+      setTemples(typedData<Temple[]>(results));
+    } else {
+      setTemples([]);
+    }
+    setLoading(false);
+  }, [query, region, nearby]);
 
+  const handleClearSearch = () => {
+    setSearchValue('');
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/search/temple/results?query=${searchValue}`);
+  };
+
+  const handleTempleClick = (id: string) => {
+    navigate(`/search/temple/detail/${id}`);
+  };
+  const handleSearch = () => navigate(`/search/temple/results?query=${searchValue}`);
   return (
-    <div className="bg-white min-h-screen pb-20">
-      <div className="w-full max-w-[480px] sm:max-w-[600px] md:max-w-[768px] lg:max-w-[1024px] mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <button 
-            onClick={() => navigate('/search')}
-            className="text-gray-800"
-          >
-            <ArrowLeft className="w-5 h-5" />
+    <div className="bg-[#F8F8F8] min-h-screen pb-16">
+      <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
+        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
+          
+          <button onClick={() => navigate('/main')}>
+            <ArrowLeft className="h-6 w-6" />
           </button>
-          <h1 className="text-lg font-bold flex-1 text-center">사찰</h1>
-          <button 
-            onClick={() => navigate('/main')}
-            className="text-gray-800"
-          >
-            <Home className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Search Box */}
-        <div className="px-6 py-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input 
-              className="pl-10 bg-gray-100 border-0 focus-visible:ring-1 rounded-lg"
-              placeholder="도시, 지역, 지하철역"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleKeyPress}
+          
+          <form onSubmit={handleSearchSubmit} className="flex-1 relative">
+            <Input
+              value={searchValue}
+              onChange={handleSearchInputChange}
+              placeholder="사찰 검색"
+              className="w-full pl-9 pr-8 py-2 rounded-full bg-[#F5F5F5] border-none"
             />
-          </div>
-        </div>
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 
-        {/* Sort Options */}
-        <div className="flex px-6 mb-6 gap-2">
-          {(['추천순', '최신순'] as SortOption[]).map((option) => (
-            <button
-              key={option}
-              className={`px-4 py-1 rounded-full text-xs font-bold ${
-                sortBy === option 
-                  ? 'bg-[#DE7834] text-white' 
-                  : 'bg-white text-black'
-              }`}
-              onClick={() => setSortBy(option)}
-            >
-              {option}
-            </button>
-          ))}
+            {searchValue && (
+              <button 
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+              >
+                <X className="h-4 w-4 text-gray-400" />
+              </button>
+            )}
+          </form>
         </div>
-
-        {/* Results */}
-        <div className="px-6">
-          {filteredTemples.length > 0 ? (
-            filteredTemples.map((temple) => (
-              <TempleItem key={temple.id} temple={temple} />
-            ))
-          ) : (
-            <p className="text-center py-8 text-gray-500">검색 결과가 없습니다</p>
-          )}
-        </div>
+        {/* ✅ 검색하기 버튼 (위치 검색어만 있으므로 바로) */}
+            <Button
+          className="w-full h-11 mb-4 bg-[#DE7834] hover:bg-[#c96b2e]"
+          onClick={handleSearch}
+        >
+          검색하기
+        </Button>
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNav />
+      
+      <div className="max-w-[480px] mx-auto px-5 py-3">
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant={activeFilter === 'popular' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('popular')}
+            className={activeFilter === 'popular' ? 'bg-[#DE7834]' : 'bg-white'}
+            size="sm"
+          >
+            인기순
+          </Button>
+          <Button
+            variant={activeFilter === 'recent' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('recent')}
+            className={activeFilter === 'recent' ? 'bg-[#DE7834]' : 'bg-white'}
+            size="sm"
+          >
+            최신순
+          </Button>
+        </div>
+        
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]"></div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {temples.length > 0 ? (
+              temples.map((temple) => (
+                <TempleItem
+                  key={temple.id}
+                  temple={temple}
+                  onClick={() => handleTempleClick(temple.id)}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">검색 결과가 없습니다.</p>
+                <p className="text-gray-400 text-sm mt-2">다른 검색어를 입력해 보세요.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default TempleSearchResults;
+export default SearchResults;

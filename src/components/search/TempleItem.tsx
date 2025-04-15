@@ -1,38 +1,43 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Temple } from '@/data/templeRepository';
+import { MapPin, Heart } from 'lucide-react';
+import { typedData } from '@/utils/typeUtils';
+import { Temple } from '/public/data/templeData/templeRepository';
 
 interface TempleItemProps {
   temple: Temple;
+  onClick?: () => void;
 }
 
-const TempleItem: React.FC<TempleItemProps> = ({ temple }) => {
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    navigate(`/search/temple/detail/${temple.id}`);
-  };
+const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
+  const typedTemple = typedData<Temple>(temple);
 
   return (
-    <div className="flex gap-4 mb-6 cursor-pointer" onClick={handleClick}>
-      <div className="w-[109px] h-[126px] overflow-hidden rounded-[6px]">
-        <img 
-          src={temple.imageUrl} 
-          alt={temple.name} 
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="flex flex-col">
-        <h3 className="text-base font-bold text-[#222] font-pretendard mb-1">{temple.name}</h3>
-        <p className="text-sm text-[#8B8B8B] font-pretendard mb-8">
-          {temple.location} {temple.distance && `· ${temple.distance}`}
-        </p>
-        {temple.tags && (
-          <p className="text-xs text-[#8B8B8B] font-pretendard">
-            {temple.tags.map((tag, i) => `#${tag}`).join(' ')}
+    <div 
+      className="bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer"
+      onClick={onClick}
+    >
+      <div className="flex">
+        <div className="relative w-24 h-24 bg-gray-300 flex items-center justify-center">
+          <p className="text-xs text-gray-600">{typedTemple.name}</p>
+          {typedTemple.likeCount && (
+            <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
+              <Heart className="w-3 h-3 mr-1 fill-white text-white" />
+              <span>{typedTemple.likeCount}</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-3 flex-1">
+          <h3 className="font-semibold text-base text-gray-800 mb-1">{typedTemple.name}</h3>
+          <div className="flex items-center text-gray-500 text-xs mb-1">
+            <MapPin className="w-3 h-3 mr-1" />
+            <span>{typedTemple.location} • {typedTemple.direction}</span>
+          </div>
+          <p className="text-gray-600 text-xs line-clamp-2">
+            {typedTemple.facilities?.join(" • ")}
           </p>
-        )}
+        </div>
       </div>
     </div>
   );

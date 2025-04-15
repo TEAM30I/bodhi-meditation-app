@@ -1,34 +1,67 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scripture } from '@/data/scriptureRepository';
+import { ChevronRight } from 'lucide-react';
+import { typedData } from '@/utils/typeUtils';
+
+// Use relative import
+import { regionSearchRankings } from '../../../public/data/searchRankingRepository';
+
+// Define type based on the scripture repository
+type ScriptureColorScheme = {
+  bg: string;
+  text: string;
+  progressBg: string;
+};
 
 interface ScriptureCardProps {
-  scripture: Scripture;
-  color: string;
-  textColor: string;
+  scripture: {
+    id: string;
+    title: string;
+    progress: number;
+    colorScheme: ScriptureColorScheme;
+  };
+  onClick?: () => void;
 }
 
-const ScriptureCard: React.FC<ScriptureCardProps> = ({ scripture, color, textColor }) => {
+const ScriptureCard: React.FC<ScriptureCardProps> = ({ scripture, onClick }) => {
   const navigate = useNavigate();
   
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      navigate(`/scripture/${scripture.id}`);
+    }
+  };
+
   return (
     <div 
-      className="flex items-center mb-4 cursor-pointer"
-      onClick={() => navigate(`/scripture/${scripture.id}`)}
+      className="w-full bg-white rounded-2xl p-4 shadow-sm cursor-pointer flex items-center"
+      onClick={handleClick}
     >
-      <div className={`${color} w-16 h-10 rounded-md flex items-center justify-center ${textColor}`}>
-        <span className="text-xs font-bold">{scripture.categories[0]}</span>
+      <div className={`${scripture.colorScheme.bg} h-16 w-16 rounded-xl flex items-center justify-center shrink-0 mr-4`}>
+        <span className={`${scripture.colorScheme.text} text-lg font-bold`}>{scripture.title.substring(0, 1)}</span>
       </div>
-      <div className="ml-4 flex-1">
-        <h3 className="text-sm font-bold text-gray-800">{scripture.title}</h3>
-        <p className="text-xs text-gray-500">
-          {scripture.hasStarted ? `이어읽기 (${Math.round(scripture.lastReadPosition! / scripture.content.length * 100)}% 완료)` : "시작하기"}
-        </p>
+      
+      <div className="flex-1">
+        <h3 className="text-base font-semibold mb-1">{scripture.title}</h3>
+        
+        <div className="flex items-center">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
+            <div 
+              className="h-2.5 rounded-full" 
+              style={{
+                width: `${scripture.progress}%`,
+                backgroundColor: scripture.colorScheme.progressBg
+              }}
+            ></div>
+          </div>
+          <span className="text-xs text-gray-500 whitespace-nowrap">{scripture.progress.toFixed(1)}%</span>
+        </div>
       </div>
-      <button className="text-gray-500 text-sm">
-        {scripture.hasStarted ? "이어읽기" : "시작하기"} &gt;
-      </button>
+      
+      <ChevronRight className="h-5 w-5 text-gray-400 ml-2" />
     </div>
   );
 };

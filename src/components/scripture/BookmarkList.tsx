@@ -1,91 +1,84 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen } from 'lucide-react';
-import { bookmarks } from '@/data/scriptureRepository';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChevronRight } from 'lucide-react';
+import { typedData } from '@/utils/typeUtils';
 
-const BookmarkList: React.FC<{ scriptureId?: string }> = ({ scriptureId }) => {
+// Use path that matches our wildcard type definition
+import { bookmarks, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
+
+const BookmarkList = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('all');
-
-  // Filter bookmarks by category
-  const handleCategoryChange = (value: string) => {
-    setActiveTab(value);
-  };
-
-  const filteredBookmarks = scriptureId 
-    ? bookmarks.filter(bookmark => bookmark.scriptureId === scriptureId)
-    : activeTab === 'all' 
-      ? bookmarks
-      : bookmarks.filter(bookmark => bookmark.scriptureId === activeTab);
+  
+  const typedBookmarks = typedData<typeof bookmarks>(bookmarks);
+  const typedScriptures = typedData<typeof scriptures>(scriptures);
 
   return (
-    <div className="bg-white min-h-screen">
-      <div className="w-full px-4">
-        <h1 className="text-xl font-bold mb-6">북마크</h1>
-
-        {!scriptureId && (
-          <div className="mb-6">
-            <Tabs value={activeTab} onValueChange={handleCategoryChange}>
-              <TabsList className="flex">
-                <TabsTrigger 
-                  value="all" 
-                  className={`flex-1 px-4 py-2 ${activeTab === 'all' ? 'bg-gray-100' : ''}`}
-                >
-                  전체
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="금강경" 
-                  className={`flex-1 px-4 py-2 ${activeTab === '금강경' ? 'bg-gray-100' : ''}`}
-                >
-                  금강경
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="반야심경" 
-                  className={`flex-1 px-4 py-2 ${activeTab === '반야심경' ? 'bg-gray-100' : ''}`}
-                >
-                  반야심경
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {filteredBookmarks.length > 0 ? (
-            filteredBookmarks.map((bookmark) => (
+    <div className="space-y-4">
+      <h2 className="text-lg font-medium">북마크</h2>
+      
+      {typedBookmarks.length > 0 ? (
+        <div>
+          {typedBookmarks.map((bookmark) => {
+            // Find the scripture by id
+            const scripture = Object.values(typedScriptures).find(
+              s => s.id === bookmark.scriptureId
+            );
+            
+            // Find the chapter by id
+            const chapter = scripture?.chapters.find(
+              c => c.id === bookmark.chapterId
+            );
+            
+            if (!scripture) return null;
+            
+            return (
               <div 
                 key={bookmark.id}
-                className="p-4 border rounded-lg cursor-pointer"
-                onClick={() => navigate(`/scripture/${bookmark.scriptureId}?position=${bookmark.position}`)}
+                className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-3"
+                onClick={() => navigate(`/scripture/${scripture.id}`)}
               >
-                <div className="flex items-start">
-                  <BookOpen className="w-5 h-5 text-gray-500 mr-3 mt-1" />
+                <div className="flex items-center mb-2">
+                  <div className={`${scripture.colorScheme.bg} h-8 w-8 rounded-full flex items-center justify-center mr-3`}>
+                    <span className={`${scripture.colorScheme.text} text-xs font-medium`}>{scripture.title.substring(0, 1)}</span>
+                  </div>
                   <div>
-                    <h3 className="text-base font-medium mb-1">{bookmark.title}</h3>
-                    <p className="text-sm text-gray-600">
-                      {/* Show position as page for display purposes */}
-                      페이지 {Math.floor(bookmark.position / 300) + 1}
-                    </p>
-                    {/* Fixed error: excerpt property doesn't exist */}
-                    <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                      이 부분에 마음이 와닿아 북마크했습니다...
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">{bookmark.date}</p>
+                    <h3 className="text-sm font-medium">{bookmark.title}</h3>
+                    <p className="text-xs text-gray-500">{chapter?.title || scripture.title}</p>
                   </div>
                 </div>
+                
+                <p className="text-xs text-gray-500 mb-2">저장일: {bookmark.date}</p>
+                
+                {bookmark.note && (
+                  <p className="text-sm bg-gray-50 p-2 rounded mb-2">{bookmark.note}</p>
+                )}
+                
+                <div className="flex justify-end">
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </div>
               </div>
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-              <BookOpen className="w-12 h-12 mb-4" />
-              <p>북마크를 찾을 수 없습니다.</p>
-              <p className="text-sm mt-1">관심있는 내용을 북마크해보세요.</p>
-            </div>
-          )}
+            );
+          })}
+          
+          <button 
+            className="w-full py-2 text-center text-sm text-blue-600"
+            onClick={() => navigate('/scripture/bookmark')}
+          >
+            모든 북마크 보기
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white p-4 rounded-lg text-center">
+          <p className="text-gray-500 mb-3">저장된 북마크가 없습니다.</p>
+          <button 
+            className="text-sm text-blue-600"
+            onClick={() => navigate('/scripture')}
+          >
+            경전 읽기로 돌아가기
+          </button>
+        </div>
+      )}
     </div>
   );
 };

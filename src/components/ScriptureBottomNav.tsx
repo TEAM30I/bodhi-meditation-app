@@ -1,64 +1,62 @@
 
 import React from 'react';
-import { Book, CalendarDays, Bookmark, Share2, Settings } from 'lucide-react';
+import { Book, Calendar, Bookmark, Share2, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface NavItemProps {
   icon: React.ReactNode;
-  text: string;
   isActive?: boolean;
   onClick: () => void;
 }
 
-const NavItem = ({ icon, text, isActive, onClick }: NavItemProps) => (
+const NavItem = ({ icon, isActive, onClick }: NavItemProps) => (
   <button
-    className={`flex flex-col items-center justify-center space-y-1 ${isActive ? 'text-black' : 'text-gray-400'}`}
+    className={`flex items-center justify-center w-16 h-16 ${isActive ? 'text-[#DE7834]' : 'text-gray-400'}`}
     onClick={onClick}
   >
     <div className="h-6">{icon}</div>
-    <span className="text-xs">{text}</span>
   </button>
 );
 
 interface ScriptureBottomNavProps {
-  activeTab?: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings' | null;
-  onTabChange: (tab: 'reading' | 'calendar' | 'bookmark' | 'share' | 'settings') => void;
+  activeTab?: 'calendar' | 'bookmark' | 'share' | 'settings' | null;
+  onTabChange: (tab: 'calendar' | 'bookmark' | 'share' | 'settings') => void;
 }
 
 const ScriptureBottomNav: React.FC<ScriptureBottomNavProps> = ({ 
   activeTab, 
   onTabChange 
 }) => {
+  const navigate = useNavigate();
+  
+  const handleCalendarClick = () => {
+    navigate('/scripture/calendar');
+  };
+  
+  const handleBookmarkClick = () => {
+    navigate('/scripture/bookmarks');
+  };
+  
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white z-10">
       <div className="flex justify-around items-center h-16 max-w-screen-lg mx-auto">
         <NavItem
-          icon={<Book size={24} />}
-          text="읽기"
-          isActive={activeTab === 'reading'}
-          onClick={() => onTabChange('reading')}
-        />
-        <NavItem
-          icon={<CalendarDays size={24} />}
-          text="캘린더"
+          icon={<Calendar size={24} />}
           isActive={activeTab === 'calendar'}
-          onClick={() => onTabChange('calendar')}
+          onClick={handleCalendarClick}
         />
         <NavItem
           icon={<Bookmark size={24} />}
-          text="북마크"
           isActive={activeTab === 'bookmark'}
-          onClick={() => onTabChange('bookmark')}
+          onClick={handleBookmarkClick}
         />
         <NavItem
           icon={<Share2 size={24} />}
-          text="공유"
           isActive={activeTab === 'share'}
           onClick={() => onTabChange('share')}
         />
         <NavItem
           icon={<Settings size={24} />}
-          text="설정"
           isActive={activeTab === 'settings'}
           onClick={() => onTabChange('settings')}
         />

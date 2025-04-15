@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 
-interface Timer {
+export interface Timer {
   minutes: number;
   seconds: number;
 }
@@ -49,7 +49,14 @@ export function useTimer(initialMinutes = 3, initialSeconds = 0) {
     setTimerExpired(false);
   };
 
-  const formatTime = (time: number) => (time < 10 ? `0${time}` : `${time}`);
+  // Modify formatTime to accept a Timer object or a single number
+  const formatTime = (time: number | Timer): string => {
+    if (typeof time === 'number') {
+      return time < 10 ? `0${time}` : `${time}`;
+    }
+    
+    return `${formatTime(time.minutes)}:${formatTime(time.seconds)}`;
+  };
 
   return {
     timer,

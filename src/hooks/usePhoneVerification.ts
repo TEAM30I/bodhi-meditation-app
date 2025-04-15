@@ -14,8 +14,8 @@ export const usePhoneVerification = ({ name, email }: UsePhoneVerificationProps)
     sendVerificationFn: async (phone: string) => {
       return await initiatePhoneVerification(email, name, phone);
     },
-    verifyCodeFn: async (phone: string, code: string) => {
-      return await verifyPhoneCode(email, code);
+    verifyCodeFn: async (code: string) => {
+      return await verifyPhoneCode(phoneVerification.value, code);
     }
   });
 

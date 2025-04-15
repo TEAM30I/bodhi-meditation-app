@@ -3,7 +3,7 @@ import { Amplify } from 'aws-amplify';
 import { I18n } from '@aws-amplify/core';
 import awsconfig from './amplifyconfiguration.json';
 
-// 한글 에러 메시지 설정 (추가하고 싶은 메시지가 있다면 더 확장 가능)
+// Cognito 인증 에러 메시지 한글화
 I18n.putVocabularies({
   ko: {
     'User does not exist.': '사용자가 존재하지 않습니다.',
@@ -23,8 +23,19 @@ I18n.putVocabularies({
 });
 I18n.setLanguage('ko');
 
-// Amplify v6 설정
+// Amplify 설정
 Amplify.configure(awsconfig);
 
 // 설정 파일 export
 export { awsconfig };
+
+// Cognito 자격증명 설정을 위한 헬퍼 함수
+export const getCredentials = () => {
+  return {
+    region: awsconfig.aws_project_region,
+    credentials: {
+      accessKeyId: 'DUMMY_ACCESS_KEY',     // 실제 환경에서는 환경변수 등으로 관리
+      secretAccessKey: 'DUMMY_SECRET_KEY'  // 실제 환경에서는 환경변수 등으로 관리
+    }
+  };
+};

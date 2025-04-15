@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
@@ -29,31 +28,29 @@ const PageLayout: React.FC<PageLayoutProps> = ({
 
   return (
     <div className="bg-white flex flex-col items-center w-full min-h-screen">
-      <div className="w-full max-w-[1024px] mx-auto flex flex-col items-center">
-        <div className="w-full max-w-[390px] md:max-w-[768px] lg:max-w-[1024px] px-[24px] pt-[42px] pb-[80px] relative">
-          {/* Header with title and back button */}
-          {title && (
-            <div className="w-full relative h-[73px]">
-              <h1 className="font-bold text-[#2b2828] text-base tracking-[0.32px] text-center py-6">
-                {title}
-              </h1>
-              {showBackButton && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute w-[23px] h-[23px] top-6 left-6 p-0"
-                  onClick={() => navigate('/main')}
-                >
-                  <ArrowLeft className="w-[23px] h-[23px]" />
-                </Button>
-              )}
-            </div>
-          )}
-          
-          {/* Page content */}
-          <div className={`w-full ${className}`}>
-            {children}
+      <div className="w-full max-w-[480px] mx-auto flex flex-col items-center">
+        {/* Header with title and back button */}
+        {title && (
+          <div className="w-full relative h-[56px] border-b border-[#E5E5EC] flex items-center justify-center">
+            <h1 className="font-bold text-[#2b2828] text-lg">
+              {title}
+            </h1>
+            {showBackButton && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute w-[23px] h-[23px] left-5"
+                onClick={() => navigate('/main')}
+              >
+                <ArrowLeft className="w-[23px] h-[23px]" />
+              </Button>
+            )}
           </div>
+        )}
+        
+        {/* Page content */}
+        <div className={`w-full pb-20 ${className}`}>
+          {children}
         </div>
       </div>
 

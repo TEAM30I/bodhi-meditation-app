@@ -1,6 +1,8 @@
 
-import { signUp as amplifySignUp, confirmSignUp as amplifyConfirmSignUp } from 'aws-amplify/auth';
+import { signUp, confirmSignUp } from 'aws-amplify/auth';
 import { formatPhoneNumber } from '@/utils/validations';
+import { awsconfig } from '@/config/aws-config';
+import { CognitoIdentityProviderClient, ListUsersCommand } from "@aws-sdk/client-cognito-identity-provider";
 
 export interface SignUpResult {
   success: boolean;
@@ -8,9 +10,55 @@ export interface SignUpResult {
   isSignUpComplete?: boolean;
 }
 
-// Export these functions that were previously only declared internally
-export const signUp = amplifySignUp;
-export const confirmSignUp = amplifyConfirmSignUp;
+// Export these functions from aws-amplify/auth
+export { signUp, confirmSignUp };
+
+// AWS SDK client configuration
+const getCognitoClient = () => {
+  return new CognitoIdentityProviderClient({
+    region: awsconfig.aws_project_region,
+  });
+};
+
+// Check if username already exists in Cognito
+export async function checkUsernameAvailability(
+  username: string
+): Promise<{isAvailable: boolean; message: string}> {
+  try {
+    const client = getCognitoClient();
+    
+    const command = new ListUsersCommand({
+      UserPoolId: awsconfig.aws_user_pools_id,
+      Filter: `username = "${username}"`,
+      Limit: 1
+    });
+    
+    const response = await client.send(command);
+    
+    if (response.Users && response.Users.length > 0) {
+      return {
+        isAvailable: false,
+        message: "이미 사용 중인 아이디입니다"
+      };
+    }
+    
+    // 유효성 검사 (3글자 이상)
+    if (username.length < 3) {
+      return {
+        isAvailable: false,
+        message: "아이디는 3글자 이상이어야 합니다"
+      };
+    }
+    
+    return {
+      isAvailable: true,
+      message: "사용 가능한 아이디입니다"
+    };
+  } catch (error: any) {
+    console.error("Username availability check error:", error);
+    throw new Error(error.message || "아이디 확인 중 오류가 발생했습니다");
+  }
+}
 
 export async function initiateEmailVerification(
   email: string,
@@ -18,7 +66,7 @@ export async function initiateEmailVerification(
   tempPassword = "TemporaryPw1!"
 ): Promise<SignUpResult> {
   try {
-    const signUpResult = await amplifySignUp({
+    const signUpResult = await signUp({
       username: email,
       password: tempPassword,
       options: {
@@ -59,7 +107,7 @@ export async function verifyEmailCode(
   verificationCode: string
 ): Promise<SignUpResult> {
   try {
-    const confirmResult = await amplifyConfirmSignUp({
+    const confirmResult = await confirmSignUp({
       username: email,
       confirmationCode: verificationCode,
     });
@@ -79,22 +127,40 @@ export async function verifyEmailCode(
   }
 }
 
-// 전화번호 인증 시작 (모의 구현)
+// 실제 전화번호 인증 시작 - AWS SNS를 사용하여 SMS 발송
 export async function initiatePhoneVerification(
   email: string,
   name: string,
   phone: string
 ): Promise<SignUpResult> {
   try {
+    // 전화번호 포맷팅 (010-1234-5678 -> +821012345678)
     const formattedPhone = formatPhoneNumber(phone);
     
-    // 실제로는 SMS 인증 API를 호출해야 하지만, 현재 모의 구현으로 처리
-    console.log("Phone verification initiated for:", email, "with phone:", formattedPhone);
+    // API 서버에 인증 요청 전송
+    const response = await fetch('/api/send-sms', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        phone_number: formattedPhone,
+        user_email: email,
+        user_name: name
+      }),
+    });
     
-    // 인증번호 발송 성공 응답 (모의 구현)
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || '인증번호 발송에 실패했습니다.');
+    }
+    
+    console.log("Phone verification initiated for:", formattedPhone);
+    
     return {
       success: true,
-      message: "Phone verification code sent successfully",
+      message: "인증번호가 발송되었습니다.",
     };
   } catch (error: any) {
     console.error("Phone verification error:", error);
@@ -105,30 +171,37 @@ export async function initiatePhoneVerification(
   }
 }
 
-// 전화번호 인증코드 확인 (모의 구현)
+// 전화번호 인증코드 확인 (AWS SNS 인증코드 검증)
 export async function verifyPhoneCode(
-  email: string,
+  phone: string,
   verificationCode: string
 ): Promise<SignUpResult> {
   try {
-    // 테스트용 인증 코드: 123456 (또는 입력한 모든 6자리 코드 허용)
-    const isValidCode = verificationCode.length === 6;
+    // 전화번호 포맷팅 (010-1234-5678 -> +821012345678)
+    const formattedPhone = formatPhoneNumber(phone);
     
-    if (isValidCode) {
-      console.log("Phone verification successful for:", email);
-      
-      // 여기서 실제로는 사용자 프로필에 전화번호를 업데이트하는 API를 호출해야 함
-      
-      return {
-        success: true,
-        message: "Phone verification successful",
-      };
-    } else {
-      return {
-        success: false,
-        message: "잘못된 인증 코드입니다. 다시 시도해주세요.",
-      };
+    // API 서버에 인증코드 검증 요청
+    const response = await fetch('/api/verify-sms', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        phone_number: formattedPhone,
+        verification_code: verificationCode
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || '인증번호 확인에 실패했습니다.');
     }
+    
+    return {
+      success: true,
+      message: "전화번호 인증이 완료되었습니다.",
+    };
   } catch (error: any) {
     console.error("Phone verification code error:", error);
     return {
