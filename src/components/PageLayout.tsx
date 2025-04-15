@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
@@ -50,7 +49,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
         )}
         
         {/* Page content */}
-        <div className={`w-full px-5 pt-4 pb-20 ${className}`}>
+        <div className={`w-full pt-4 pb-20 ${className}`}>
           {children}
         </div>
       </div>

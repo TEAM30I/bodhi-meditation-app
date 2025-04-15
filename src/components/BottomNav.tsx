@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { Book, Search, Heart, User, Home } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -38,7 +37,7 @@ const BottomNav = () => {
   return (
     <div className="fixed bottom-0 w-full bg-white border-t border-[#E5E5EC] z-10">
       <div className="max-w-[480px] mx-auto">
-        <div className="flex justify-between items-center px-1 h-[64px]">
+        <div className="flex justify-between items-center px-6 h-[64px]">
           <NavItem 
             icon={<Home size={28} className={isHomePath ? "fill-[rgba(222,120,52,0.2)] stroke-[#DE7834]" : ""} />}
             label="홈" 

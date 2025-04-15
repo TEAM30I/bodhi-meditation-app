@@ -1,9 +1,9 @@
-
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BottomNav from "@/components/BottomNav";
+import PageLayout from "@/components/PageLayout";
 
 interface NotificationItem {
   id: string;
@@ -88,81 +88,82 @@ export default function Notifications() {
     : notificationData.filter(n => n.type === activeTab);
 
   return (
-    <div className="bg-[#F5F5F5] min-h-screen w-full pb-20">
-      <div className="w-full max-w-[480px] mx-auto bg-white">
-        {/* Header */}
-        <div className="flex items-center h-[56px] px-5 border-b border-gray-200">
-          <button
-            onClick={() => navigate('/main')}
-            className="mr-4"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-lg font-bold flex-1 text-center">알림</h1>
-        </div>
-
-        {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <Tabs 
-            value={activeTab} 
-            onValueChange={(value) => setActiveTab(value as "전체" | "템플스테이" | "사찰")}
-            className="w-full"
-          >
-            <TabsList className="w-full grid grid-cols-3 bg-transparent h-12">
-              <TabsTrigger 
-                value="전체" 
-                className={`data-[state=active]:shadow-none data-[state=active]:bg-transparent h-full
-                ${activeTab === '전체' ? 'text-[#FF8433] border-b-2 border-[#FF8433] font-medium' : 'text-gray-500'}`}
-              >
-                전체
-              </TabsTrigger>
-              <TabsTrigger 
-                value="템플스테이" 
-                className={`data-[state=active]:shadow-none data-[state=active]:bg-transparent h-full
-                ${activeTab === '템플스테이' ? 'text-[#FF8433] border-b-2 border-[#FF8433] font-medium' : 'text-gray-500'}`}
-              >
-                템플스테이
-              </TabsTrigger>
-              <TabsTrigger 
-                value="사찰" 
-                className={`data-[state=active]:shadow-none data-[state=active]:bg-transparent h-full
-                ${activeTab === '사찰' ? 'text-[#FF8433] border-b-2 border-[#FF8433] font-medium' : 'text-gray-500'}`}
-              >
-                사찰
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-
-        {/* Notifications List */}
-        <div className="bg-white">
-          {filteredNotifications.map((notification) => (
-            <div 
-              key={notification.id} 
-              className="flex items-start gap-3 p-4 border-b border-gray-100"
+    <PageLayout>
+      <div className="bg-[#F5F5F5] min-h-screen w-full pb-20">
+        <div className="w-full max-w-[480px] mx-auto bg-white">
+          {/* Header */}
+          <div className="flex items-center h-[56px] px-5 border-b border-gray-200">
+            <button
+              onClick={() => navigate('/main')}
+              className="mr-4"
             >
-              {notification.icon}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-xs font-bold ${notification.type === '템플스테이' ? 'text-[#FF8433]' : 'text-[#888888]'}`}>
-                    {notification.type}
-                  </span>
-                  <span className="text-xs text-gray-400">{notification.date}</span>
-                </div>
-                <p className="text-sm">{notification.title}</p>
-              </div>
-            </div>
-          ))}
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg font-bold flex-1 text-center">알림</h1>
+          </div>
 
-          {filteredNotifications.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-10">
-              <span className="text-gray-500">알림이 존재하지 않습니다</span>
-            </div>
-          )}
+          {/* Tabs */}
+          <div className="border-b border-gray-200">
+            <Tabs 
+              value={activeTab} 
+              onValueChange={(value) => setActiveTab(value as "전체" | "템플스테이" | "사찰")}
+              className="w-full"
+            >
+              <TabsList className="w-full grid grid-cols-3 bg-transparent h-12">
+                <TabsTrigger 
+                  value="전체" 
+                  className={`data-[state=active]:shadow-none data-[state=active]:bg-transparent h-full
+                  ${activeTab === '전체' ? 'text-[#FF8433] border-b-2 border-[#FF8433] font-medium' : 'text-gray-500'}`}
+                >
+                  전체
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="템플스테이" 
+                  className={`data-[state=active]:shadow-none data-[state=active]:bg-transparent h-full
+                  ${activeTab === '템플스테이' ? 'text-[#FF8433] border-b-2 border-[#FF8433] font-medium' : 'text-gray-500'}`}
+                >
+                  템플스테이
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="사찰" 
+                  className={`data-[state=active]:shadow-none data-[state=active]:bg-transparent h-full
+                  ${activeTab === '사찰' ? 'text-[#FF8433] border-b-2 border-[#FF8433] font-medium' : 'text-gray-500'}`}
+                >
+                  사찰
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Notifications List */}
+          <div className="bg-white">
+            {filteredNotifications.map((notification) => (
+              <div 
+                key={notification.id} 
+                className="flex items-start gap-3 p-4 border-b border-gray-100"
+              >
+                {notification.icon}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs font-bold ${notification.type === '템플스테이' ? 'text-[#FF8433]' : 'text-[#888888]'}`}>
+                      {notification.type}
+                    </span>
+                    <span className="text-xs text-gray-400">{notification.date}</span>
+                  </div>
+                  <p className="text-sm">{notification.title}</p>
+                </div>
+              </div>
+            ))}
+
+            {filteredNotifications.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-10">
+                <span className="text-gray-500">알림이 존재하지 않습니다</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-      
       <BottomNav />
-    </div>
+    </PageLayout>
   );
 }
