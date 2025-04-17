@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">bodhis</string>
+    <string name="title_activity_main">bodhis</string>
+    <string name="package_name">kr.bodhis</string>
+    <string name="custom_url_scheme">kr.bodhis</string>
+</resources>

@@ -24,7 +24,7 @@ const NotFound = () => {
         </p>
         <Button 
           className="bg-bodhi-orange hover:bg-bodhi-orange/90"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/main')}
         >
           홈으로 돌아가기
         </Button>

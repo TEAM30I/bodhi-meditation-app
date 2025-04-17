@@ -45,6 +45,12 @@ const BottomNav = () => {
             onClick={() => navigate('/main')}
           />
           <NavItem 
+            icon={<Book size={28} />} 
+            label="경전" 
+            isActive={isScripturePath}
+            onClick={() => navigate('/scripture')}
+          />
+          <NavItem 
             icon={<Search size={28} />} 
             label="검색" 
             isActive={isSearchPath}

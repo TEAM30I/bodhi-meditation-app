@@ -61,7 +61,7 @@ const SearchResults = () => {
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
         <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
           
-          <button onClick={() => navigate('/main')}>
+          <button onClick={() => navigate('/search')}>
             <ArrowLeft className="h-6 w-6" />
           </button>
           

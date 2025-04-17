@@ -82,7 +82,7 @@ const FindTempleStay: React.FC = () => {
     <div className="bg-white min-h-screen">
       {/* 상단 헤더 */}
       <div className="sticky top-0 z-10 bg-white px-5 py-3 flex items-center border-b border-[#E5E5EC]">
-        <button onClick={() => navigate('/main')} className="mr-4">
+        <button onClick={() => navigate('/search')} className="mr-4">
           <ArrowLeft className="h-6 w-6" />
         </button>
         <h1 className="text-lg font-bold flex-1 text-center">템플스테이</h1>
