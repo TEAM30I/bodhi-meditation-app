@@ -8,6 +8,7 @@ export interface SignUpResult {
   success: boolean;
   message?: string;
   isSignUpComplete?: boolean;
+  user?: any;
 }
 
 // Export these functions from aws-amplify/auth
@@ -20,39 +21,28 @@ const getCognitoClient = () => {
   });
 };
 
-// Check if username already exists in Cognito
+// Check if username already exists - using our backend API now
 export async function checkUsernameAvailability(
   username: string
 ): Promise<{isAvailable: boolean; message: string}> {
   try {
-    const client = getCognitoClient();
-    
-    const command = new ListUsersCommand({
-      UserPoolId: awsconfig.aws_user_pools_id,
-      Filter: `username = "${username}"`,
-      Limit: 1
+    const response = await fetch('/api/check-username', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username }),
     });
     
-    const response = await client.send(command);
+    const data = await response.json();
     
-    if (response.Users && response.Users.length > 0) {
-      return {
-        isAvailable: false,
-        message: "이미 사용 중인 아이디입니다"
-      };
-    }
-    
-    // 유효성 검사 (3글자 이상)
-    if (username.length < 3) {
-      return {
-        isAvailable: false,
-        message: "아이디는 3글자 이상이어야 합니다"
-      };
+    if (!response.ok) {
+      throw new Error(data.error || "아이디 확인 중 오류가 발생했습니다");
     }
     
     return {
-      isAvailable: true,
-      message: "사용 가능한 아이디입니다"
+      isAvailable: data.isAvailable,
+      message: data.message
     };
   } catch (error: any) {
     console.error("Username availability check error:", error);
@@ -150,9 +140,14 @@ export async function initiatePhoneVerification(
       }),
     });
     
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || '인증번호 발송에 실패했습니다.');
+    }
+    
     const data = await response.json();
     
-    if (!response.ok) {
+    if (!data.success) {
       throw new Error(data.error || '인증번호 발송에 실패했습니다.');
     }
     
@@ -192,9 +187,14 @@ export async function verifyPhoneCode(
       }),
     });
     
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || '인증번호 확인에 실패했습니다.');
+    }
+    
     const data = await response.json();
     
-    if (!response.ok) {
+    if (!data.success) {
       throw new Error(data.error || '인증번호 확인에 실패했습니다.');
     }
     
@@ -207,6 +207,53 @@ export async function verifyPhoneCode(
     return {
       success: false,
       message: error.message || "인증 코드 확인 중 문제가 발생했습니다."
+    };
+  }
+}
+
+// 실제 회원가입 처리 함수
+export async function registerUser(
+  username: string,
+  password: string,
+  name: string,
+  phone: string
+): Promise<SignUpResult> {
+  try {
+    // 전화번호 포맷팅 (010-1234-5678 -> +821012345678)
+    const formattedPhone = formatPhoneNumber(phone);
+    
+    // API 서버에 회원가입 요청 전송
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username,
+        password,
+        name,
+        phone: formattedPhone
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || '회원가입에 실패했습니다.');
+    }
+    
+    console.log("User registered successfully:", username);
+    
+    return {
+      success: true,
+      message: data.message,
+      user: data.user
+    };
+  } catch (error: any) {
+    console.error("Registration error:", error);
+    return {
+      success: false,
+      message: error.message || "회원가입 과정에서 문제가 발생했습니다."
     };
   }
 }

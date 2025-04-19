@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '@/components/login/StatusBar';
@@ -7,7 +8,7 @@ import CheckboxField from '@/components/login/CheckboxField';
 import AuthButton from '@/components/login/AuthButton';
 import { useToast } from '@/hooks/use-toast';
 import { formatPhoneNumber, validatePhone } from '@/utils/validations';
-import { checkUsernameAvailability } from '@/services/authService';
+import { checkUsernameAvailability, registerUser } from '@/services/authService';
 import { usePhoneVerification } from '@/hooks/usePhoneVerification';
 
 const SignUp: React.FC = () => {
@@ -124,30 +125,29 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // 전화번호 포맷팅 (010-1234-5678 -> +821012345678)
-      const formattedPhone = formatPhoneNumber(phoneVerification.value);
-      
-      console.log("회원가입 시도:", { 
-        username, 
+      // 회원가입 API 호출
+      const result = await registerUser(
+        username,
+        password,
         name,
-        password: "********", 
-        phone: formattedPhone 
-      });
+        phoneVerification.value
+      );
       
-      // 회원가입 API 호출 (현재는 mock 구현)
-      // 실제 환경에서는 API 호출로 대체
-      
-      toast({
-        title: "회원가입 성공",
-        description: "프로필 설정 단계로 이동합니다.",
-      });
-      
-      // 프로필 설정 페이지로 이동
-      navigate('/profile-setup');
+      if (result.success) {
+        toast({
+          title: "회원가입 성공",
+          description: result.message || "프로필 설정 단계로 이동합니다.",
+        });
+        
+        // 프로필 설정 페이지로 이동
+        navigate('/profile-setup');
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error: any) {
       console.error('SignUp error:', error);
       
-      let errorMessage = "회원가입 중 오류가 발생했습니다.";
+      let errorMessage = error.message || "회원가입 중 오류가 발생했습니다.";
       
       toast({
         title: "회원가입 실패",
@@ -158,6 +158,26 @@ const SignUp: React.FC = () => {
       setIsLoading(false);
     }
   };
+  
+  // 페이지 로드시 자동으로 지정된 사용자 정보를 선택적으로 설정 (특정 조건에서만)
+  useEffect(() => {
+    // URL 파라미터에서 auto-fill 값이 있는지 확인 (개발 편의를 위한 기능)
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoFill = urlParams.get('auto-fill');
+    
+    if (autoFill === 'true') {
+      setUsername('joonbeom123');
+      setName('joonbeom123');
+      setPassword('woaini100%');
+      phoneVerification.setValue('010-6621-1469');
+      setVerification(true);
+      
+      // 자동으로 아이디 중복확인도 수행
+      setTimeout(() => {
+        checkUsername();
+      }, 500);
+    }
+  }, []);
   
   // 아이디 중복확인 버튼
   const CheckButton = () => (
