@@ -6,7 +6,7 @@ import { toast } from '@/components/ui/use-toast';
 
 interface UserSettings {
   font_size: number;
-  font_family: 'gothic' | 'serif';
+  font_family: string; // Changed from restrictive type to string
   theme: 'light' | 'dark';
 }
 

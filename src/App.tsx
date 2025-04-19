@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { Toaster } from "@/components/ui/toaster";
 import React from "react";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Import AuthProvider after Router setup
 import { AuthProvider } from "@/context/AuthContext";
 
 // Pages
@@ -58,8 +60,8 @@ const App: React.FC = () => {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
+      <Router>
+        <AuthProvider>
           <Routes>
             <Route path="/" element={<Onboarding1 />} />
             <Route path="/index" element={<Index />} />
@@ -115,8 +117,8 @@ const App: React.FC = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
-        </Router>
-      </AuthProvider>
+        </AuthProvider>
+      </Router>
     </QueryClientProvider>
   );
 };
