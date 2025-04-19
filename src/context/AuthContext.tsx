@@ -1,125 +1,91 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getCurrentUser, signOut } from 'aws-amplify/auth';
-import { toast } from '@/components/ui/use-toast';
-
-// AWS Amplify getCurrentUser 반환 타입 정의 (v6 API에 맞게 업데이트)
-interface AmplifyUser {
-  username: string;
-  userId?: string;
-  signInDetails?: {
-    loginId?: string;
-  };
-}
-
-interface User {
-  username: string;
-  email: string;
-  attributes?: Record<string, string>;
-}
+import { createContext, useContext, useEffect, useState } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  logout: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  isAuthenticated: false,
-  isLoading: true,
-  logout: async () => {},
-  refreshUser: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => useContext(AuthContext);
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  const fetchUser = async () => {
-    setIsLoading(true);
-    try {
-      console.log('사용자 정보 가져오기 시도');
-      
-      // 타임아웃 설정 - API 응답이 너무 오래 걸릴 경우를 대비
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('사용자 정보 가져오기 타임아웃')), 3000)
-      );
-      
-      // 사용자 정보 가져오기 또는 타임아웃 중 먼저 발생하는 것 처리
-      const userData = await Promise.race([
-        getCurrentUser(),
-        timeoutPromise
-      ]) as AmplifyUser;
-      
-      console.log('사용자 정보 가져오기 성공:', userData);
-      
-      // Cognito에서 사용자 정보 가져오기
-      setUser({
-        username: userData.username,
-        email: userData.username, // Cognito에서는 email을 username으로 사용하는 경우가 많음
-        attributes: userData.signInDetails?.loginId 
-          ? { email: userData.signInDetails.loginId }
-          : undefined
-      });
-      
-      console.log('사용자 상태 설정 완료');
-    } catch (error) {
-      // 로그인되지 않은 상태는 에러가 아님
-      console.log('사용자 인증 안됨 또는 타임아웃:', error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchUser();
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const logout = async () => {
-    try {
-      await signOut();
-      setUser(null);
-      toast({
-        title: "로그아웃 성공",
-        description: "안전하게 로그아웃되었습니다.",
-      });
-    } catch (error) {
-      console.error('로그아웃 에러:', error);
-      toast({
-        title: "로그아웃 실패",
-        description: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.",
-        variant: "destructive",
-      });
-    }
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    navigate('/main');
+  };
+
+  const signUp = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    navigate('/login');
+  };
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    navigate('/login');
   };
 
   const refreshUser = async () => {
-    await fetchUser();
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        logout,
-        refreshUser,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      session,
+      isAuthenticated: !!user,
+      isLoading,
+      signIn,
+      signUp,
+      signOut,
+      refreshUser
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export default AuthContext;
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

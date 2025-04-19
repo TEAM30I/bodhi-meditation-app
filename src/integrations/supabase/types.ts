@@ -12,97 +12,233 @@ export type Database = {
       crawl_progress: {
         Row: {
           completed: boolean | null
-          id: number
+          id: string
           last_updated: string | null
           page_number: number
           temple_index: number
         }
         Insert: {
           completed?: boolean | null
-          id?: number
+          id?: string
           last_updated?: string | null
           page_number: number
           temple_index: number
         }
         Update: {
           completed?: boolean | null
-          id?: number
+          id?: string
           last_updated?: string | null
           page_number?: number
           temple_index?: number
         }
         Relationships: []
       }
-      temple_stay_details: {
+      notifications: {
         Row: {
-          cost_adult: string | null
+          category: string | null
           created_at: string | null
-          description: string | null
-          id: number
-          public_transportation: string | null
-          temple_stay_id: number | null
+          entity_id: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          user_id: string | null
         }
         Insert: {
-          cost_adult?: string | null
+          category?: string | null
           created_at?: string | null
-          description?: string | null
-          id?: number
-          public_transportation?: string | null
-          temple_stay_id?: number | null
+          entity_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          user_id?: string | null
         }
         Update: {
-          cost_adult?: string | null
+          category?: string | null
           created_at?: string | null
-          description?: string | null
-          id?: number
-          public_transportation?: string | null
-          temple_stay_id?: number | null
+          entity_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      reading_history: {
+        Row: {
+          id: string
+          page_number: number
+          read_at: string | null
+          scripture_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          page_number: number
+          read_at?: string | null
+          scripture_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          page_number?: number
+          read_at?: string | null
+          scripture_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "temple_stay_details_temple_stay_id_fkey"
-            columns: ["temple_stay_id"]
+            foreignKeyName: "reading_history_scripture_id_fkey"
+            columns: ["scripture_id"]
             isOneToOne: false
-            referencedRelation: "temple_stays"
+            referencedRelation: "scriptures"
             referencedColumns: ["id"]
           },
         ]
       }
-      temple_stays: {
+      reading_progress: {
+        Row: {
+          id: string
+          last_page: number
+          last_read_at: string | null
+          progress: number | null
+          scripture_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          last_page: number
+          last_read_at?: string | null
+          progress?: number | null
+          scripture_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          last_page?: number
+          last_read_at?: string | null
+          progress?: number | null
+          scripture_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_progress_scripture_id_fkey"
+            columns: ["scripture_id"]
+            isOneToOne: false
+            referencedRelation: "scriptures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scripture_pages: {
+        Row: {
+          content: string
+          id: string
+          page_number: number
+          scripture_id: string | null
+        }
+        Insert: {
+          content: string
+          id?: string
+          page_number: number
+          scripture_id?: string | null
+        }
+        Update: {
+          content?: string
+          id?: string
+          page_number?: number
+          scripture_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scripture_pages_scripture_id_fkey"
+            columns: ["scripture_id"]
+            isOneToOne: false
+            referencedRelation: "scriptures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scriptures: {
         Row: {
           created_at: string | null
-          end_date: string | null
-          id: number
-          image_url: string | null
-          name: string
-          region: string | null
-          reservation_link: string | null
-          start_date: string | null
-          temple_id: number | null
+          description: string | null
+          id: string
+          title: string
+          total_pages: number
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          end_date?: string | null
-          id?: number
-          image_url?: string | null
-          name: string
-          region?: string | null
-          reservation_link?: string | null
-          start_date?: string | null
-          temple_id?: number | null
+          description?: string | null
+          id?: string
+          title: string
+          total_pages: number
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          description?: string | null
+          id?: string
+          title?: string
+          total_pages?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      temple_stays: {
+        Row: {
+          cost_adult: string | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          follower_count: number | null
+          id: string
+          image_url: string | null
+          name: string
+          public_transportation: string | null
+          region: string | null
+          reservation_link: string | null
+          start_date: string | null
+          temple_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cost_adult?: string | null
+          created_at?: string | null
+          description?: string | null
           end_date?: string | null
-          id?: number
+          follower_count?: number | null
+          id?: string
           image_url?: string | null
-          name?: string
+          name: string
+          public_transportation?: string | null
           region?: string | null
           reservation_link?: string | null
           start_date?: string | null
-          temple_id?: number | null
+          temple_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cost_adult?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          follower_count?: number | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          public_transportation?: string | null
+          region?: string | null
+          reservation_link?: string | null
+          start_date?: string | null
+          temple_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -121,8 +257,11 @@ export type Database = {
           contact: string | null
           created_at: string | null
           description: string | null
-          id: number
+          follower_count: number | null
+          id: string
           image_url: string | null
+          latitude: number | null
+          longitude: number | null
           name: string
           region: string | null
           updated_at: string | null
@@ -132,8 +271,11 @@ export type Database = {
           contact?: string | null
           created_at?: string | null
           description?: string | null
-          id?: number
+          follower_count?: number | null
+          id?: string
           image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
           name: string
           region?: string | null
           updated_at?: string | null
@@ -143,8 +285,11 @@ export type Database = {
           contact?: string | null
           created_at?: string | null
           description?: string | null
-          id?: number
+          follower_count?: number | null
+          id?: string
           image_url?: string | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           region?: string | null
           updated_at?: string | null
@@ -156,24 +301,24 @@ export type Database = {
           content: string | null
           created_at: string | null
           day: number | null
-          id: number
-          temple_stay_id: number | null
+          id: string
+          temple_stay_id: string | null
           time: string | null
         }
         Insert: {
           content?: string | null
           created_at?: string | null
           day?: number | null
-          id?: number
-          temple_stay_id?: number | null
+          id?: string
+          temple_stay_id?: string | null
           time?: string | null
         }
         Update: {
           content?: string | null
           created_at?: string | null
           day?: number | null
-          id?: number
-          temple_stay_id?: number | null
+          id?: string
+          temple_stay_id?: string | null
           time?: string | null
         }
         Relationships: [
@@ -185,6 +330,114 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_bookmarks: {
+        Row: {
+          created_at: string | null
+          id: string
+          page_number: number
+          scripture_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          page_number: number
+          scripture_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          page_number?: number
+          scripture_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_bookmarks_scripture_id_fkey"
+            columns: ["scripture_id"]
+            isOneToOne: false
+            referencedRelation: "scriptures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_follow_temple_stays: {
+        Row: {
+          created_at: string | null
+          temple_stay_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          temple_stay_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          temple_stay_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_follow_temple_stays_temple_stay_id_fkey"
+            columns: ["temple_stay_id"]
+            isOneToOne: false
+            referencedRelation: "temple_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_follow_temples: {
+        Row: {
+          created_at: string | null
+          temple_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          temple_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          temple_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_follow_temples_temple_id_fkey"
+            columns: ["temple_id"]
+            isOneToOne: false
+            referencedRelation: "temples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          font_family: string | null
+          font_size: number | null
+          theme: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          font_family?: string | null
+          font_size?: number | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          font_family?: string | null
+          font_size?: number | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
