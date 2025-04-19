@@ -44,9 +44,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email: `${username}@example.com`, 
+        password 
+      });
+      
       if (error) {
         toast({
           title: "로그인 실패",
@@ -62,13 +66,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (username: string, password: string) => {
     try {
+      // We'll use the username as the email with a dummy domain
+      // This is just to make Supabase happy since it requires an email format
       const { error } = await supabase.auth.signUp({
-        email,
+        email: `${username}@example.com`,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          data: {
+            username: username, // Store the real username in metadata
+          }
         }
       });
       
@@ -83,10 +91,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       toast({
         title: "회원가입 성공",
-        description: "프로필 설정 페이지로 이동합니다.",
+        description: "로그인 페이지로 이동합니다.",
       });
       
-      navigate('/profile-setup');
+      navigate('/login');
     } catch (error: any) {
       console.error('SignUp error:', error);
       throw error;
