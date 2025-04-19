@@ -1,141 +1,90 @@
 
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ChevronLeft, Home, Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import TempleItem from '@/components/search/TempleItem';
-import { searchTemples, type Temple } from '@/utils/repository';
-import { typedData } from '@/utils/typeUtils';
+import { temples } from '@/utils/repository';
 
 const SearchResults = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const query = searchParams.get('query') || '';
-  const region = searchParams.get('region') || '';
-  const nearby = searchParams.get('nearby') === 'true';
-  
-  const [searchValue, setSearchValue] = useState(query || region);
-  const [temples, setTemples] = useState<Temple[]>([]);
-  const [activeFilter, setActiveFilter] = useState<'popular' | 'recent'>('popular');
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'nearby' | 'distance'>('nearby');
+  const [searchValue, setSearchValue] = useState('');
 
-  useEffect(() => {
-    setLoading(true);
-    // Search temples based on query or region
-    const searchTerm = query || region;
-    if (searchTerm) {
-      const results = searchTemples(searchTerm);
-      setTemples(typedData<Temple[]>(results));
-    } else if (nearby) {
-      // If nearby search, we'd typically use geolocation data
-      // For now, let's just return all temples as a placeholder
-      const results = searchTemples("");
-      setTemples(typedData<Temple[]>(results));
-    } else {
-      setTemples([]);
-    }
-    setLoading(false);
-  }, [query, region, nearby]);
-
-  const handleClearSearch = () => {
-    setSearchValue('');
-  };
-
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate(`/search/temple/results?query=${searchValue}`);
-  };
-
-  const handleTempleClick = (id: string) => {
-    navigate(`/search/temple/detail/${id}`);
-  };
-  const handleSearch = () => navigate(`/search/temple/results?query=${searchValue}`);
   return (
-    <div className="bg-[#F8F8F8] min-h-screen pb-16">
-      <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
-        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
-          
-          <button onClick={() => navigate('/search')}>
-            <ArrowLeft className="h-6 w-6" />
+    <div className="bg-white min-h-screen">
+      {/* Header */}
+      <div className="fixed top-0 w-full bg-white z-10">
+        <div className="flex items-center gap-3 p-4 border-b">
+          <button onClick={() => navigate(-1)}>
+            <ChevronLeft className="w-6 h-6" />
           </button>
-          
-          <form onSubmit={handleSearchSubmit} className="flex-1 relative">
+          <div className="flex-1 relative">
             <Input
-              value={searchValue}
-              onChange={handleSearchInputChange}
+              value="서울"
+              className="pl-9 pr-8 py-2 bg-[#F5F5F5] rounded-full"
               placeholder="사찰 검색"
-              className="w-full pl-9 pr-8 py-2 rounded-full bg-[#F5F5F5] border-none"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+          <button onClick={() => navigate('/main')}>
+            <Home className="w-6 h-6" />
+          </button>
+        </div>
 
-            {searchValue && (
-              <button 
-                type="button"
-                onClick={handleClearSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              >
-                <X className="h-4 w-4 text-gray-400" />
-              </button>
-            )}
-          </form>
+        {/* Filter Tabs */}
+        <div className="flex p-2 gap-2">
+          <Button
+            variant={activeTab === 'nearby' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('nearby')}
+            className={`rounded-full px-4 ${activeTab === 'nearby' ? 'bg-[#DE7834]' : ''}`}
+          >
+            추천순
+          </Button>
+          <Button
+            variant={activeTab === 'distance' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('distance')}
+            className={`rounded-full px-4 ${activeTab === 'distance' ? 'bg-[#DE7834]' : ''}`}
+          >
+            거리순
+          </Button>
         </div>
-        {/* ✅ 검색하기 버튼 (위치 검색어만 있으므로 바로) */}
-            <Button
-          className="w-full h-11 mb-4 bg-[#DE7834] hover:bg-[#c96b2e]"
-          onClick={handleSearch}
-        >
-          검색하기
-        </Button>
       </div>
-      
-      <div className="max-w-[480px] mx-auto px-5 py-3">
-        <div className="flex gap-2 mb-4">
-          <Button
-            variant={activeFilter === 'popular' ? 'default' : 'outline'}
-            onClick={() => setActiveFilter('popular')}
-            className={activeFilter === 'popular' ? 'bg-[#DE7834]' : 'bg-white'}
-            size="sm"
+
+      {/* Temple List */}
+      <div className="pt-28 pb-20">
+        {temples.map((temple) => (
+          <div 
+            key={temple.id}
+            className="p-4 border-b cursor-pointer"
+            onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
           >
-            인기순
-          </Button>
-          <Button
-            variant={activeFilter === 'recent' ? 'default' : 'outline'}
-            onClick={() => setActiveFilter('recent')}
-            className={activeFilter === 'recent' ? 'bg-[#DE7834]' : 'bg-white'}
-            size="sm"
-          >
-            최신순
-          </Button>
-        </div>
-        
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]"></div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {temples.length > 0 ? (
-              temples.map((temple) => (
-                <TempleItem
-                  key={temple.id}
-                  temple={temple}
-                  onClick={() => handleTempleClick(temple.id)}
-                />
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">검색 결과가 없습니다.</p>
-                <p className="text-gray-400 text-sm mt-2">다른 검색어를 입력해 보세요.</p>
+            <div className="flex gap-4">
+              <img
+                src={temple.imageUrl}
+                alt={temple.name}
+                className="w-20 h-20 object-cover rounded-lg"
+              />
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg">{temple.name}</h3>
+                <p className="text-sm text-gray-600 mt-1">{temple.location}</p>
+                <p className="text-sm text-gray-400 mt-2">도보 10분</p>
+                {temple.tags && (
+                  <div className="flex gap-1 mt-2">
+                    {temple.tags.map((tag, idx) => (
+                      <span 
+                        key={idx}
+                        className="text-xs text-gray-500"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
