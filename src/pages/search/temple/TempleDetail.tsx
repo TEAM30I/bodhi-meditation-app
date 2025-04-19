@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -6,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import HeaderSection from '@/components/temple/HeaderSection';
 import TempleImageSection from '@/components/temple/TempleImageSection';
 import TempleInfoSection from '@/components/temple/TempleInfoSection';
+import ParkingInfoSection from '@/components/temple/ParkingInfoSection';
 
 interface Temple {
   id: string;
@@ -64,6 +64,12 @@ const TempleDetail = () => {
     );
   }
 
+  const parkingInfo = {
+    fee: "10분 당 1,000원",
+    type: "조계사 경내 주차장",
+    notice: "조계사는 주차공간이 협소합니다. 대중교통을 이용해 주시면 감사하겠습니다."
+  };
+
   return (
     <div className="bg-[#F8F8F8] min-h-screen pb-20">
       <HeaderSection />
@@ -73,6 +79,7 @@ const TempleDetail = () => {
         onToggleFavorite={handleToggleFavorite}
       />
       <TempleInfoSection temple={temple} />
+      <ParkingInfoSection parkingInfo={parkingInfo} />
     </div>
   );
 };
