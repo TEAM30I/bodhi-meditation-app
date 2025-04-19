@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { Share2, Calendar } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Share2, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { getScriptureById, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
 import { useScriptureProgress } from '@/hooks/useScriptureProgress';
@@ -11,6 +12,7 @@ import SettingsPanel from '@/components/scripture/SettingsPanel';
 
 const ScriptureReader = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'original' | 'explanation'>('explanation');
   const [showSettings, setShowSettings] = useState(false);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -206,6 +208,14 @@ const ScriptureReader = () => {
     highlightSearchResult(newIndex);
   };
 
+  const handleNavigateToCalendar = () => {
+    navigate('/scripture/calendar');
+  };
+  
+  const handleNavigateToBookmark = () => {
+    navigate('/scripture/bookmarks');
+  };
+
   const renderContent = () => {
     if (!scripture.content) return null;
     
@@ -267,31 +277,15 @@ const ScriptureReader = () => {
         showChapterDropdown={showChapterDropdown}
         toggleChapterDropdown={toggleChapterDropdown}
         selectChapter={selectChapter}
-        toggleSearch={(e) => {
-          e.stopPropagation();
-          setShowSearch(!showSearch);
-          if (!showSearch) {
-            setSearchQuery('');
-            setSearchResults([]);
-          }
-        }}
+        toggleSearch={toggleSearch}
         theme={theme}
       />
       
       <ScriptureSearch 
         showSearch={showSearch}
         searchQuery={searchQuery}
-        handleSearchQueryChange={(e) => setSearchQuery(e.target.value)}
-        navigateSearchResult={(direction) => {
-          if (searchResults.length === 0) return;
-          let newIndex = currentSearchIndex;
-          if (direction === 'next') {
-            newIndex = (currentSearchIndex + 1) % searchResults.length;
-          } else {
-            newIndex = (currentSearchIndex - 1 + searchResults.length) % searchResults.length;
-          }
-          setCurrentSearchIndex(newIndex);
-        }}
+        handleSearchQueryChange={handleSearchQueryChange}
+        navigateSearchResult={navigateSearchResult}
         searchResults={searchResults}
         currentSearchIndex={currentSearchIndex}
         theme={theme}
@@ -302,7 +296,7 @@ const ScriptureReader = () => {
         className={`px-10 py-4 overflow-y-auto ${contentClasses} ${fontFamilyClasses}`}
         style={{ 
           fontSize: `${fontSize}px`,
-          lineHeight: lineHeight,
+          lineHeight: '1.6',
         }}
         onClick={(e) => e.stopPropagation()}
       >
