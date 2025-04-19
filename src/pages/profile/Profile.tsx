@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Bell, Home } from "lucide-react";
+import { Bell, Home, ChevronLeft, ChevronRight } from "lucide-react";
 import PageLayout from "@/components/PageLayout";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import SearchBar from "@/components/profile/SearchBar";
@@ -27,6 +27,16 @@ export default function Profile(): JSX.Element {
     {
       name: "불광사",
       location: "서울 은평구",
+      imageUrl: "/lovable-uploads/temple1.jpg",
+    },
+    {
+      name: "불광사",
+      location: "서울 송파구",
+      imageUrl: "/lovable-uploads/temple1.jpg",
+    },
+    {
+      name: "불광사",
+      location: "서울 송파구",
       imageUrl: "/lovable-uploads/temple1.jpg",
     }
   ];
@@ -64,7 +74,7 @@ export default function Profile(): JSX.Element {
 
         {/* Bottom Menu Items */}
         <div className="px-5 mt-6 space-y-4">
-          <div className="flex justify-between items-center py-3">
+          <div className="flex justify-between items-center py-3 border-t border-gray-100">
             <span className="text-gray-700">리뷰 작성하기</span>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
