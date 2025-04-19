@@ -101,6 +101,8 @@ export type Database = {
       reading_progress: {
         Row: {
           id: string
+          last_chapter_id: string | null
+          last_chapter_title: string | null
           last_page: number
           last_read_at: string | null
           progress: number | null
@@ -110,6 +112,8 @@ export type Database = {
         }
         Insert: {
           id?: string
+          last_chapter_id?: string | null
+          last_chapter_title?: string | null
           last_page: number
           last_read_at?: string | null
           progress?: number | null
@@ -119,6 +123,8 @@ export type Database = {
         }
         Update: {
           id?: string
+          last_chapter_id?: string | null
+          last_chapter_title?: string | null
           last_page?: number
           last_read_at?: string | null
           progress?: number | null
@@ -129,6 +135,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "reading_progress_scripture_id_fkey"
+            columns: ["scripture_id"]
+            isOneToOne: false
+            referencedRelation: "scriptures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scripture_journey: {
+        Row: {
+          action_type: string
+          chapter_id: string | null
+          chapter_title: string | null
+          created_at: string | null
+          id: string
+          page_number: number | null
+          scripture_id: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          chapter_id?: string | null
+          chapter_title?: string | null
+          created_at?: string | null
+          id?: string
+          page_number?: number | null
+          scripture_id: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          chapter_id?: string | null
+          chapter_title?: string | null
+          created_at?: string | null
+          id?: string
+          page_number?: number | null
+          scripture_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scripture_journey_scripture_id_fkey"
             columns: ["scripture_id"]
             isOneToOne: false
             referencedRelation: "scriptures"

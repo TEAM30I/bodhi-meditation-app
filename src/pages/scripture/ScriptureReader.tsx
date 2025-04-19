@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Share2, ChevronLeft, ChevronRight, ChevronDown, Calendar } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { getScriptureById, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
 import SettingsPanel from '@/components/scripture/SettingsPanel';
+import useScriptureProgress from '@/hooks/useScriptureProgress';
 
 const ScriptureReader = () => {
   const navigate = useNavigate();
@@ -30,31 +30,29 @@ const ScriptureReader = () => {
   
   const scripture: Scripture | undefined = id ? typedGetScriptureById(id) : undefined;
   
+  const { progress, updateProgress } = useScriptureProgress(scripture?.id);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    if (scripture && scripture.hasStarted) {
-      const lastChapterIndex = scripture.chapters.findIndex(ch => ch.id === scripture.lastReadChapter);
-      if (lastChapterIndex !== -1) {
-        setCurrentChapterIndex(lastChapterIndex);
-        setCurrentPageIndex(scripture.lastPageIndex || 0);
-      }
+    if (scripture && progress) {
+      setCurrentChapterIndex(scripture.chapters.findIndex(ch => ch.id === progress.last_chapter_id));
+      setCurrentPageIndex(progress.last_page || 0);
     }
-  }, [scripture]);
+  }, [scripture, progress]);
 
   useEffect(() => {
     if (scripture) {
       const progress = ((currentChapterIndex * 100) / scripture.chapters.length) + 
                       ((currentPageIndex * 100) / 10) / scripture.chapters.length;
       
-      if (scripture.updateReadingProgress) {
-        scripture.updateReadingProgress(
-          scripture.id, 
-          Math.min(100, progress), 
-          scripture.chapters[currentChapterIndex].id,
-          currentPageIndex
-        );
-      }
+      const currentChapter = scripture.chapters[currentChapterIndex];
+      updateProgress({
+        progress: Math.floor(progress),
+        last_chapter_id: currentChapter.id,
+        last_chapter_title: currentChapter.title,
+        last_page: currentPageIndex
+      });
     }
   }, [currentChapterIndex, currentPageIndex, scripture]);
 
@@ -417,7 +415,7 @@ const ScriptureReader = () => {
               handleTabChange('explanation');
             }}
           >
-            해석본
+            해��본
           </button>
         </div>
       </div>

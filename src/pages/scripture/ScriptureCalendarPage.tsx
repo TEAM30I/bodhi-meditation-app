@@ -1,13 +1,17 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { calendarData, readingSchedule, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const ScriptureCalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { user } = useAuth();
+  const [journeyData, setJourneyData] = useState<any[]>([]);
+  const [calendarData, setCalendarData] = useState<any[]>([]);
   
   const typedCalendarData = typedData<typeof calendarData>(calendarData);
   const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
@@ -101,10 +105,40 @@ const ScriptureCalendarPage: React.FC = () => {
     return "text-[#111]";
   };
 
+  useEffect(() => {
+    const fetchJourneyData = async () => {
+      if (!user) return;
+
+      try {
+        const { data: journeyResults, error: journeyError } = await supabase
+          .from('scripture_journey')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(4);
+
+        if (journeyError) throw journeyError;
+        setJourneyData(journeyResults || []);
+
+        const { data: progressData, error: progressError } = await supabase
+          .from('reading_progress')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (progressError) throw progressError;
+        setCalendarData(progressData || []);
+      } catch (error) {
+        console.error('Error fetching journey data:', error);
+      }
+    };
+
+    fetchJourneyData();
+  }, [user]);
+
   return (
     <div className="bg-[#F8F8F8] min-h-screen">
 
-      <div className="sticky top-[44px] z-10 bg-white w-full h-[56px] flex items-center px-5">
+      <div className="w-full h-[56px] flex items-center px-5">
         <button 
           onClick={() => navigate('/scripture')}
           className="mr-4"
