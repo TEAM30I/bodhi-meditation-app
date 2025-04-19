@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import React from "react";
@@ -20,6 +19,7 @@ import ScriptureReader from "@/pages/scripture/ScriptureReader";
 
 // Profile Pages
 import Profile from "@/pages/profile";
+import ProfileManage from "@/pages/profile/ProfileManage";
 
 // Wishlist Pages
 import Wishlist from "@/pages/wishlist";
@@ -78,6 +78,7 @@ const App: React.FC = () => {
             
             {/* Profile routes */}
             <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/manage" element={<ProfileManage />} />
             
             <Route path="/fortune" element={<Fortune />} />
             <Route path="/notifications" element={<Notifications />} />
