@@ -44,11 +44,7 @@ const SignUp: React.FC = () => {
       await signUp(username, password);
     } catch (error: any) {
       console.error('SignUp error:', error);
-      toast({
-        title: "회원가입 실패",
-        description: error.message || "회원가입 중 오류가 발생했습니다.",
-        variant: "destructive"
-      });
+      // Error toast is already shown in AuthContext
     } finally {
       setIsLoading(false);
     }
