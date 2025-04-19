@@ -6,7 +6,7 @@ import { toast } from '@/components/ui/use-toast';
 
 interface UserSettings {
   font_size: number;
-  font_family: string; // Changed from restrictive type to string
+  font_family: string;
   theme: 'light' | 'dark';
 }
 
@@ -30,7 +30,17 @@ export const useSettings = () => {
           .single();
 
         if (error) throw error;
-        setSettings(data);
+        
+        // Type conversion for theme
+        const safeSettings: UserSettings = {
+          font_size: data.font_size ?? 16,
+          font_family: data.font_family ?? 'Pretendard',
+          theme: data.theme === 'light' || data.theme === 'dark' 
+            ? data.theme 
+            : 'light' // default to light if invalid
+        };
+
+        setSettings(safeSettings);
       } catch (error) {
         console.error('Error fetching settings:', error);
         toast({
@@ -50,18 +60,31 @@ export const useSettings = () => {
     if (!user) return;
 
     try {
+      // Ensure theme is correctly typed
+      const safeNewSettings = {
+        ...newSettings,
+        theme: newSettings.theme === 'light' || newSettings.theme === 'dark' 
+          ? newSettings.theme 
+          : undefined
+      };
+
       const { error } = await supabase
         .from('user_settings')
         .upsert({
           user_id: user.id,
           ...settings,
-          ...newSettings,
+          ...safeNewSettings,
           updated_at: new Date().toISOString()
         });
 
       if (error) throw error;
 
-      setSettings(prev => prev ? { ...prev, ...newSettings } : null);
+      // Safely update the state
+      setSettings(prev => prev ? { 
+        ...prev, 
+        ...safeNewSettings 
+      } : null);
+
       toast({
         title: "설정 저장 완료",
         description: "설정이 성공적으로 저장되었습니다."
