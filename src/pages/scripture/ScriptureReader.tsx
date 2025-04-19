@@ -1,22 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Share2, ChevronLeft, ChevronRight, ChevronDown, Calendar } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Share2, Calendar } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { getScriptureById, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
-import SettingsPanel from '@/components/scripture/SettingsPanel';
 import { useScriptureProgress } from '@/hooks/useScriptureProgress';
+import { useSettings } from '@/hooks/useSettings';
+import ScriptureHeader from '@/components/scripture/ScriptureHeader';
+import ScriptureSearch from '@/components/scripture/ScriptureSearch';
+import SettingsPanel from '@/components/scripture/SettingsPanel';
 
 const ScriptureReader = () => {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<'original' | 'explanation'>('explanation');
-  const [fontSize, setFontSize] = useState(16);
-  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>('gothic');
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [showSettings, setShowSettings] = useState(false);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [lineHeight, setLineHeight] = useState(1.6);
   const [showControls, setShowControls] = useState(true);
   const [showChapterDropdown, setShowChapterDropdown] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -25,11 +23,14 @@ const ScriptureReader = () => {
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   
   const contentRef = useRef<HTMLDivElement>(null);
+  const { settings } = useSettings();
+  
+  const [fontSize, setFontSize] = useState(settings?.font_size ?? 16);
+  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>(settings?.font_family as 'gothic' | 'serif' ?? 'gothic');
+  const [theme, setTheme] = useState<'light' | 'dark'>(settings?.theme as 'light' | 'dark' ?? 'light');
   
   const typedGetScriptureById = typedData<typeof getScriptureById>(getScriptureById);
-  
   const scripture: Scripture | undefined = id ? typedGetScriptureById(id) : undefined;
-  
   const { progress, updateProgress } = useScriptureProgress(scripture?.id);
 
   useEffect(() => {
@@ -142,37 +143,8 @@ const ScriptureReader = () => {
     window.scrollTo(0, 0);
   };
 
-  const toggleControls = () => {
-    setShowControls(!showControls);
-  };
-
-  const handleBookmark = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (scripture.addBookmark) {
-      scripture.addBookmark(
-        'user1',
-        scripture.id,
-        currentChapter.id,
-        currentPageIndex,
-        `${currentChapter.title} - 페이지 ${currentPageIndex + 1}`
-      );
-    }
-  };
+  const toggleControls = () => setShowControls(!showControls);
   
-  const handleTabChange = (tab: 'original' | 'explanation') => {
-    setActiveTab(tab);
-  };
-
-  const handleNavigateToCalendar = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigate('/scripture/calendar');
-  };
-
-  const handleNavigateToBookmark = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigate('/scripture/bookmarks');
-  };
-
   const toggleChapterDropdown = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowChapterDropdown(!showChapterDropdown);
@@ -289,121 +261,41 @@ const ScriptureReader = () => {
       className={`min-h-screen ${contentClasses} font-['Pretendard']`}
       onClick={toggleControls}
     >
-      <div className={`w-full ${theme === 'dark' ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
-        <div className="flex items-center justify-between px-5 py-3">
-          <div className="flex items-center gap-2">
-            <button onClick={handleBackClick}>
-              <ArrowLeft size={28} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </button>
-            <div 
-              className="flex items-center cursor-pointer"
-              onClick={toggleChapterDropdown}
-            >
-              <span className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                {scripture.title}
-              </span>
-              <ChevronDown size={20} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <button onClick={toggleSearch}>
-              <Search size={24} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-            </button>
-          </div>
-        </div>
-        
-        {showChapterDropdown && (
-          <div 
-            className={`absolute z-50 mt-1 w-64 rounded-md shadow-lg ${
-              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="py-1">
-              {scripture.chapters.map((chapter, index) => (
-                <button
-                  key={chapter.id}
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    theme === 'dark' 
-                      ? 'text-white hover:bg-gray-700' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  } ${currentChapterIndex === index ? 'font-bold' : ''}`}
-                  onClick={() => selectChapter(index)}
-                >
-                  {chapter.title}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {showSearch && (
-          <div 
-            className={`p-3 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="검색어를 입력하세요"
-                value={searchQuery}
-                onChange={handleSearchQueryChange}
-                className={`flex-1 p-2 rounded-md ${
-                  theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-black'
-                }`}
-                autoFocus
-              />
-              <button 
-                onClick={() => navigateSearchResult('prev')}
-                disabled={searchResults.length === 0}
-                className={`p-2 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}
-              >
-                <ChevronLeft size={20} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-              </button>
-              <button 
-                onClick={() => navigateSearchResult('next')}
-                disabled={searchResults.length === 0}
-                className={`p-2 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}
-              >
-                <ChevronRight size={20} className={theme === 'dark' ? 'text-white' : 'text-black'} />
-              </button>
-              <span className={theme === 'dark' ? 'text-white' : 'text-black'}>
-                {searchResults.length > 0 ? `${currentSearchIndex + 1}/${searchResults.length}` : '0/0'}
-              </span>
-            </div>
-          </div>
-        )}
-        
-        <div className="flex px-8 py-4 gap-2">
-          <button
-            className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
-              activeTab === 'original' 
-                ? 'bg-[#21212F] text-white font-bold' 
-                : `${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#EDEDED]'} border ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTabChange('original');
-            }}
-          >
-            원문
-          </button>
-          <button
-            className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
-              activeTab === 'explanation' 
-                ? 'bg-[#21212F] text-white font-bold' 
-                : `${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#EDEDED]'} border ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTabChange('explanation');
-            }}
-          >
-            해��본
-          </button>
-        </div>
-      </div>
+      <ScriptureHeader 
+        scripture={scripture}
+        currentChapterIndex={currentChapterIndex}
+        showChapterDropdown={showChapterDropdown}
+        toggleChapterDropdown={toggleChapterDropdown}
+        selectChapter={selectChapter}
+        toggleSearch={(e) => {
+          e.stopPropagation();
+          setShowSearch(!showSearch);
+          if (!showSearch) {
+            setSearchQuery('');
+            setSearchResults([]);
+          }
+        }}
+        theme={theme}
+      />
+      
+      <ScriptureSearch 
+        showSearch={showSearch}
+        searchQuery={searchQuery}
+        handleSearchQueryChange={(e) => setSearchQuery(e.target.value)}
+        navigateSearchResult={(direction) => {
+          if (searchResults.length === 0) return;
+          let newIndex = currentSearchIndex;
+          if (direction === 'next') {
+            newIndex = (currentSearchIndex + 1) % searchResults.length;
+          } else {
+            newIndex = (currentSearchIndex - 1 + searchResults.length) % searchResults.length;
+          }
+          setCurrentSearchIndex(newIndex);
+        }}
+        searchResults={searchResults}
+        currentSearchIndex={currentSearchIndex}
+        theme={theme}
+      />
       
       <div 
         ref={contentRef}
@@ -513,10 +405,7 @@ const ScriptureReader = () => {
       {showSettings && (
         <div 
           className="fixed inset-0 z-50 bg-black/50 flex items-end" 
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowSettings(false);
-          }}
+          onClick={() => setShowSettings(false)}
         >
           <div 
             className="w-full p-5 bg-white rounded-t-3xl"
