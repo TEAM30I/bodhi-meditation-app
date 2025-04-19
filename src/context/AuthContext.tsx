@@ -3,14 +3,15 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
+  signUp: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -44,15 +45,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    navigate('/main');
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        toast({
+          title: "로그인 실패",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+      navigate('/main');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw error;
+    }
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
-    navigate('/login');
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: "회원가입 실패",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+
+      toast({
+        title: "회원가입 성공",
+        description: "프로필 설정 페이지로 이동합니다.",
+      });
+      
+      navigate('/profile-setup');
+    } catch (error: any) {
+      console.error('SignUp error:', error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
