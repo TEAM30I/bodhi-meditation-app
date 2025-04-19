@@ -4,7 +4,7 @@ import { ArrowLeft, Search, Share2, ChevronLeft, ChevronRight, ChevronDown, Cale
 import { typedData } from '@/utils/typeUtils';
 import { getScriptureById, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
 import SettingsPanel from '@/components/scripture/SettingsPanel';
-import useScriptureProgress from '@/hooks/useScriptureProgress';
+import { useScriptureProgress } from '@/hooks/useScriptureProgress';
 
 const ScriptureReader = () => {
   const navigate = useNavigate();
@@ -57,7 +57,6 @@ const ScriptureReader = () => {
   }, [currentChapterIndex, currentPageIndex, scripture]);
 
   useEffect(() => {
-    // Apply theme changes to the content area
     if (contentRef.current) {
       if (theme === 'dark') {
         contentRef.current.classList.add('bg-gray-900', 'text-white');
@@ -70,7 +69,6 @@ const ScriptureReader = () => {
   }, [theme]);
 
   useEffect(() => {
-    // Apply font family changes
     if (contentRef.current) {
       if (fontFamily === 'serif') {
         contentRef.current.classList.add('font-serif');
@@ -86,7 +84,6 @@ const ScriptureReader = () => {
     if (searchQuery && scripture) {
       const results: {index: number, text: string}[] = [];
       
-      // Search in both original and explanation content
       const allContent = [
         ...(scripture.content?.original || []),
         ...(scripture.content?.explanation || [])
@@ -101,7 +98,6 @@ const ScriptureReader = () => {
       setSearchResults(results);
       setCurrentSearchIndex(0);
       
-      // Scroll to the first result if found
       if (results.length > 0) {
         highlightSearchResult(0);
       }
@@ -130,7 +126,7 @@ const ScriptureReader = () => {
       setCurrentPageIndex(currentPageIndex - 1);
     } else if (currentChapterIndex > 0) {
       setCurrentChapterIndex(currentChapterIndex - 1);
-      setCurrentPageIndex(4); // Assuming each chapter has 5 pages (0-4)
+      setCurrentPageIndex(4);
     }
     window.scrollTo(0, 0);
   };
@@ -207,8 +203,6 @@ const ScriptureReader = () => {
     
     setCurrentSearchIndex(index);
     
-    // Calculate which chapter and page this result is on
-    // This is a simplification - you'd need to map result indices to actual chapters/pages
     const resultText = searchResults[index].text;
     const chapterIndex = scripture.chapters.findIndex(chapter => 
       chapter.original?.includes(resultText) || chapter.explanation?.includes(resultText)
@@ -216,18 +210,15 @@ const ScriptureReader = () => {
     
     if (chapterIndex !== -1) {
       setCurrentChapterIndex(chapterIndex);
-      setCurrentPageIndex(0); // Reset to first page of that chapter
+      setCurrentPageIndex(0);
       
-      // You may need a more sophisticated approach to determine the exact page
+      setTimeout(() => {
+        const resultElement = document.getElementById(`search-result-${index}`);
+        if (resultElement) {
+          resultElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     }
-    
-    // Scroll to the element containing the search result
-    setTimeout(() => {
-      const resultElement = document.getElementById(`search-result-${index}`);
-      if (resultElement) {
-        resultElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 100);
   };
 
   const navigateSearchResult = (direction: 'next' | 'prev') => {
@@ -246,7 +237,6 @@ const ScriptureReader = () => {
   const renderContent = () => {
     if (!scripture.content) return null;
     
-    // Calculate start and end indices for the current page
     const contentArray = activeTab === 'original' 
       ? scripture.content.original 
       : scripture.content.explanation;
@@ -260,7 +250,6 @@ const ScriptureReader = () => {
     const endIdx = Math.min(startIdx + itemsPerPage, contentArray.length);
     
     return contentArray.slice(startIdx, endIdx).map((paragraph, idx) => {
-      // If search is active, highlight the search terms
       if (searchQuery && searchResults.length > 0) {
         const parts = paragraph.split(new RegExp(`(${searchQuery})`, 'gi'));
         return (
@@ -300,7 +289,6 @@ const ScriptureReader = () => {
       className={`min-h-screen ${contentClasses} font-['Pretendard']`}
       onClick={toggleControls}
     >
-      {/* Header */}
       <div className={`w-full ${theme === 'dark' ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
         <div className="flex items-center justify-between px-5 py-3">
           <div className="flex items-center gap-2">
@@ -325,7 +313,6 @@ const ScriptureReader = () => {
           </div>
         </div>
         
-        {/* Chapter Dropdown */}
         {showChapterDropdown && (
           <div 
             className={`absolute z-50 mt-1 w-64 rounded-md shadow-lg ${
@@ -351,7 +338,6 @@ const ScriptureReader = () => {
           </div>
         )}
         
-        {/* Search Bar */}
         {showSearch && (
           <div 
             className={`p-3 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}
@@ -389,7 +375,6 @@ const ScriptureReader = () => {
           </div>
         )}
         
-        {/* Tabs */}
         <div className="flex px-8 py-4 gap-2">
           <button
             className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
@@ -420,7 +405,6 @@ const ScriptureReader = () => {
         </div>
       </div>
       
-      {/* Content */}
       <div 
         ref={contentRef}
         className={`px-10 py-4 overflow-y-auto ${contentClasses} ${fontFamilyClasses}`}
@@ -445,7 +429,6 @@ const ScriptureReader = () => {
         )}
       </div>
       
-      {/* Page Navigation Buttons */}
       {showControls && (
         <div className="fixed bottom-24 left-0 right-0 flex justify-center">
           <div className="flex justify-between w-[270px]">
@@ -468,7 +451,6 @@ const ScriptureReader = () => {
         </div>
       )}
       
-      {/* Bottom Navigation */}
       {showControls && (
         <div className="fixed bottom-10 left-0 right-0 flex justify-center">
           <div className={`flex items-center justify-between px-3 h-14 ${theme === 'dark' ? 'bg-gray-800/80' : 'bg-white/80'} backdrop-blur-md shadow-lg rounded-full mx-8`}>
@@ -528,7 +510,6 @@ const ScriptureReader = () => {
         </div>
       )}
       
-      {/* Settings Panel */}
       {showSettings && (
         <div 
           className="fixed inset-0 z-50 bg-black/50 flex items-end" 
