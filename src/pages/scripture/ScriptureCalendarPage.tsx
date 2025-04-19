@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
 import { calendarData, readingSchedule, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import PageLayout from '@/components/PageLayout';
 
 const ScriptureCalendarPage: React.FC = () => {
   const navigate = useNavigate();
@@ -136,142 +137,139 @@ const ScriptureCalendarPage: React.FC = () => {
   }, [user]);
 
   return (
-    <div className="bg-[#F8F8F8] min-h-screen">
-
-      <div className="w-full h-[56px] flex items-center px-5">
-        <button 
-          onClick={() => navigate('/scripture')}
-          className="mr-4"
-        >
-          <ChevronLeft size={28} />
-        </button>
-        <h1 className="text-[20px] font-bold">경전 읽기 캘린더</h1>
-      </div>
-
-      <div className="p-5">
-        <div className="bg-white rounded-[32px] p-4 shadow-sm mb-8">
-          <div className="flex justify-between items-center px-[10px] py-[10px]">
-            <button onClick={goToPrevMonth}>
-              <ChevronLeft size={24} />
-            </button>
-            <h2 className="text-base font-bold">
-              {year}년 {monthNames[month]}
-            </h2>
-            <button onClick={goToNextMonth}>
-              <ChevronRight size={24} />
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-7 text-center">
-            {weekdays.map((day, index) => (
-              <div 
-                key={`weekday-${index}`} 
-                className={`py-[14px] text-xs ${index === 0 ? 'text-[#767676]' : 'text-[#767676]'}`}
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-7 text-center">
-            {prevMonthDays.map((day, index) => (
-              <div 
-                key={`prev-${index}`} 
-                className="py-[14px] text-xs text-[#767676]"
-              >
-                {day}
-              </div>
-            ))}
-            
-            {days.map((day) => (
-              <div 
-                key={`current-${day}`} 
-                className={`py-[14px] text-xs ${getDayClass(day)} ${getReadingDataForDate(day) ? 'rounded-full' : ''}`}
-              >
-                {day}
-              </div>
-            ))}
-            
-            {nextMonthDays.map((day, index) => (
-              <div 
-                key={`next-${index}`} 
-                className="py-[14px] text-xs text-[#767676]"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        <div className="mt-8 mb-6">
-          <h2 className="text-[20px] font-bold pb-3">현재 진행 중</h2>
-          
-          {readingItems.map((item, index) => (
-            <div key={`reading-${index}`} className="bg-white rounded-[32px] p-5 shadow-sm mb-4">
-              <div 
-                className="inline-flex px-2 py-2 rounded-xl mb-3"
-                style={{ backgroundColor: item.color }}
-              >
-                <span className="text-xs text-white">
-                  {item.title}
-                </span>
-              </div>
-              <h3 className="text-base font-bold text-gray-900 mb-4">
-                보리11님의 {item.title} 통독
-              </h3>
-              <div className="w-full h-1 bg-[#FBF3E9] rounded-full mb-2">
-                <div 
-                  className="h-1 rounded-full"
-                  style={{ 
-                    width: `${item.progress}%`,
-                    background: `linear-gradient(90deg, rgba(218, 0, 0, 0.55) 0%, ${item.color} 44.19%)`
-                  }}
-                ></div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">
-                  이 달의 진행률: <span className="text-[#DE7834] font-bold">{(item.progress / 10).toFixed(1)}%</span>
-                  {index === 0 ? ' 9일 동안 경전을 읽었어요' : ' 17일 동안 경전을 읽었어요'}
-                </span>
-                <span className="text-xs text-gray-500">{item.progress}%</span>
+    <PageLayout title="경전 캘린더" showBackButton={true}>
+      <div className="w-full max-w-[480px] mx-auto min-h-screen bg-gray-50">
+        <div className="p-4 space-y-4">
+          {/* 달력 헤더 */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <button 
+                  onClick={goToPrevMonth}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <h2 className="text-lg font-bold">
+                  {year}년 {monthNames[month]}
+                </h2>
+                <button 
+                  onClick={goToNextMonth}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-        
-        <div className="mt-8">
-          <h2 className="text-[20px] font-bold mb-3">나의 경전 여정</h2>
-          
-          <div className="bg-white rounded-[24px] p-5 shadow-sm flex items-center justify-between mb-4">
-            <span className="text-base text-[#767676]">기록 데이터가 없어요</span>
-            <Calendar size={24} className="text-[#767676]" />
-          </div>
-          
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map((item) => (
-              <div key={`journey-${item}`} className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#F1F1F5]"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-[#505050]">
-                    {item % 2 === 0 ? '김시훈님이 반야심경 24페이지를 읽었어요' : '김시훈님이 화엄경 31페이지를 읽었어요'}
-                  </p>
-                  <p className="text-xs text-gray-500">2025.04.{9 - item}</p>
-                  <div className="flex items-center gap-1.5">
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: item % 2 === 0 ? '#EF4223' : '#FFB23F' }}
-                    ></div>
-                    <span className="text-xs text-gray-500">
-                      {item % 2 === 0 ? '반야심경 이어보기 →' : '화엄경 이어보기 →'}
-                    </span>
-                  </div>
+
+            {/* 요일 헤더 */}
+            <div className="grid grid-cols-7 bg-gray-50">
+              {weekdays.map((day, index) => (
+                <div 
+                  key={index} 
+                  className={`h-10 flex items-center justify-center text-sm font-medium
+                    ${index === 0 ? 'text-red-500' : 'text-gray-600'}`}
+                >
+                  {day}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* 달력 그리드 */}
+            <div className="grid grid-cols-7 bg-white p-2 gap-1">
+              {/* 이전 달 날짜 */}
+              {prevMonthDays.map((day, index) => (
+                <div 
+                  key={`prev-${index}`} 
+                  className="aspect-square flex items-center justify-center text-sm text-gray-400"
+                >
+                  {day}
+                </div>
+              ))}
+
+              {/* 현재 달 날짜 */}
+              {days.map((day, index) => {
+                const isToday = day === new Date().getDate() && 
+                              month === new Date().getMonth() && 
+                              year === new Date().getFullYear();
+                const hasReading = !!getReadingDataForDate(day);
+                const dayOfWeek = new Date(year, month, day).getDay();
+                
+                return (
+                  <div 
+                    key={`current-${index}`} 
+                    className={`aspect-square relative flex items-center justify-center text-sm
+                      ${isToday ? 'bg-orange-500 text-white rounded-lg' : ''}
+                      ${hasReading ? 'bg-orange-50 rounded-lg' : ''}
+                      ${dayOfWeek === 0 ? 'text-red-500' : 'text-gray-900'}
+                    `}
+                  >
+                    {day}
+                    {hasReading && !isToday && (
+                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full"></div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* 다음 달 날짜 */}
+              {nextMonthDays.map((day, index) => (
+                <div 
+                  key={`next-${index}`} 
+                  className="aspect-square flex items-center justify-center text-sm text-gray-400"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* 읽기 진행 상황 */}
+          <div className="bg-white p-4 rounded-2xl shadow-sm">
+            <h3 className="text-lg font-bold mb-4">이번 달 읽기 진행</h3>
+            <div className="space-y-4">
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-orange-500 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${(calendarData.filter(item => item.completed).length / Math.max(calendarData.length, 1)) * 100}%` 
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">진행률</span>
+                <span className="font-medium">
+                  {calendarData.filter(item => item.completed).length}/{calendarData.length} 일
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 최근 독경 기록 */}
+          {journeyData.length > 0 && (
+            <div className="bg-white p-4 rounded-2xl shadow-sm">
+              <h3 className="text-lg font-bold mb-4">최근 독경 기록</h3>
+              <div className="space-y-3">
+                {journeyData.map((journey, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center p-3 bg-gray-50 rounded-xl"
+                  >
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{journey.title}</h4>
+                      <p className="text-sm text-gray-500">{new Date(journey.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="text-sm font-medium text-orange-500">
+                      {journey.duration}분
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

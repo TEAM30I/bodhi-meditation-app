@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Bell, Home, ChevronLeft, ChevronRight } from "lucide-react";
 import PageLayout from "@/components/PageLayout";
@@ -17,52 +16,40 @@ export default function Profile(): JSX.Element {
     {
       name: "조계사",
       location: "서울 종로구",
-      imageUrl: "/lovable-uploads/temple1.jpg",
+      imageUrl: "/temple.png",
     },
     {
       name: "봉은사",
       location: "서울 강남구",
-      imageUrl: "/lovable-uploads/temple1.jpg",
+      imageUrl: "/temple.png",
     },
     {
       name: "불광사",
       location: "서울 은평구",
-      imageUrl: "/lovable-uploads/temple1.jpg",
+      imageUrl: "/temple.png",
     },
     {
       name: "불광사",
       location: "서울 송파구",
-      imageUrl: "/lovable-uploads/temple1.jpg",
+      imageUrl: "/temple.png",
     },
     {
       name: "불광사",
       location: "서울 송파구",
-      imageUrl: "/lovable-uploads/temple1.jpg",
+      imageUrl: "/temple.png",
     }
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      {/* Top Navigation */}
-      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
-        <button className="p-2" onClick={() => window.history.back()}>
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <h1 className="text-lg font-bold">마이페이지</h1>
-        <div className="flex items-center space-x-4">
-          <Bell className="w-6 h-6" />
-          <Home className="w-6 h-6" />
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-auto">
+    <PageLayout title="마이페이지" showBackButton={true}>
+      <div className="w-full max-w-[480px] mx-auto flex flex-col">
         <ProfileHeader
           username={profileData.username}
           profileImage={profileData.profileImage}
         />
         <SearchBar />
         
-        <div className="mt-4">
+        <div className="mt-4 px-4">
           {temples.map((temple, index) => (
             <TempleItem
               key={index}
@@ -73,7 +60,7 @@ export default function Profile(): JSX.Element {
         </div>
 
         {/* Bottom Menu Items */}
-        <div className="px-5 mt-6 space-y-4">
+        <div className="px-5 mt-6 space-y-4 mb-20">
           <div className="flex justify-between items-center py-3 border-t border-gray-100">
             <span className="text-gray-700">리뷰 작성하기</span>
             <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -87,8 +74,6 @@ export default function Profile(): JSX.Element {
           </div>
         </div>
       </div>
-
-      <BottomNav />
-    </div>
+    </PageLayout>
   );
 }
