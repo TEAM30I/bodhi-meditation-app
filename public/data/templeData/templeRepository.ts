@@ -84,7 +84,7 @@ export const regionTags = [
   { id: "suncheon", name: "순천", active: false }
 ];
 
-// nearbyTemples 데이터, 로직 업데이트 필요
+// nearbyTemples 데이터 (추후 실제 거리 계산으로 대체 가능)
 export const nearbyTemples: Temple[] = [
   {
     id: "bulguksa",
@@ -120,6 +120,106 @@ export const nearbyTemples: Temple[] = [
   }
 ];
 
+// 하드코딩된 temples 객체 (기존 코드와의 호환성 유지)
+export const temples: Record<string, Temple> = {
+  "bulguksa": {
+    id: "bulguksa",
+    name: "불국사",
+    location: "경주시",
+    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bulguksa",
+    description: "불국사는 경상북도 경주시 불국로에 있는 대한불교 조계종 제11교구 본사 직영 사찰이다.",
+    direction: "경주시 불국로 385",
+    websiteUrl: "https://www.bulguksa.or.kr",
+    tags: ["전통사찰", "유네스코", "경주"],
+    facilities: ["주차장", "화장실", "매점"],
+    openingHours: "07:00 - 17:00",
+    likeCount: 4.8,
+    contact: {
+      phone: "054-746-9913"
+    }
+  },
+  "haeinsa": {
+    id: "haeinsa",
+    name: "해인사",
+    location: "합천군",
+    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Haeinsa",
+    description: "해인사는 경상남도 합천군 가야면 해인사길에 있는 대한불교 조계종 제12교구 본사이다.",
+    direction: "합천군 가야면 해인사길 122",
+    websiteUrl: "https://www.haeinsa.or.kr",
+    tags: ["전통사찰", "유네스코", "팔만대장경"],
+    facilities: ["주차장", "화장실", "식당"],
+    openingHours: "08:00 - 18:00",
+    likeCount: 4.6,
+    contact: {
+      phone: "055-934-3000"
+    }
+  },
+  "tongdosa": {
+    id: "tongdosa",
+    name: "통도사",
+    location: "양산시",
+    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Tongdosa",
+    description: "통도사는 경상남도 양산시 하북면에 있는 대한불교 조계종 제16교구 본사이다.",
+    direction: "양산시 하북면 통도사로 108",
+    websiteUrl: "https://www.tongdosa.or.kr",
+    tags: ["전통사찰", "불보종찰", "양산"],
+    facilities: ["주차장", "화장실", "식당", "기념품점"],
+    openingHours: "08:30 - 18:00",
+    likeCount: 4.7,
+    contact: {
+      phone: "055-382-7182"
+    }
+  },
+  "songgwangsa": {
+    id: "songgwangsa",
+    name: "송광사",
+    location: "순천시",
+    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Songgwangsa",
+    description: "송광사는 전라남도 순천시 송광면에 있는 대한불교 조계종 제21교구 본사이다.",
+    direction: "순천시 송광면 송광사길 100",
+    websiteUrl: "https://www.songgwangsa.org",
+    tags: ["전통사찰", "승보종찰", "순천"],
+    facilities: ["주차장", "화장실", "식당"],
+    openingHours: "08:00 - 18:00",
+    likeCount: 4.5,
+    contact: {
+      phone: "061-755-0107"
+    }
+  },
+  "jogyesa": {
+    id: "jogyesa",
+    name: "조계사",
+    location: "서울시",
+    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Jogyesa",
+    description: "조계사는 서울특별시 종로구 우정국로에 있는 대한불교 조계종 본사이다.",
+    direction: "서울시 종로구 우정국로 55",
+    websiteUrl: "https://www.jogyesa.kr",
+    tags: ["도심사찰", "서울", "종로"],
+    facilities: ["주차장", "화장실", "법당"],
+    openingHours: "24시간",
+    likeCount: 4.3,
+    contact: {
+      phone: "02-768-8600"
+    }
+  },
+  "bongeunsa": {
+    id: "bongeunsa",
+    name: "봉은사",
+    location: "서울시",
+    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bongeunsa",
+    description: "봉은사는 서울특별시 강남구 삼성동에 있는 대한불교 조계종 사찰이다.",
+    direction: "서울시 강남구 봉은사로 531",
+    websiteUrl: "https://www.bongeunsa.org",
+    tags: ["도심사찰", "서울", "강남"],
+    facilities: ["주차장", "화장실", "법당", "템플스테이"],
+    openingHours: "04:00 - 20:00",
+    likeCount: 4.2,
+    contact: {
+      phone: "02-3218-4800"
+    }
+  }
+};
+
 // Supabase 데이터베이스에서 사찰 목록 가져오기
 export async function getTempleList(): Promise<Temple[]> {
   try {
@@ -129,7 +229,7 @@ export async function getTempleList(): Promise<Temple[]> {
       
     if (error) {
       console.error('Error fetching temples:', error);
-      return [];
+      return Object.values(temples); // 오류 시 하드코딩 데이터 반환
     }
     
     // Supabase 데이터를 기존 Temple 인터페이스에 맞게 변환
@@ -147,7 +247,7 @@ export async function getTempleList(): Promise<Temple[]> {
     }));
   } catch (error) {
     console.error('Error in getTempleList:', error);
-    return [];
+    return Object.values(temples); // 오류 시 하드코딩 데이터 반환
   }
 }
 
@@ -162,7 +262,10 @@ export async function getTopLikedTemples(limit = 5): Promise<Temple[]> {
       
     if (error) {
       console.error('Error fetching top liked temples:', error);
-      return [];
+      // 오류 시 하드코딩 데이터 반환
+      return Object.values(temples)
+        .sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0))
+        .slice(0, limit);
     }
     
     return data.map(item => ({
@@ -174,23 +277,29 @@ export async function getTopLikedTemples(limit = 5): Promise<Temple[]> {
     }));
   } catch (error) {
     console.error('Error in getTopLikedTemples:', error);
-    return [];
+    // 오류 시 하드코딩 데이터 반환
+    return Object.values(temples)
+      .sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0))
+      .slice(0, limit);
   }
 }
 
-// 사찰 태그 기반 필터링 (태그 테이블이 있다고 가정)
+// 사찰 태그 기반 필터링 (설명 필드 활용)
 export async function filterTemplesByTag(tag: string): Promise<Temple[]> {
   try {
     // 참고: 태그 테이블이 없다면 만들어야 함
-    // 가상 구현 (실제로는 태그 테이블 필요)
+    // 임시로 description 필드에서 검색
     const { data, error } = await supabase
       .from('temples')
       .select('*')
-      .textSearch('description', tag); // 임시로 설명에서 검색
+      .ilike('description', `%${tag}%`);
       
     if (error) {
       console.error('Error filtering temples by tag:', error);
-      return [];
+      // 오류 시 하드코딩 데이터에서 필터링
+      return Object.values(temples).filter(temple => 
+        temple.tags?.some(t => t.toLowerCase().includes(tag.toLowerCase()))
+      );
     }
     
     return data.map(item => ({
@@ -206,7 +315,10 @@ export async function filterTemplesByTag(tag: string): Promise<Temple[]> {
     }));
   } catch (error) {
     console.error('Error in filterTemplesByTag:', error);
-    return [];
+    // 오류 시 하드코딩 데이터에서 필터링
+    return Object.values(temples).filter(temple => 
+      temple.tags?.some(t => t.toLowerCase().includes(tag.toLowerCase()))
+    );
   }
 }
 
@@ -222,7 +334,12 @@ export async function searchTemples(query: string): Promise<Temple[]> {
       
     if (error) {
       console.error('Error searching temples:', error);
-      return [];
+      // 오류 시 하드코딩 데이터에서 검색
+      return Object.values(temples).filter(temple => 
+        temple.name.toLowerCase().includes(query.toLowerCase()) ||
+        temple.location.toLowerCase().includes(query.toLowerCase()) ||
+        temple.description?.toLowerCase().includes(query.toLowerCase())
+      );
     }
     
     return data.map(item => ({
@@ -238,7 +355,12 @@ export async function searchTemples(query: string): Promise<Temple[]> {
     }));
   } catch (error) {
     console.error('Error in searchTemples:', error);
-    return [];
+    // 오류 시 하드코딩 데이터에서 검색
+    return Object.values(temples).filter(temple => 
+      temple.name.toLowerCase().includes(query.toLowerCase()) ||
+      temple.location.toLowerCase().includes(query.toLowerCase()) ||
+      temple.description?.toLowerCase().includes(query.toLowerCase())
+    );
   }
 }
 
@@ -254,8 +376,7 @@ export async function followTemple(userId: string, templeId: string): Promise<bo
       return false;
     }
     
-    // 팔로워 카운트 업데이트 (RPC 함수가 있다고 가정)
-    // 실제로는 트리거나 함수를 만들어야 할 수 있음
+    // 팔로워 카운트 업데이트 (실제 구현 필요)
     await supabase.rpc('increment_temple_follower_count', { temple_id: templeId });
     
     return true;
@@ -279,7 +400,7 @@ export async function unfollowTemple(userId: string, templeId: string): Promise<
       return false;
     }
     
-    // 팔로워 카운트 감소 (RPC 함수가 있다고 가정)
+    // 팔로워 카운트 감소 (실제 구현 필요)
     await supabase.rpc('decrement_temple_follower_count', { temple_id: templeId });
     
     return true;
@@ -316,9 +437,10 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
   }
 }
 
-// 사찰 상세 정보 가져오기
+// 사찰 상세 정보 가져오기 (getTempleDetail 추가)
 export async function getTempleDetail(id: string): Promise<Temple | null> {
   try {
+    // Supabase에서 사찰 정보 가져오기
     const { data, error } = await supabase
       .from('temples')
       .select('*')
@@ -327,7 +449,8 @@ export async function getTempleDetail(id: string): Promise<Temple | null> {
       
     if (error) {
       console.error('Error fetching temple details:', error);
-      return null;
+      // 하드코딩 데이터에서 찾기
+      return temples[id] || null;
     }
     
     // 반환할 사찰 객체 생성
@@ -341,19 +464,24 @@ export async function getTempleDetail(id: string): Promise<Temple | null> {
       likeCount: data.follower_count,
       contact: {
         phone: data.contact
-      }
+      },
+      // 기타 필요한 속성 추가
+      openingHours: data.opening_hours,
+      tags: data.tags ? JSON.parse(data.tags) : [],
+      facilities: data.facilities ? JSON.parse(data.facilities) : [],
+      websiteUrl: data.website_url
     };
   } catch (error) {
     console.error('Error in getTempleDetail:', error);
-    return null;
+    // 하드코딩 데이터에서 찾기
+    return temples[id] || null;
   }
 }
 
 // 근처 사찰 가져오기 (좌표 기반 거리 계산 필요)
 export async function getNearbyTemples(lat: number, lng: number, limit = 4): Promise<Temple[]> {
   try {
-    // 위치 기반 검색을 위한 SQL 함수가 있다고 가정
-    // Supabase에 해당 함수를 만들어야 함
+    // 위치 기반 검색 (PostgreSQL 함수 필요)
     const { data, error } = await supabase.rpc('get_nearby_temples', { 
       lat, 
       lng, 

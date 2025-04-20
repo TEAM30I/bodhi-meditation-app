@@ -7,7 +7,6 @@ export {
 } from '/public/data/searchRankingRepository';
 
 export {
-  temples,
   newsData,
   nearbyTemples,
   regionTags,
@@ -20,7 +19,6 @@ export {
 } from '/public/data/templeData/templeRepository';
 
 export {
-  templeStays,
   locations,
   getTempleStayList,
   getTopLikedTempleStays,
