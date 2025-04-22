@@ -386,16 +386,17 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
         return null;
       }
       
+      const temple = item.temples;
       return {
-        id: item.temples.id,
-        name: item.temples.name,
-        location: item.temples.region, // Map region to location for interface compliance
-        imageUrl: item.temples.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
-        description: item.temples.description,
-        likeCount: item.temples.follower_count,
-        direction: item.temples.address,
-        latitude: item.temples.latitude,
-        longitude: item.temples.longitude
+        id: temple.id,
+        name: temple.name,
+        location: temple.region,
+        imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+        description: temple.description,
+        likeCount: temple.follower_count,
+        direction: temple.address,
+        latitude: temple.latitude,
+        longitude: temple.longitude
       };
     }).filter(Boolean) as Temple[]; // Filter out any null values
   } catch (error) {

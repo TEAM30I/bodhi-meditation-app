@@ -347,14 +347,15 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
         return null;
       }
       
+      const templestay = item.temple_stays;
       return {
-        id: item.temple_stays.id,
-        templeName: item.temple_stays.name,
-        location: item.temple_stays.region,
-        imageUrl: item.temple_stays.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-        price: parseInt(item.temple_stays.cost_adult) || 50000,
-        likeCount: item.temple_stays.follower_count,
-        direction: item.temple_stays.public_transportation
+        id: templestay.id,
+        templeName: templestay.name,
+        location: templestay.region,
+        imageUrl: templestay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+        price: parseInt(templestay.cost_adult) || 50000,
+        likeCount: templestay.follower_count,
+        direction: templestay.public_transportation
       };
     }).filter(Boolean) as TempleStay[]; // Filter out any null values
   } catch (error) {
