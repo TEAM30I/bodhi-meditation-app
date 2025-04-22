@@ -1,15 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
 import { getRegionSearchRankings, getTempleStaySearchRankings, addSearchTerm, type SearchRanking } from '@/utils/repository';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { typedData } from '@/utils/typeUtils';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
 
@@ -70,7 +69,7 @@ const SearchHome = () => {
       console.error('Error adding search term:', error);
     }
     
-    // Navigate to search results
+    // Navigate to search results immediately based on active tab
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${searchValue}`);
     } else {
@@ -96,6 +95,11 @@ const SearchHome = () => {
 
   const handleTabChange = (tab: 'temple' | 'temple-stay') => {
     setActiveTab(tab);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch();
   };
 
   const handleNearbySearch = () => {
@@ -137,6 +141,7 @@ const SearchHome = () => {
       console.error('Error adding search term:', error);
     }
     
+    // Immediately navigate to results
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${term}`);
     } else {
@@ -160,7 +165,7 @@ const SearchHome = () => {
               <ChevronLeft className="w-6 h-6 text-gray-900" />
             </button>
             <div className="flex-1 mx-2">
-              <div className="relative">
+              <form onSubmit={handleSearchSubmit} className="relative">
                 <Input
                   type="text"
                   placeholder="검색어를 입력하세요"
@@ -171,13 +176,14 @@ const SearchHome = () => {
                 <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 {searchValue && (
                   <button
+                    type="button"
                     onClick={() => setSearchValue('')}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2"
                   >
                     <X className="w-4 h-4 text-gray-500" />
                   </button>
                 )}
-              </div>
+              </form>
             </div>
           </div>
         </div>
