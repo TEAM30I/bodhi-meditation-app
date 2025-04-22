@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { MapPin, Heart } from 'lucide-react';
-import { Temple } from '@/types/temple';
+import { Temple } from '@/utils/repository';
 
 interface TempleItemProps {
   temple: Temple;

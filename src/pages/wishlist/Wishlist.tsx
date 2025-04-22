@@ -3,9 +3,7 @@ import React, { useState, useEffect } from 'react';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/context/AuthContext';
-import { getUserFollowedTemples, getUserFollowedTempleStays } from '/public/data/templeData/templeRepository';
-import { Temple } from '/public/data/templeData/templeRepository';
-import { TempleStay } from '/public/data/templeStayData/templeStayRepository';
+import { getUserFollowedTemples, getUserFollowedTempleStays, Temple, TempleStay } from '@/utils/repository';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TempleItem from '@/components/search/TempleItem';
 import TempleStayItem from '@/components/search/TempleStayItem';
@@ -20,12 +18,15 @@ const Wishlist = () => {
 
   useEffect(() => {
     const fetchWishlist = async () => {
-      if (user?.id) {
+      if (user) {
         try {
           setLoading(true);
+          // Use the user ID if available, otherwise use 'anonymous'
+          const userId = user.id || 'anonymous';
+          
           const [templesData, templeStaysData] = await Promise.all([
-            getUserFollowedTemples(user.id),
-            getUserFollowedTempleStays(user.id)
+            getUserFollowedTemples(userId),
+            getUserFollowedTempleStays(userId)
           ]);
           
           setTemples(templesData);

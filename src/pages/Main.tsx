@@ -11,10 +11,10 @@ import {
   getTempleList, 
   getTempleStayList, 
   readingSchedule, 
-  scriptures 
+  scriptures,
+  Temple,
+  TempleStay
 } from '@/utils/repository';
-import { Temple } from '@/types/temple';
-import { TempleStay } from '@/types/templeStay';
 
 const Main = () => {
   const navigate = useNavigate();
