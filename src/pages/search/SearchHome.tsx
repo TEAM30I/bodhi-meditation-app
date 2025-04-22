@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
 import { getRegionSearchRankings, getTempleStaySearchRankings, addSearchTerm, type SearchRanking } from '@/utils/repository';
@@ -20,7 +20,6 @@ const SearchHome = () => {
   const [templeStaySearchRankings, setTempleStaySearchRankings] = useState<SearchRanking[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Set default dates to tomorrow and day after tomorrow
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   
@@ -35,7 +34,6 @@ const SearchHome = () => {
   const [showGuestSelector, setShowGuestSelector] = useState(false);
   const [guestCount, setGuestCount] = useState(1);
 
-  // Fetch search rankings on component mount
   useEffect(() => {
     const fetchSearchRankings = async () => {
       try {
@@ -59,7 +57,6 @@ const SearchHome = () => {
   const handleSearch = async () => {
     if (!searchValue.trim()) return;
     
-    // Record search term
     try {
       await addSearchTerm(
         searchValue,
@@ -69,7 +66,6 @@ const SearchHome = () => {
       console.error('Error adding search term:', error);
     }
     
-    // Navigate to search results immediately based on active tab
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${searchValue}`);
     } else {
@@ -131,7 +127,6 @@ const SearchHome = () => {
   const handleRankingItemClick = async (term: string) => {
     setSearchValue(term);
     
-    // Record search term click
     try {
       await addSearchTerm(
         term, 
@@ -141,7 +136,6 @@ const SearchHome = () => {
       console.error('Error adding search term:', error);
     }
     
-    // Immediately navigate to results
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${term}`);
     } else {
