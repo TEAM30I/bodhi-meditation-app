@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { MapPin, Heart } from 'lucide-react';
-import { TempleStay } from '../../public/data/templeStayData/templeStayRepository';
+import { TempleStay } from '@/types/templeStay';
 
 interface TempleStayItemProps {
   templeStay: TempleStay;

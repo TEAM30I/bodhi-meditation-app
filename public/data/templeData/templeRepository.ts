@@ -1,6 +1,12 @@
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
-import { calculateDistance, formatDistance, DEFAULT_LOCATION } from '../../../src/utils/locationUtils';
+import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
+
+// Default location to use for distance calculations (서울특별시 관악구 신림로 72)
+const DEFAULT_LOCATION = {
+  latitude: 37.4812845,
+  longitude: 126.9292231
+};
 
 // Interfaces for data types
 export interface Temple {
@@ -209,7 +215,14 @@ export async function followTemple(userId: string, templeId: string): Promise<bo
     }
     
     // 팔로워 카운트 업데이트
-    await supabase.rpc('increment_temple_follower_count', { temple_id: templeId });
+    const { error: updateError } = await supabase
+      .from('temples')
+      .update({ follower_count: supabase.rpc('increment', { row_id: templeId }) })
+      .eq('id', templeId);
+      
+    if (updateError) {
+      console.error('Error updating follower count:', updateError);
+    }
     
     return true;
   } catch (error) {
@@ -233,41 +246,19 @@ export async function unfollowTemple(userId: string, templeId: string): Promise<
     }
     
     // 팔로워 카운트 감소
-    await supabase.rpc('decrement_temple_follower_count', { temple_id: templeId });
+    const { error: updateError } = await supabase
+      .from('temples')
+      .update({ follower_count: supabase.rpc('decrement', { row_id: templeId }) })
+      .eq('id', templeId);
+      
+    if (updateError) {
+      console.error('Error updating follower count:', updateError);
+    }
     
     return true;
   } catch (error) {
     console.error('Error in unfollowTemple:', error);
     return false;
-  }
-}
-
-// 현재 사용자가 팔로우한 사찰 목록 가져오기
-export async function getUserFollowedTemples(userId: string): Promise<Temple[]> {
-  try {
-    const { data, error } = await supabase
-      .from('user_follow_temples')
-      .select('temple_id, temples(*)')
-      .eq('user_id', userId);
-      
-    if (error) {
-      console.error('Error fetching user followed temples:', error);
-      return [];
-    }
-    
-    return data.map(item => ({
-      id: item.temples.id,
-      name: item.temples.name,
-      location: item.temples.region,
-      imageUrl: item.temples.image_url,
-      description: item.temples.description,
-      likeCount: item.temples.follower_count,
-      latitude: item.temples.latitude,
-      longitude: item.temples.longitude
-    }));
-  } catch (error) {
-    console.error('Error in getUserFollowedTemples:', error);
-    return [];
   }
 }
 

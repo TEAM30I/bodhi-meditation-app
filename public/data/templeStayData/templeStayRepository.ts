@@ -1,6 +1,12 @@
 
 import { supabase } from '../supabase_client';
-import { calculateDistance, formatDistance, DEFAULT_LOCATION } from '../../../src/utils/locationUtils';
+import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
+
+// Default location to use for distance calculations (서울특별시 관악구 신림로 72)
+const DEFAULT_LOCATION = {
+  latitude: 37.4812845,
+  longitude: 126.9292231
+};
 
 // Define types
 export interface TempleStay {
@@ -66,12 +72,9 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
     
     // Sort by distance if needed
     if (sortBy === 'distance') {
-      // Here we would need to have lat/long for temple stays, which might not be in the current schema
-      // For now, we'll simulate by using temple location or a random distance
       templeStays = templeStays.map(stay => {
-        // Calculate a simulated distance based on location string matching
-        const simulatedDistance = stay.location?.includes('서울') ? 
-          Math.random() * 10 : Math.random() * 100 + 10;
+        // For now we don't have lat/long in temple_stays table so we'll simulate a distance
+        const simulatedDistance = Math.random() * 50 + 5; // 5~55km random distance
         return {
           ...stay,
           distance: formatDistance(simulatedDistance)
@@ -95,33 +98,45 @@ export async function getTempleStayDetail(id: string): Promise<TempleStay | null
   try {
     const { data, error } = await supabase
       .from('temple_stays')
-      .select('*, timelines(*)')
-      .eq('id', id)
-      .single();
+      .select('*');
       
     if (error) {
       console.error('Error fetching temple stay details:', error);
       return null;
     }
     
+    const templeStay = data.find(item => item.id === id);
+    if (!templeStay) {
+      return null;
+    }
+    
+    // Get timelines for the temple stay
+    const { data: timelineData, error: timelineError } = await supabase
+      .from('timelines')
+      .select('*')
+      .eq('temple_stay_id', id);
+      
+    if (timelineError) {
+      console.error('Error fetching timelines:', timelineError);
+    }
+    
     // Schedule from timelines
-    const schedule = data.timelines ? 
-      data.timelines.map((timeline: any) => ({
-        time: timeline.time,
-        activity: timeline.content
-      })) : [];
+    const schedule = (timelineData || []).map(timeline => ({
+      time: timeline.time,
+      activity: timeline.content
+    }));
     
     return {
-      id: data.id,
-      templeName: data.name,
-      location: data.region,
-      imageUrl: data.image_url,
-      price: parseInt(data.cost_adult) || 50000,
-      description: data.description,
-      duration: `${data.start_date || '체크인'} ~ ${data.end_date || '체크아웃'}`,
-      websiteUrl: data.reservation_link,
-      likeCount: data.follower_count,
-      direction: data.public_transportation,
+      id: templeStay.id,
+      templeName: templeStay.name,
+      location: templeStay.region,
+      imageUrl: templeStay.image_url,
+      price: parseInt(templeStay.cost_adult) || 50000,
+      description: templeStay.description,
+      duration: `${templeStay.start_date || '체크인'} ~ ${templeStay.end_date || '체크아웃'}`,
+      websiteUrl: templeStay.reservation_link,
+      likeCount: templeStay.follower_count,
+      direction: templeStay.public_transportation,
       schedule: schedule,
       tags: ["휴식", "명상", "자연"]
     };
@@ -208,7 +223,14 @@ export async function followTempleStay(userId: string, templeStayId: string): Pr
     }
     
     // Update follower count
-    await supabase.rpc('increment_temple_stay_follower_count', { temple_stay_id: templeStayId });
+    const { error: updateError } = await supabase
+      .from('temple_stays')
+      .update({ follower_count: supabase.rpc('increment', { row_id: templeStayId }) })
+      .eq('id', templeStayId);
+      
+    if (updateError) {
+      console.error('Error updating follower count:', updateError);
+    }
     
     return true;
   } catch (error) {
@@ -232,7 +254,14 @@ export async function unfollowTempleStay(userId: string, templeStayId: string): 
     }
     
     // Update follower count
-    await supabase.rpc('decrement_temple_stay_follower_count', { temple_stay_id: templeStayId });
+    const { error: updateError } = await supabase
+      .from('temple_stays')
+      .update({ follower_count: supabase.rpc('decrement', { row_id: templeStayId }) })
+      .eq('id', templeStayId);
+      
+    if (updateError) {
+      console.error('Error updating follower count:', updateError);
+    }
     
     return true;
   } catch (error) {
@@ -241,66 +270,7 @@ export async function unfollowTempleStay(userId: string, templeStayId: string): 
   }
 }
 
-// 사용자가 찜한 템플스테이 목록 가져오기
-export async function getUserFollowedTempleStays(userId: string): Promise<TempleStay[]> {
-  try {
-    const { data, error } = await supabase
-      .from('user_follow_temple_stays')
-      .select('temple_stay_id, temple_stays(*)')
-      .eq('user_id', userId);
-      
-    if (error) {
-      console.error('Error fetching user followed temple stays:', error);
-      return [];
-    }
-    
-    return data.map(item => ({
-      id: item.temple_stays.id,
-      templeName: item.temple_stays.name,
-      location: item.temple_stays.region,
-      imageUrl: item.temple_stays.image_url,
-      price: parseInt(item.temple_stays.cost_adult) || 50000,
-      likeCount: item.temple_stays.follower_count,
-      direction: item.temple_stays.public_transportation || "대중교통 이용 가능",
-      schedule: []
-    }));
-  } catch (error) {
-    console.error('Error in getUserFollowedTempleStays:', error);
-    return [];
-  }
-}
-
-// 인기 있는 템플스테이 가져오기
-export async function getTopLikedTempleStays(limit = 5): Promise<TempleStay[]> {
-  try {
-    const { data, error } = await supabase
-      .from('temple_stays')
-      .select('*')
-      .order('follower_count', { ascending: false })
-      .limit(limit);
-      
-    if (error) {
-      console.error('Error fetching top liked temple stays:', error);
-      return [];
-    }
-    
-    return data.map(item => ({
-      id: item.id,
-      templeName: item.name,
-      location: item.region,
-      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: parseInt(item.cost_adult) || 50000,
-      likeCount: item.follower_count || 0,
-      direction: item.public_transportation || "대중교통 이용 가능",
-      schedule: []
-    }));
-  } catch (error) {
-    console.error('Error in getTopLikedTempleStays:', error);
-    return [];
-  }
-}
-
-// 종합적인 순위로 정렬된 지역 가져오기
+// 인기 있는 지역 목록 가져오기
 export async function getTopRegions(limit = 8): Promise<{name: string, count: number}[]> {
   try {
     // 이 함수는 지역별 템플스테이의 팔로워 수와 검색 수를 합산하여 인기 있는 지역을 반환
@@ -337,6 +307,35 @@ export async function getTopRegions(limit = 8): Promise<{name: string, count: nu
     return regions.sort((a, b) => b.count - a.count).slice(0, limit);
   } catch (error) {
     console.error('Error in getTopRegions:', error);
+    return [];
+  }
+}
+
+// 사용자가 찜한 템플스테이 목록 가져오기
+export async function getUserFollowedTempleStays(userId: string): Promise<TempleStay[]> {
+  try {
+    const { data, error } = await supabase
+      .from('user_follow_temple_stays')
+      .select('temple_stay_id, temple_stays(*)')
+      .eq('user_id', userId);
+      
+    if (error) {
+      console.error('Error fetching user followed temple stays:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.temple_stays.id,
+      templeName: item.temple_stays.name,
+      location: item.temple_stays.region,
+      imageUrl: item.temple_stays.image_url,
+      price: parseInt(item.temple_stays.cost_adult) || 50000,
+      likeCount: item.temple_stays.follower_count,
+      direction: item.temple_stays.public_transportation || "대중교통 이용 가능",
+      schedule: []
+    }));
+  } catch (error) {
+    console.error('Error in getUserFollowedTempleStays:', error);
     return [];
   }
 }

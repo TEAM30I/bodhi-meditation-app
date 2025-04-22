@@ -1,4 +1,6 @@
 
+import { supabase } from './supabase_client';
+
 export interface SearchRanking {
   id: string;
   term: string;
@@ -6,35 +8,142 @@ export interface SearchRanking {
   trend: 'up' | 'down' | 'stable';
 }
 
-// 지역 검색 순위 가져오기
+// 지역 검색 순위 가져오기 - 기반 데이터 사용
 export async function getRegionSearchRankings(): Promise<SearchRanking[]> {
-  // 데이터베이스에서 검색 순위를 가져오거나 API 호출하는 대신 
-  // 임시로 고정된 데이터 반환
-  return [
-    { id: "r1", term: "서울", count: 1250, trend: "up" },
-    { id: "r2", term: "경주", count: 950, trend: "up" },
-    { id: "r3", term: "부산", count: 840, trend: "down" },
-    { id: "r4", term: "속리산", count: 780, trend: "stable" },
-    { id: "r5", term: "양산", count: 650, trend: "up" }
-  ];
+  try {
+    const { data, error } = await supabase
+      .from('search_history')
+      .select('id, temples!inner(*)')
+      .order('searched_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error('Error fetching region search rankings:', error);
+      return [];
+    }
+
+    // Group by region and count occurrences
+    const regionCounts = new Map<string, number>();
+    const regionIds = new Map<string, string>();
+
+    data.forEach(item => {
+      if (!item.temples || !item.temples.region) return;
+      
+      const region = item.temples.region.split(' ')[0]; // Extract first word (e.g., "서울특별시" -> "서울")
+      const count = regionCounts.get(region) || 0;
+      
+      regionCounts.set(region, count + 1);
+      regionIds.set(region, item.id); // Use search history id
+    });
+
+    // Convert to array, sort by count, and format as SearchRanking
+    return Array.from(regionCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([region, count], index) => ({
+        id: regionIds.get(region) || `r${index}`,
+        term: region,
+        count,
+        trend: 'up' // Assuming trend is up for now since we don't have historical data
+      }));
+  } catch (error) {
+    console.error('Error in getRegionSearchRankings:', error);
+    return [];
+  }
 }
 
-// 템플스테이 검색 순위 가져오기
+// 템플스테이 검색 순위 가져오기 - 기반 데이터 사용
 export async function getTempleStaySearchRankings(): Promise<SearchRanking[]> {
-  // 데이터베이스에서 검색 순위를 가져오거나 API 호출하는 대신 
-  // 임시로 고정된 데이터 반환
-  return [
-    { id: "ts1", term: "명상", count: 980, trend: "up" },
-    { id: "ts2", term: "휴식", count: 850, trend: "up" },
-    { id: "ts3", term: "템플라이프", count: 720, trend: "down" },
-    { id: "ts4", term: "사찰음식", count: 680, trend: "up" },
-    { id: "ts5", term: "불교문화", count: 550, trend: "stable" }
-  ];
+  try {
+    const { data, error } = await supabase
+      .from('search_stay_history')
+      .select('id, temple_stays!inner(*)')
+      .order('searched_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error('Error fetching temple stay search rankings:', error);
+      return [];
+    }
+
+    // Group by region and count occurrences
+    const regionCounts = new Map<string, number>();
+    const regionIds = new Map<string, string>();
+
+    data.forEach(item => {
+      if (!item.temple_stays || !item.temple_stays.region) return;
+      
+      const region = item.temple_stays.region.split(' ')[0]; // Extract first word
+      const count = regionCounts.get(region) || 0;
+      
+      regionCounts.set(region, count + 1);
+      regionIds.set(region, item.id); // Use search history id
+    });
+
+    // Convert to array, sort by count, and format as SearchRanking
+    return Array.from(regionCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([region, count], index) => ({
+        id: regionIds.get(region) || `ts${index}`,
+        term: region,
+        count,
+        trend: 'up' // Assuming trend is up for now
+      }));
+  } catch (error) {
+    console.error('Error in getTempleStaySearchRankings:', error);
+    return [];
+  }
 }
 
-// 검색어 추가
-export async function addSearchTerm(term: string, category: 'region' | 'temple_stay'): Promise<boolean> {
-  // 여기서는 실제로 저장하지 않고 로그만 출력
-  console.log(`Added search term: ${term} in category: ${category}`);
-  return true;
+// 검색어 추가 함수
+export async function addSearchTerm(term: string, category: 'region' | 'temple_stay', entityId?: string): Promise<boolean> {
+  try {
+    if (category === 'region' && entityId) {
+      // Add to temple search history
+      const { error } = await supabase
+        .from('search_history')
+        .insert({ temple_id: entityId });
+        
+      if (error) {
+        console.error('Error adding temple search history:', error);
+        return false;
+      }
+      
+      // Increment search count for the temple
+      const { error: updateError } = await supabase
+        .from('temples')
+        .update({ search_count: supabase.rpc('increment', { row_id: entityId }) })
+        .eq('id', entityId);
+        
+      if (updateError) {
+        console.error('Error updating temple search count:', updateError);
+      }
+    } else if (category === 'temple_stay' && entityId) {
+      // Add to temple stay search history
+      const { error } = await supabase
+        .from('search_stay_history')
+        .insert({ temple_stay_id: entityId });
+        
+      if (error) {
+        console.error('Error adding temple stay search history:', error);
+        return false;
+      }
+      
+      // Increment search count for the temple stay
+      const { error: updateError } = await supabase
+        .from('temple_stays')
+        .update({ search_count: supabase.rpc('increment', { row_id: entityId }) })
+        .eq('id', entityId);
+        
+      if (updateError) {
+        console.error('Error updating temple stay search count:', updateError);
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in addSearchTerm:', error);
+    return false;
+  }
 }
