@@ -14,14 +14,19 @@ export const dayAfterTomorrow = () => {
   return d;
 };
 
-export const fmt = (d: Date) => {
+export const fmt = (d: Date | undefined | null) => {
   if (!d || !(d instanceof Date) || isNaN(d.getTime())) {
     return '';
   }
-  return format(d, 'MM.dd(EEE)', { locale: ko });
+  try {
+    return format(d, 'MM.dd(EEE)', { locale: ko });
+  } catch (e) {
+    console.error("Date formatting error:", e);
+    return '';
+  }
 };
 
-export const formatDateSafe = (date: Date | string | undefined): string => {
+export const formatDateSafe = (date: Date | string | undefined | null): string => {
   if (!date) return '';
   
   try {

@@ -1,29 +1,6 @@
 
-export interface Temple {
-  id: string;
-  name: string;
-  location: string;
-  imageUrl: string;
-  distance?: string;
-  rating?: number;
-  reviews?: number;
-  description?: string;
-  openingHours?: string;
-  tags?: string[];
-  hasParkingLot?: boolean;
-  hasTempleStay?: boolean;
-  direction?: string;
-  websiteUrl?: string;
-  likeCount?: number;
-  facilities?: string[];
-  nearbyAttractions?: string[];
-  contact?: {
-    phone?: string;
-  };
-  social?: {
-    instagram?: string;
-    facebook?: string;
-  };
-  latitude?: number;
-  longitude?: number;
-}
+// Import types from public data repository instead of duplicating them
+import { Temple as RepositoryTemple } from '/public/data/templeData/templeRepository';
+
+// Re-export the type
+export type Temple = RepositoryTemple;

@@ -1,43 +1,16 @@
 
-export interface ScriptureColorScheme {
-  bg: string;
-  text: string;
-  progressBg: string;
-}
+// Import types from public data repository instead of duplicating them
+import { 
+  Scripture as RepositoryScripture,
+  ScriptureColorScheme as RepositoryScriptureColorScheme,
+  Bookmark as RepositoryBookmark,
+  ReadingProgress as RepositoryReadingProgress,
+  ScriptureChapter as RepositoryScriptureChapter
+} from '/public/data/scriptureData/scriptureRepository';
 
-export interface ScriptureChapter {
-  id: string;
-  title: string;
-  original: string;
-  explanation: string;
-}
-
-export interface Bookmark {
-  id: string;
-  scriptureId: string;
-  chapterId: string;
-  pageIndex: number;
-  title: string;
-  note?: string;
-  date: string;
-}
-
-export interface ReadingProgress {
-  scriptureId: string;
-  chapterId: string;
-  pageIndex: number;
-  progress: number;
-}
-
-export interface Scripture {
-  id: string;
-  title: string;
-  categories: string[];
-  colorScheme: ScriptureColorScheme;
-  content: string;
-  chapters: ScriptureChapter[];
-  progress?: number;
-  hasStarted?: boolean;
-  lastReadChapter?: string;
-  lastPageIndex?: number;
-}
+// Re-export the types
+export type ScriptureColorScheme = RepositoryScriptureColorScheme;
+export type ScriptureChapter = RepositoryScriptureChapter;
+export type Bookmark = RepositoryBookmark;
+export type ReadingProgress = RepositoryReadingProgress;
+export type Scripture = RepositoryScripture;
