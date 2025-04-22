@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
@@ -7,6 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/context/AuthContext';
 import { typedData } from '@/utils/typeUtils';
 import { ScriptureCalendarPrev } from '@/components/scripture/ScriptureCalendar_prev';
+import { ScriptureProgressList } from '@/components/scripture/ScriptureProgressList';
 import { 
   getTempleList, 
   getTempleStayList, 
@@ -28,7 +28,6 @@ const Main = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch temples and temple stays in parallel
         const [templesData, templeStaysData] = await Promise.all([
           getTempleList(),
           getTempleStayList()
@@ -39,7 +38,6 @@ const Main = () => {
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
-        // Stop loading after data is fetched (or error)
         setLoading(false);
       }
     };
@@ -47,10 +45,9 @@ const Main = () => {
     fetchData();
     window.scrollTo(0, 0);
     
-    // Clear loading timeout if component unmounts
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 2000); // Longer timeout as a fallback
+    }, 2000);
     
     return () => clearTimeout(timer);
   }, []);
@@ -63,7 +60,6 @@ const Main = () => {
     );
   }
 
-  // Now we use the state values directly, which are arrays
   const recommendedTemples = temples.slice(0, 4);
   const recommendedTempleStays = templeStays.slice(0, 4);
 
@@ -190,52 +186,12 @@ const Main = () => {
             <ChevronRight className="w-5 h-5 text-gray-600" />
           </div>
           
-          <div className="space-y-3">
-            {typedReadingSchedule.slice(0, 3).map((reading, index) => {
-              const scriptureColors = [
-                { bg: 'bg-[#21212F]', text: 'text-white' },
-                { bg: 'bg-[#EF4223]', text: 'text-white' },
-                { bg: 'bg-[#FFB23F]', text: 'text-white' }
-              ];
-              
-              const colorIndex = index % scriptureColors.length;
-              const matchingScripture = Object.values(typedScriptures).find(s => s.id === reading.scriptureId);
-              
-              if (!matchingScripture) return null;
-              
-              return (
-                <div 
-                  key={reading.id} 
-                  className="w-full bg-white rounded-3xl p-5 border border-gray-100 shadow-sm cursor-pointer"
-                  onClick={() => navigate(`/scripture/${matchingScripture.id}`)}
-                >
-                  <div className="flex flex-col gap-3">
-                    <div className={`inline-flex px-2 py-2 ${scriptureColors[colorIndex].bg} rounded-xl w-fit`}>
-                      <span className={`text-xs font-medium ${scriptureColors[colorIndex].text}`}>
-                        {matchingScripture.title}
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-col gap-[6px]">
-                      <h3 className="text-sm font-medium text-gray-800">
-                        "{reading.title}"
-                      </h3>
-                      <p className="text-gray-500 text-xs">
-                        {reading.chapter}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center gap-1 justify-end">
-                      <span className="text-xs text-gray-400">
-                        시작하기
-                      </span>
-                      <ChevronRight className="w-3 h-3 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <ScriptureProgressList 
+            scriptures={Object.values(typedScriptures)} 
+            onScriptureClick={(scriptureId, lastPage) => {
+              navigate(`/scripture/${scriptureId}${lastPage ? `?page=${lastPage}` : ''}`);
+            }}
+          />
         </div>
       </div>
 
