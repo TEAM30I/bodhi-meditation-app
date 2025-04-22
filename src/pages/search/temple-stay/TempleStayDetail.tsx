@@ -1,9 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Calendar, MapPin, Heart, Phone, Link } from 'lucide-react';
 import { getTempleStayDetail } from '@/utils/repository';
 import { TempleStay } from '@/types/templeStay';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import TempleStayMap from '@/components/TempleStayMap';
 
 const TempleStayDetail: React.FC = () => {

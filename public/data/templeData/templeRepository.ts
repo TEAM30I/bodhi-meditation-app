@@ -1,4 +1,3 @@
-
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -121,14 +120,14 @@ export async function getTopLikedTemples(limit = 5): Promise<Temple[]> {
       return [];
     }
     
-    return data.map(item => ({
-      id: item.id,
-      name: item.name,
-      location: item.region,
-      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
-      likeCount: item.follower_count,
-      latitude: item.latitude,
-      longitude: item.longitude
+    return data.map(temple => ({
+      id: temple.id,
+      name: temple.name,
+      region: temple.region,
+      imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      likeCount: temple.follower_count,
+      address: temple.address,
+      description: temple.description
     }));
   } catch (error) {
     console.error('Error in getTopLikedTemples:', error);
@@ -373,17 +372,20 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
       return [];
     }
     
-    return data.map(item => ({
-      id: item.temples.id,
-      name: item.temples.name,
-      location: item.temples.region,
-      imageUrl: item.temples.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
-      description: item.temples.description,
-      likeCount: item.temples.follower_count,
-      direction: item.temples.address,
-      latitude: item.temples.latitude,
-      longitude: item.temples.longitude
-    }));
+    return data.map(item => {
+      const temple = item.temples;
+      return {
+        id: temple.id,
+        name: temple.name,
+        region: temple.region,
+        imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+        description: temple.description,
+        likeCount: temple.follower_count,
+        address: temple.address,
+        latitude: temple.latitude,
+        longitude: temple.longitude
+      };
+    });
   } catch (error) {
     console.error('Error in getUserFollowedTemples:', error);
     return [];

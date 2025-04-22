@@ -17,8 +17,11 @@ export interface TempleStay {
   distance?: string;
   longitude?: number;
   latitude?: number;
-  // Add these missing properties
   tags?: string[];
   duration?: string;
   websiteUrl?: string;
+  contact?: {
+    phone?: string;
+    email?: string;
+  };
 }
