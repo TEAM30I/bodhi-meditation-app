@@ -1,6 +1,6 @@
-
 // Repository file with types and functions for temple and temple stay data
 import { searchTemplesDirectly, searchTempleStaysDirectly } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 // Type definitions
 export interface Temple {
@@ -128,15 +128,73 @@ export const bookmarks: Bookmark[] = [];
 export const calendarData = [];
 
 // Temple related functions - these will be implemented with direct Supabase calls
-// For now they return empty arrays or placeholders to prevent errors
 export const getTempleList = async (): Promise<Temple[]> => {
-  console.log('getTempleList called - implement with direct Supabase call');
-  return [];
+  try {
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*');
+      
+    if (error) {
+      console.error('Error fetching temples:', error);
+      return []; 
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      description: item.description,
+      direction: item.address,
+      likeCount: item.follower_count,
+      contact: {
+        phone: item.contact
+      },
+      latitude: item.latitude,
+      longitude: item.longitude,
+      facilities: item.facilities ? JSON.parse(item.facilities) : [],
+      tags: item.tags ? JSON.parse(item.tags) : []
+    }));
+  } catch (error) {
+    console.error('Error in getTempleList:', error);
+    return []; 
+  }
 };
 
 export const getTempleDetail = async (id: string): Promise<Temple | null> => {
-  console.log(`getTempleDetail called for id: ${id} - implement with direct Supabase call`);
-  return null;
+  try {
+    console.log(`getTempleDetail called for id: ${id} - implement with direct Supabase call`);
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (error) {
+      console.error('Error fetching temple details:', error);
+      return null;
+    }
+    
+    return {
+      id: data.id,
+      name: data.name,
+      location: data.region,
+      imageUrl: data.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      description: data.description,
+      direction: data.address,
+      likeCount: data.follower_count,
+      contact: {
+        phone: data.contact
+      },
+      latitude: data.latitude,
+      longitude: data.longitude,
+      facilities: data.facilities ? JSON.parse(data.facilities) : [],
+      tags: data.tags ? JSON.parse(data.tags) : []
+    };
+  } catch (error) {
+    console.error('Error in getTempleDetail:', error);
+    return null;
+  }
 };
 
 // Updated search function to use direct Supabase connection
@@ -173,13 +231,79 @@ export const unfollowTemple = async (userId: string, templeId: string): Promise<
 
 // New temple functions to address errors
 export const getTopLikedTemples = async (limit: number = 5): Promise<Temple[]> => {
-  console.log(`getTopLikedTemples called with limit: ${limit} - implement with direct Supabase call`);
-  return [];
+  try {
+    console.log(`getTopLikedTemples called with limit: ${limit}`);
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*')
+      .order('follower_count', { ascending: false })
+      .limit(limit);
+      
+    if (error) {
+      console.error('Error fetching top liked temples:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      description: item.description,
+      direction: item.address,
+      likeCount: item.follower_count,
+      contact: {
+        phone: item.contact
+      },
+      latitude: item.latitude,
+      longitude: item.longitude,
+      facilities: item.facilities ? JSON.parse(item.facilities) : [],
+      tags: item.tags ? JSON.parse(item.tags) : []
+    }));
+  } catch (error) {
+    console.error('Error in getTopLikedTemples:', error);
+    return [];
+  }
 };
 
 export const getNearbyTemples = async (lat: number, lng: number, limit: number = 5): Promise<Temple[]> => {
-  console.log(`getNearbyTemples called with lat: ${lat}, lng: ${lng}, limit: ${limit} - implement with direct Supabase call`);
-  return [];
+  try {
+    console.log(`getNearbyTemples called with lat: ${lat}, lng: ${lng}, limit: ${limit}`);
+    
+    // For now, let's just return the top temples as there's no efficient way
+    // to calculate proximity in the client. In a real app, this would be
+    // done with a Postgres function or PostGIS.
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*')
+      .limit(limit);
+      
+    if (error) {
+      console.error('Error fetching nearby temples:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      description: item.description,
+      direction: item.address,
+      distance: "2.5km", // Placeholder distance
+      likeCount: item.follower_count,
+      contact: {
+        phone: item.contact
+      },
+      latitude: item.latitude,
+      longitude: item.longitude,
+      facilities: item.facilities ? JSON.parse(item.facilities) : [],
+      tags: item.tags ? JSON.parse(item.tags) : []
+    }));
+  } catch (error) {
+    console.error('Error in getNearbyTemples:', error);
+    return [];
+  }
 };
 
 // Temple Stay related functions
