@@ -45,7 +45,8 @@ export const getTempleStayList = async (): Promise<TempleStay[]> => {
         imageUrl: stay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
         websiteUrl: stay.reservation_link || '',
         schedule: schedule,
-        tags: stay.tags ? JSON.parse(stay.tags) : []
+        // Safely handle tags with a default empty array
+        tags: stay.tags ? JSON.parse(stay.tags as string) : []
       });
     }
     
@@ -98,7 +99,7 @@ export const searchTempleStays = async (query: string): Promise<TempleStay[]> =>
       imageUrl: stay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
       websiteUrl: stay.reservation_link || '',
       schedule: [],
-      tags: stay.tags ? JSON.parse(stay.tags) : []
+      tags: stay.tags ? JSON.parse(stay.tags as string) : []
     }));
   } catch (error) {
     console.error('Exception searching temple stays:', error);
@@ -145,7 +146,7 @@ export const getTempleStayDetail = async (id: string): Promise<TempleStay | null
       imageUrl: stay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
       websiteUrl: stay.reservation_link || '',
       schedule: schedule,
-      tags: stay.tags ? JSON.parse(stay.tags) : []
+      tags: stay.tags ? JSON.parse(stay.tags as string) : []
     };
   } catch (error) {
     console.error('Error in getTempleStayDetail:', error);
@@ -177,10 +178,11 @@ export const getTempleStaysByRegion = async (region: string): Promise<TempleStay
       imageUrl: stay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
       websiteUrl: stay.reservation_link || '',
       schedule: [],
-      tags: stay.tags ? JSON.parse(stay.tags) : []
+      tags: stay.tags ? JSON.parse(stay.tags as string) : []
     }));
   } catch (error) {
     console.error('Error in getTempleStaysByRegion:', error);
     return [];
   }
 };
+
