@@ -1,3 +1,4 @@
+
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -63,7 +64,7 @@ export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Tem
     let temples = data.map(item => ({
       id: item.id,
       name: item.name,
-      location: item.region,
+      location: item.region, // Map region to location for interface compliance
       imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
       description: item.description,
       direction: item.address,
@@ -123,10 +124,10 @@ export async function getTopLikedTemples(limit = 5): Promise<Temple[]> {
     return data.map(temple => ({
       id: temple.id,
       name: temple.name,
-      region: temple.region,
+      location: temple.region, // Map region to location for interface compliance
       imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
       likeCount: temple.follower_count,
-      address: temple.address,
+      direction: temple.address,
       description: temple.description
     }));
   } catch (error) {
@@ -152,7 +153,7 @@ export async function filterTemplesByTag(tag: string): Promise<Temple[]> {
     return data.map(item => ({
       id: item.id,
       name: item.name,
-      location: item.region,
+      location: item.region, // Map region to location for interface compliance
       imageUrl: item.image_url,
       description: item.description,
       likeCount: item.follower_count,
@@ -186,7 +187,7 @@ export async function searchTemples(query: string): Promise<Temple[]> {
     return data.map(item => ({
       id: item.id,
       name: item.name,
-      location: item.region,
+      location: item.region, // Map region to location for interface compliance
       imageUrl: item.image_url,
       description: item.description,
       likeCount: item.follower_count,
@@ -279,7 +280,7 @@ export async function getTempleDetail(id: string): Promise<Temple | null> {
     return {
       id: data.id,
       name: data.name,
-      location: data.region,
+      location: data.region, // Map region to location for interface compliance
       imageUrl: data.image_url,
       description: data.description,
       direction: data.address,
@@ -334,7 +335,7 @@ export async function getNearbyTemples(
       return {
         id: temple.id,
         name: temple.name,
-        location: temple.region,
+        location: temple.region, // Map region to location for interface compliance
         imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
         description: temple.description,
         direction: temple.address,
@@ -377,11 +378,11 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
       return {
         id: temple.id,
         name: temple.name,
-        region: temple.region,
+        location: temple.region, // Map region to location for interface compliance
         imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
         description: temple.description,
         likeCount: temple.follower_count,
-        address: temple.address,
+        direction: temple.address,
         latitude: temple.latitude,
         longitude: temple.longitude
       };

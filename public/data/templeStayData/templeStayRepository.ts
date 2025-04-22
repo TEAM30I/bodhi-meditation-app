@@ -20,6 +20,7 @@ export interface TempleStay {
   schedule?: Array<{
     time: string;
     activity: string;
+    day?: number;
   }>;
   direction?: string;
   facilities?: string[];
@@ -27,6 +28,13 @@ export interface TempleStay {
   distance?: string;
   longitude?: number;
   latitude?: number;
+  tags?: string[];
+  duration?: string;
+  websiteUrl?: string;
+  contact?: {
+    phone?: string;
+    email?: string;
+  };
 }
 
 // Locations for filtering (will be fetched from API)
@@ -76,7 +84,8 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
         likeCount: item.follower_count,
         direction: item.public_transportation,
         longitude: item.longitude,
-        latitude: item.latitude
+        latitude: item.latitude,
+        websiteUrl: item.reservation_link
       };
     });
     
@@ -151,7 +160,12 @@ export async function getTempleStayDetail(id: string): Promise<TempleStay | null
       schedule: schedule,
       longitude: data.longitude,
       latitude: data.latitude,
-      facilities: data.facilities ? JSON.parse(data.facilities) : []
+      facilities: data.facilities ? JSON.parse(data.facilities) : [],
+      tags: data.tags ? JSON.parse(data.tags) : [],
+      websiteUrl: data.reservation_link,
+      contact: {
+        phone: data.contact
+      }
     };
     
     return templeStay;
