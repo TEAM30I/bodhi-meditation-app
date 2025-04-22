@@ -7,7 +7,7 @@ import {
   followTempleStay, 
   unfollowTempleStay, 
   TempleStay 
-} from '/public/data/templeStayData/templeStayRepository';
+} from '@/utils/repository';
 import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 

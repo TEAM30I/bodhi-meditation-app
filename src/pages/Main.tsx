@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, ChevronRight, Home, Book, UserCircle, Heart } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -9,7 +10,9 @@ import {
   getTempleList, 
   getTempleStayList, 
   readingSchedule, 
-  scriptures 
+  scriptures,
+  Temple,
+  TempleStay
 } from '@/utils/repository';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
@@ -21,8 +24,28 @@ const Main = () => {
   const { user } = useAuth();
   
   const [loading, setLoading] = React.useState(true);
+  const [recommendedTemples, setRecommendedTemples] = useState<Temple[]>([]);
+  const [recommendedTempleStays, setRecommendedTempleStays] = useState<TempleStay[]>([]);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [temples, templeStays] = await Promise.all([
+          getTempleList(),
+          getTempleStayList()
+        ]);
+        
+        setRecommendedTemples(temples.slice(0, 4));
+        setRecommendedTempleStays(templeStays.slice(0, 4));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+    
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
@@ -37,14 +60,6 @@ const Main = () => {
       </div>
     );
   }
-
-  const templeList = getTempleList();
-  const typedTempleList = typedData<typeof templeList>(templeList);
-  const recommendedTemples = typedTempleList.slice(0, 4);
-  
-  const templeStayList = getTempleStayList();
-  const typedTempleStayList = typedData<typeof templeStayList>(templeStayList);
-  const recommendedTempleStays = typedTempleStayList.slice(0, 4);
 
   const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
   const typedScriptures = typedData<typeof scriptures>(scriptures);

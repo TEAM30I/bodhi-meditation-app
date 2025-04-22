@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, Heart, Share, Globe, ChevronRight, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getTempleDetail, followTemple, unfollowTemple, Temple } from '/public/data/templeData/templeRepository';
+import { getTempleDetail, followTemple, unfollowTemple, Temple } from '@/utils/repository';
 import { toast } from '@/components/ui/use-toast';
 
 const TempleDetail: React.FC = () => {
