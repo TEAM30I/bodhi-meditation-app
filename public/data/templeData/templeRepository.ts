@@ -1,4 +1,3 @@
-
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -379,13 +378,7 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
     }
     
     // Properly map each item in the data array
-    return data.map(item => {
-      // Check if temples property exists on the item
-      if (!item || !item.temples) {
-        console.error('Missing temples data for item:', item);
-        return null;
-      }
-      
+    return data.filter(item => item && item.temples).map(item => {
       const temple = item.temples;
       return {
         id: temple.id,
@@ -398,7 +391,7 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
         latitude: temple.latitude,
         longitude: temple.longitude
       };
-    }).filter(Boolean) as Temple[]; // Filter out any null values
+    });
   } catch (error) {
     console.error('Error in getUserFollowedTemples:', error);
     return [];

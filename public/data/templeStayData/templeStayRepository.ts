@@ -1,4 +1,3 @@
-
 // TempleStay Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -339,25 +338,19 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
       return [];
     }
     
-    // Properly map each item in the data array
-    return data.map(item => {
-      // Check if temple_stays property exists on the item
-      if (!item || !item.temple_stays) {
-        console.error('Missing temple_stays data for item:', item);
-        return null;
-      }
-      
-      const templestay = item.temple_stays;
+    // Properly filter and map each item in the data array
+    return data.filter(item => item && item.temple_stays).map(item => {
+      const templeStay = item.temple_stays;
       return {
-        id: templestay.id,
-        templeName: templestay.name,
-        location: templestay.region,
-        imageUrl: templestay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-        price: parseInt(templestay.cost_adult) || 50000,
-        likeCount: templestay.follower_count,
-        direction: templestay.public_transportation
+        id: templeStay.id,
+        templeName: templeStay.name,
+        location: templeStay.region,
+        imageUrl: templeStay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+        price: parseInt(templeStay.cost_adult) || 50000,
+        likeCount: templeStay.follower_count,
+        direction: templeStay.public_transportation
       };
-    }).filter(Boolean) as TempleStay[]; // Filter out any null values
+    });
   } catch (error) {
     console.error('Error in getUserFollowedTempleStays:', error);
     return [];
