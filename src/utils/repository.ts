@@ -1,6 +1,6 @@
 
 // Repository exports with consistent static imports
-import { supabase } from '../data/supabase_client';
+import { supabase } from './supabase_client'; // Fix the path to supabase client
 
 // We need to export all the data structures from the scriptureRepository
 // Importing directly from the data file
@@ -12,8 +12,13 @@ import {
   calendarData,
   getScriptureById,
   updateReadingProgress,
-  addBookmark
-} from '../data/scriptureData/scriptureRepository';
+  addBookmark,
+  type Scripture,
+  type Bookmark,
+  type ReadingProgress,
+  type ScriptureColorScheme,
+  type ScriptureChapter
+} from '../../public/data/scriptureData/scriptureRepository';
 
 // Export types from searchRankingRepository
 export interface SearchRanking {
@@ -523,6 +528,15 @@ export {
   getScriptureById,
   updateReadingProgress,
   addBookmark 
+};
+
+// Export types
+export type {
+  Scripture,
+  Bookmark,
+  ReadingProgress,
+  ScriptureColorScheme,
+  ScriptureChapter
 };
 
 // For temple features

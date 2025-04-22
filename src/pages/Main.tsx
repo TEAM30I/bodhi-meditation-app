@@ -30,11 +30,13 @@ const Main = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Use Promise.all to fetch data in parallel and await the results
         const [templesData, templeStaysData] = await Promise.all([
           getTempleList(),
           getTempleStayList()
         ]);
         
+        // Now we can safely use slice on the resolved data
         setRecommendedTemples(templesData.slice(0, 4));
         setRecommendedTempleStays(templeStaysData.slice(0, 4));
       } catch (error) {
