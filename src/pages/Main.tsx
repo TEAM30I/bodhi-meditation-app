@@ -1,8 +1,8 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
-import { Search, Bell, ChevronRight } from 'lucide-react';
+import { Search, Bell, ChevronRight, Home, Book, UserCircle, Heart } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/context/AuthContext';
 import { typedData } from '@/utils/typeUtils';
@@ -13,19 +13,45 @@ import {
   readingSchedule, 
   scriptures 
 } from '@/utils/repository';
+import { Temple } from '@/types/temple';
+import { TempleStay } from '@/types/templeStay';
 
 const Main = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { user } = useAuth();
   
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = useState(true);
+  const [temples, setTemples] = useState<Temple[]>([]);
+  const [templeStays, setTempleStays] = useState<TempleStay[]>([]);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch temples and temple stays in parallel
+        const [templesData, templeStaysData] = await Promise.all([
+          getTempleList(),
+          getTempleStayList()
+        ]);
+        
+        setTemples(templesData);
+        setTempleStays(templeStaysData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        // Stop loading after data is fetched (or error)
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    window.scrollTo(0, 0);
+    
+    // Clear loading timeout if component unmounts
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 500);
-    window.scrollTo(0, 0);
+    }, 2000); // Longer timeout as a fallback
+    
     return () => clearTimeout(timer);
   }, []);
 
@@ -37,13 +63,9 @@ const Main = () => {
     );
   }
 
-  const templeList = getTempleList();
-  const typedTempleList = typedData<typeof templeList>(templeList);
-  const recommendedTemples = typedTempleList.slice(0, 4);
-  
-  const templeStayList = getTempleStayList();
-  const typedTempleStayList = typedData<typeof templeStayList>(templeStayList);
-  const recommendedTempleStays = typedTempleStayList.slice(0, 4);
+  // Now we use the state values directly, which are arrays
+  const recommendedTemples = temples.slice(0, 4);
+  const recommendedTempleStays = templeStays.slice(0, 4);
 
   const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
   const typedScriptures = typedData<typeof scriptures>(scriptures);
@@ -217,7 +239,33 @@ const Main = () => {
         </div>
       </div>
 
-      <BottomNav />
+      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white z-10">
+        <div className="flex justify-around items-center h-16 max-w-screen-lg mx-auto">
+          <button className="flex items-center justify-center w-14 h-14 text-[#DE7834]">
+            <Home size={28} />
+          </button>
+          <button className="flex items-center justify-center w-14 h-14 text-gray-400"
+            onClick={() => navigate('/scripture')}
+          >
+            <Book size={28} />
+          </button>
+          <button className="flex items-center justify-center w-14 h-14 text-gray-400"
+            onClick={() => navigate('/search')}
+          >
+            <Search size={28} />
+          </button>
+          <button className="flex items-center justify-center w-14 h-14 text-gray-400"
+            onClick={() => navigate('/wishlist')}
+          >
+            <Heart size={28} />
+          </button>
+          <button className="flex items-center justify-center w-14 h-14 text-gray-400"
+            onClick={() => navigate('/profile')}
+          >
+            <UserCircle size={28} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
