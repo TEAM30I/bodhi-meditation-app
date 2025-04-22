@@ -20,7 +20,7 @@ const SignUp: React.FC = () => {
   const [verificationCode, setVerificationCode] = useState('');
   const [showVerification, setShowVerification] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [verification, setVerification] = useState(false);
+  const [verification, setVerification] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   

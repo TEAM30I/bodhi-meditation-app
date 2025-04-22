@@ -126,15 +126,14 @@ export const sendVerificationCode = async (phoneNumber: string): Promise<string>
     const phoneNumberTo = cleanedPhoneNumber;
       
     // 메시지 페이로드에 등록 - 공식 예제 구조로 수정
-    const payload = {
-      messages: [
-        {
+    const payload  = {
+        message: {
           to: phoneNumberTo,
           from: SENDER_PHONE,
           text: `[인증번호] ${verificationCode} 를 입력해주세요.`,
-        },
-      ],
-    };
+          type: "SMS"
+        }
+      };
     console.log('SMS payload:', JSON.stringify(payload, null, 2));
 
     // Send the API request
@@ -148,9 +147,9 @@ export const sendVerificationCode = async (phoneNumber: string): Promise<string>
     console.log('Response status:', response.status);
     const result = await response.json();
     console.log('SMS API response:', result);
-
     if (!response.ok) {
-      throw new Error(result.message || `Failed to send verification code. Status: ${response.status}`);
+        console.error('Detailed error response:', result);
+        throw new Error(result.message || `Failed to send verification code. Status: ${response.status}`);
     }
 
     // Save verification code and expiry time to storage

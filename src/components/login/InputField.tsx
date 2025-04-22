@@ -62,22 +62,14 @@ const InputField: React.FC<InputFieldProps> = ({
   // 전화번호 형식 변환 (입력 중)
   const formatPhoneInput = (input: string) => {
     if (type !== 'tel') return input;
-    
-    // 숫자와 하이픈만 남기기
-    const cleaned = input.replace(/[^\d-]/g, '');
-    
-    // 이미 하이픈이 포함된 경우 그대로 반환
-    if (cleaned.includes('-')) {
-      return cleaned;
-    }
-    
-    // 숫자만 추출
-    const digits = cleaned.replace(/-/g, '');
-    
-    // 전화번호 형식으로 변환 (010-xxxx-xxxx 또는 010-xxx-xxxx)
+  
+    // 숫자만 추출 (하이픈 및 기타 문자 제거)
+    const digits = input.replace(/[^\d]/g, '');
+  
+    // 전화번호 형식으로 변환
     if (digits.length <= 3) {
       return digits;
-    } else if (digits.length > 3 && digits.length <= 7) {
+    } else if (digits.length <= 7) {
       return `${digits.substring(0, 3)}-${digits.substring(3)}`;
     } else {
       return `${digits.substring(0, 3)}-${digits.substring(3, 7)}-${digits.substring(7, 11)}`;

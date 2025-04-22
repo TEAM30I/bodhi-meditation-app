@@ -67,9 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Sign up function with phone verification
   const signUp = async (username: string, password: string, phone: string) => {
     try {
-      // Create user in Supabase
+      // Supabase에 사용자 등록
       const { data, error } = await supabase.auth.signUp({
-        email: `${username}@example.com`, // Using username as email for simplicity
+        email: `${username}@example.com`,
         password,
         options: {
           data: {
@@ -78,12 +78,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         },
       });
-
+  
       if (error) {
         throw error;
       }
-
-      // Additional user data can be stored in a separate table
+  
+      // profiles 테이블에 추가 데이터 저장
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -91,30 +91,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           username,
           phone,
         });
-
+  
       if (profileError) {
         console.error('Profile creation error:', profileError);
-        // Consider handling this error, maybe rollback the user creation
       }
-
-      toast({
-        title: "회원가입 성공",
-        description: "로그인 해주세요.",
+  
+      // 회원가입 후 자동 로그인
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: `${username}@example.com`,
+        password,
       });
-
-      // Clear verification data after successful signup
+  
+      if (signInError) {
+        throw signInError;
+      }
+  
+      // 인증 데이터 초기화
       await clearVerificationData();
-      
-      navigate('/login');
+  
+      // Main 화면으로 이동
+      navigate('/main');
     } catch (error: any) {
       console.error('Sign up error:', error);
-      
       toast({
         title: "회원가입 실패",
         description: error.message || "회원가입 중 오류가 발생했습니다.",
-        variant: "destructive"
+        variant: "destructive",
       });
-      
       throw error;
     }
   };

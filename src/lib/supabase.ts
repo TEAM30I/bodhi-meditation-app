@@ -1,9 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase configuration
-// In a real app, these would be stored in environment variables
-const supabaseUrl = 'https://kvmxzlrtfghidtosetal.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-// Create a single supabase client for the entire app
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
