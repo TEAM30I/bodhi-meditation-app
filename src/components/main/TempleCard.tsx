@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { MapPin } from 'lucide-react';
-import { Temple } from '@/utils/repository';
+import { Temple } from '../../public/data/templeData/templeRepository';
 
 interface TempleCardProps {
   temple: Temple;
@@ -33,4 +32,3 @@ const TempleCard: React.FC<TempleCardProps> = ({ temple, onClick }) => {
 };
 
 export default TempleCard;
-

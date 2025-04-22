@@ -1,11 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/context/AuthContext';
 import {
-  // Import the types but not the functions as they'll be mocked below
-  Temple, TempleStay,
-} from '@/utils/repository';
+  // Import the types directly from their source
+  Temple,
+} from '../../public/data/templeData/templeRepository';
+import {
+  TempleStay
+} from '../../public/data/templeStayData/templeStayRepository';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TempleItem from '@/components/search/TempleItem';
 import TempleStayItem from '@/components/search/TempleStayItem';
