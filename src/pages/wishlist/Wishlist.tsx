@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
@@ -60,7 +59,12 @@ const getUserFollowedTempleStays = async (userId: string): Promise<TempleStay[]>
       location: item.temple_stays.region,
       imageUrl: item.temple_stays.image_url,
       price: parseInt(item.temple_stays.cost_adult) || 50000,
-      likeCount: item.temple_stays.follower_count
+      likeCount: item.temple_stays.follower_count,
+      duration: "1박 2일",
+      description: item.temple_stays.description || "",
+      websiteUrl: item.temple_stays.reservation_link || "",
+      direction: item.temple_stays.public_transportation || "",
+      tags: []
     }));
   } catch (error) {
     console.error('Error in getUserFollowedTempleStays:', error);

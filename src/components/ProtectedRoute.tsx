@@ -39,8 +39,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         const userData = await getCurrentUser() as AmplifyUser;
         console.log('ProtectedRoute: 인증된 사용자 확인됨', userData);
         setIsAuth(true);
-        
-        // No need to call refreshUser as it doesn't exist
       } catch (error) {
         console.log('ProtectedRoute: 인증되지 않은 사용자', error);
         setIsAuth(false);
@@ -84,3 +82,4 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 };
 
 export default ProtectedRoute;
+

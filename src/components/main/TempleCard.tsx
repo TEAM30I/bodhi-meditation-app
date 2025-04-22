@@ -33,3 +33,4 @@ const TempleCard: React.FC<TempleCardProps> = ({ temple, onClick }) => {
 };
 
 export default TempleCard;
+
