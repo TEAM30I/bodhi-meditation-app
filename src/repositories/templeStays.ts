@@ -2,6 +2,28 @@
 import { supabase } from "@/integrations/supabase/client";
 import { TempleStay } from "@/types/templeStay";
 
+// Type assertion to handle data from Supabase that might include fields not in the TypeScript type
+type SupabaseTempleStay = {
+  cost_adult: string;
+  created_at: string;
+  description: string;
+  end_date: string;
+  follower_count: number;
+  id: string;
+  image_url: string;
+  name: string;
+  public_transportation: string;
+  region: string;
+  reservation_link: string;
+  start_date: string;
+  temple_id: string;
+  updated_at: string;
+  // We know the tags exist in the actual data, but TypeScript doesn't know about it
+  tags?: string; // Adding as optional to satisfy TypeScript
+  latitude?: number;
+  longitude?: number;
+};
+
 export const getTempleStayList = async (): Promise<TempleStay[]> => {
   try {
     const { data: templeStayData, error: templeStayError } = await supabase
@@ -15,7 +37,7 @@ export const getTempleStayList = async (): Promise<TempleStay[]> => {
     
     const result: TempleStay[] = [];
     
-    for (const stay of templeStayData) {
+    for (const stay of templeStayData as SupabaseTempleStay[]) {
       const { data: timelineData, error: timelineError } = await supabase
         .from('timelines')
         .select('*')
@@ -46,7 +68,9 @@ export const getTempleStayList = async (): Promise<TempleStay[]> => {
         websiteUrl: stay.reservation_link || '',
         schedule: schedule,
         // Safely handle tags with a default empty array
-        tags: stay.tags ? JSON.parse(stay.tags as string) : []
+        tags: stay.tags ? JSON.parse(stay.tags) : [],
+        latitude: stay.latitude,
+        longitude: stay.longitude
       });
     }
     
@@ -87,7 +111,7 @@ export const searchTempleStays = async (query: string): Promise<TempleStay[]> =>
       return [];
     }
     
-    return data.map(stay => ({
+    return (data as SupabaseTempleStay[]).map(stay => ({
       id: stay.id,
       templeName: stay.name,
       location: stay.region || 'Unknown',
@@ -99,7 +123,9 @@ export const searchTempleStays = async (query: string): Promise<TempleStay[]> =>
       imageUrl: stay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
       websiteUrl: stay.reservation_link || '',
       schedule: [],
-      tags: stay.tags ? JSON.parse(stay.tags as string) : []
+      tags: stay.tags ? JSON.parse(stay.tags) : [],
+      latitude: stay.latitude,
+      longitude: stay.longitude
     }));
   } catch (error) {
     console.error('Exception searching temple stays:', error);
@@ -134,19 +160,23 @@ export const getTempleStayDetail = async (id: string): Promise<TempleStay | null
         }))
       : [];
     
+    const stayData = stay as SupabaseTempleStay;
+    
     return {
-      id: stay.id,
-      templeName: stay.name,
-      location: stay.region || 'Unknown',
-      direction: stay.public_transportation || '',
-      price: parseInt(stay.cost_adult) || 0,
-      likeCount: stay.follower_count || 0,
-      description: stay.description || '',
-      duration: stay.start_date && stay.end_date ? `${stay.start_date}~${stay.end_date}` : '당일',
-      imageUrl: stay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      websiteUrl: stay.reservation_link || '',
+      id: stayData.id,
+      templeName: stayData.name,
+      location: stayData.region || 'Unknown',
+      direction: stayData.public_transportation || '',
+      price: parseInt(stayData.cost_adult) || 0,
+      likeCount: stayData.follower_count || 0,
+      description: stayData.description || '',
+      duration: stayData.start_date && stayData.end_date ? `${stayData.start_date}~${stayData.end_date}` : '당일',
+      imageUrl: stayData.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      websiteUrl: stayData.reservation_link || '',
       schedule: schedule,
-      tags: stay.tags ? JSON.parse(stay.tags as string) : []
+      tags: stayData.tags ? JSON.parse(stayData.tags) : [],
+      latitude: stayData.latitude,
+      longitude: stayData.longitude
     };
   } catch (error) {
     console.error('Error in getTempleStayDetail:', error);
@@ -166,7 +196,7 @@ export const getTempleStaysByRegion = async (region: string): Promise<TempleStay
       return [];
     }
     
-    return data.map(stay => ({
+    return (data as SupabaseTempleStay[]).map(stay => ({
       id: stay.id,
       templeName: stay.name,
       location: stay.region || 'Unknown',
@@ -178,11 +208,12 @@ export const getTempleStaysByRegion = async (region: string): Promise<TempleStay
       imageUrl: stay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
       websiteUrl: stay.reservation_link || '',
       schedule: [],
-      tags: stay.tags ? JSON.parse(stay.tags as string) : []
+      tags: stay.tags ? JSON.parse(stay.tags) : [],
+      latitude: stay.latitude,
+      longitude: stay.longitude
     }));
   } catch (error) {
     console.error('Error in getTempleStaysByRegion:', error);
     return [];
   }
 };
-
