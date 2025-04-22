@@ -24,7 +24,7 @@ const ScriptureProgressList: React.FC<ScriptureProgressListProps> = ({ scripture
           <div 
             key={scripture.id} 
             className="w-full bg-white rounded-3xl p-5 border border-gray-100 shadow-sm cursor-pointer"
-            onClick={() => onScriptureClick(scripture.id, scripture.lastPage)}
+            onClick={() => onScriptureClick(scripture.id, scripture.lastPageIndex)}
           >
             <div className="flex flex-col gap-3">
               <div className={`inline-flex px-2 py-2 ${scriptureColors[colorIndex].bg} rounded-xl w-fit`}>
@@ -36,7 +36,7 @@ const ScriptureProgressList: React.FC<ScriptureProgressListProps> = ({ scripture
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                   <h3 className="text-sm font-medium text-gray-800">
-                    {scripture.lastChapterTitle || "처음부터 시작하기"}
+                    {scripture.lastReadChapter ? scripture.chapters.find(c => c.id === scripture.lastReadChapter)?.title : "처음부터 시작하기"}
                   </h3>
                   <span className="text-xs text-gray-500">
                     {scripture.progress?.toFixed(1) || "0"}%

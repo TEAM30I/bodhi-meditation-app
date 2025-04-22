@@ -33,7 +33,7 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
           <h3 className="font-semibold text-base text-gray-800 mb-1">{temple.name}</h3>
           <div className="flex items-center text-gray-500 text-xs mb-1">
             <MapPin className="w-3 h-3 mr-1" />
-            <span className="truncate">{temple.address || temple.location}</span>
+            <span className="truncate">{temple.location || temple.direction || ''}</span>
           </div>
           {temple.facilities && temple.facilities.length > 0 && (
             <p className="text-gray-600 text-xs line-clamp-2">

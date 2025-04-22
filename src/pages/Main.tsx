@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
@@ -6,7 +7,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/context/AuthContext';
 import { typedData } from '@/utils/typeUtils';
 import { ScriptureCalendarPrev } from '@/components/scripture/ScriptureCalendar_prev';
-import { ScriptureProgressList } from '@/components/scripture/ScriptureProgressList';
+import ScriptureProgressList from '@/components/scripture/ScriptureProgressList';
 import { 
   getTempleList, 
   getTempleStayList, 
