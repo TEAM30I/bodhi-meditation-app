@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowRight } from 'lucide-react';
-import { locations, getTopLikedTempleStays } from '@/utils/repository';
+import { getTempleStayLocations, getTopLikedTempleStays } from '@/utils/repository';
 import { TempleStay } from '@/types/templeStay';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
@@ -12,6 +12,8 @@ const FindTempleStay = () => {
   const [searchValue, setSearchValue] = useState('');
   const [topTempleStays, setTopTempleStays] = useState<TempleStay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [locationList, setLocationList] = useState<string[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,7 +28,20 @@ const FindTempleStay = () => {
       }
     };
 
+    const fetchLocations = async () => {
+      try {
+        setLocationsLoading(true);
+        const locations = await getTempleStayLocations();
+        setLocationList(locations);
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+      } finally {
+        setLocationsLoading(false);
+      }
+    };
+
     fetchData();
+    fetchLocations();
   }, []);
 
   const handleSearch = (event: React.FormEvent) => {
@@ -54,17 +69,23 @@ const FindTempleStay = () => {
 
         <div className="mb-8">
           <h3 className="font-semibold text-lg mb-4">지역별 템플스테이</h3>
-          <div className="grid grid-cols-3 gap-3">
-            {locations.map(location => (
-              <button
-                key={location}
-                onClick={() => handleRegionClick(location)}
-                className="py-2 px-3 border border-gray-200 rounded-lg text-center hover:bg-gray-50"
-              >
-                {location}
-              </button>
-            ))}
-          </div>
+          {locationsLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DE7834]"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {locationList.map(location => (
+                <button
+                  key={location}
+                  onClick={() => handleRegionClick(location)}
+                  className="py-2 px-3 border border-gray-200 rounded-lg text-center hover:bg-gray-50"
+                >
+                  {location}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>

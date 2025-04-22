@@ -1,4 +1,3 @@
-
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -30,8 +29,53 @@ export interface Temple {
   longitude?: number;
 }
 
+// Structure for region tags that will be populated from database
+export interface RegionTag {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
+// Export regionTags for UI components that need immediate access
+export const regionTags: RegionTag[] = [];
+
+// Populate regionTags on module initialization
+(async () => {
+  try {
+    const regions = await getTempleRegions();
+    // Clear the array and recreate with data from DB
+    regionTags.length = 0;
+    
+    // Add all regions as tags
+    regions.forEach((region, index) => {
+      regionTags.push({
+        id: `region-${index}`,
+        name: region,
+        active: index === 0 // First one active by default
+      });
+    });
+  } catch (error) {
+    console.error('Error initializing regionTags array:', error);
+  }
+})();
+
 // 정렬 유형
 export type TempleSort = 'popular' | 'recent' | 'distance';
+
+// Get all regions as an array 
+export async function getRegionTags(): Promise<RegionTag[]> {
+  try {
+    const regions = await getTempleRegions();
+    return regions.map((region, index) => ({
+      id: `region-${index}`,
+      name: region,
+      active: index === 0
+    }));
+  } catch (error) {
+    console.error('Error getting region tags:', error);
+    return [];
+  }
+}
 
 // Supabase 데이터베이스에서 사찰 목록 가져오기
 export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Temple[]> {
@@ -368,11 +412,10 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
       return [];
     }
 
-    // Map data to the expected format, with careful property access
+    // Map data to the expected format with proper type checking
     const temples = data
-      .filter(item => item && typeof item === 'object' && 'temples' in item && item.temples)
+      .filter(item => item && item.temples)
       .map(item => {
-        // Make TypeScript aware this is an object with specific properties
         const temple = item.temples as any;
         
         return {

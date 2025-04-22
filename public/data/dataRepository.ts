@@ -22,8 +22,11 @@ import {
   getUserFollowedTemples,
   getTopRegions,
   getTempleRegions,
+  getRegionTags,
+  regionTags,
   type Temple,
-  type TempleSort
+  type TempleSort,
+  type RegionTag
 } from "./templeData/templeRepository";
 
 import {
@@ -38,6 +41,8 @@ import {
   getTempleStaysByRegion,
   getTopLikedTempleStays,
   getTempleStayRegions,
+  getTempleStayLocations,
+  locations,
   type TempleStay,
   type TempleStaySort
 } from "./templeStayData/templeStayRepository";
@@ -94,6 +99,8 @@ export {
   getUserFollowedTemples,
   getTopRegions,
   getTempleRegions,
+  getRegionTags,
+  regionTags,
 
   // TempleStay‑domain
   getTempleStayList,
@@ -106,6 +113,8 @@ export {
   getTempleStaysByRegion,
   getTopLikedTempleStays,
   getTempleStayRegions,
+  getTempleStayLocations,
+  locations,
 
   // Scripture‑domain
   scriptures,
@@ -132,5 +141,6 @@ export type {
   ReadingProgress,
   ScriptureColorScheme,
   TempleSort,
-  TempleStaySort
+  TempleStaySort,
+  RegionTag
 };

@@ -1,3 +1,4 @@
+
 // TempleStay Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -39,6 +40,33 @@ export interface TempleStay {
 // Sort types
 export type TempleStaySort = 'popular' | 'recent' | 'price-asc' | 'price-desc' | 'distance';
 
+// Get all available regions for UI location selection
+export async function getTempleStayLocations(): Promise<string[]> {
+  try {
+    const regions = await getTempleStayRegions();
+    return regions;
+  } catch (error) {
+    console.error('Error fetching temple stay locations:', error);
+    return [];
+  }
+}
+
+// Export locations for UI components that need immediate access
+// This will be populated with data from the database
+export const locations: string[] = [];
+
+// Populate locations array on module initialization
+(async () => {
+  try {
+    const regions = await getTempleStayRegions();
+    // Clear the array and add all regions
+    locations.length = 0;
+    locations.push(...regions);
+  } catch (error) {
+    console.error('Error initializing locations array:', error);
+  }
+})();
+
 // Fetch temple stays from Supabase
 export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Promise<TempleStay[]> {
   try {
@@ -66,7 +94,7 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
       return {
         id: item.id,
         templeName: item.name,
-        location: item.region,
+        location: item.region, // Map region to location for interface compliance
         imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
         price: parseInt(item.cost_adult) || 50000,
         description: item.description,
@@ -328,12 +356,11 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
       return [];
     }
     
-    // Map data to the expected format, with careful property access
+    // Map data to the expected format with proper type checking
     const templeStays = data
-      .filter(item => item && typeof item === 'object' && 'temple_stays' in item && item.temple_stays)
+      .filter(item => item && item.temple_stays)
       .map(item => {
-        // Make TypeScript aware this is an object with specific properties
-        const templeStay = item.temple_stays as any; 
+        const templeStay = item.temple_stays as any;
         
         return {
           id: templeStay.id,

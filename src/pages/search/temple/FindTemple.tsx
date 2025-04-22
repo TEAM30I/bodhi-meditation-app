@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, ChevronRight, ChevronLeft, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
-  regionTags, 
+  getRegionTags,
   getTempleList, 
   getTopLikedTemples, 
   getNearbyTemples,
@@ -19,6 +19,7 @@ const FindTemple = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
   const [activeRegion, setActiveRegion] = useState('서울');
+  const [regionTagsList, setRegionTagsList] = useState<{id: string, name: string, active: boolean}[]>([]);
   
   // 데이터 상태
   const [temples, setTemples] = useState<Temple[]>([]);
@@ -28,9 +29,31 @@ const FindTemple = () => {
   const [loading, setLoading] = useState({
     temples: true,
     nearby: true,
-    popular: true
+    popular: true,
+    regions: true
   });
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+
+  // Load region tags from database
+  useEffect(() => {
+    const fetchRegionTags = async () => {
+      try {
+        setLoading(prev => ({...prev, regions: true}));
+        const tags = await getRegionTags();
+        setRegionTagsList(tags);
+        if (tags.length > 0) {
+          setActiveRegion(tags[0].name);
+        }
+      } catch (error) {
+        console.error("Failed to load region tags:", error);
+        toast.error("지역 정보를 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(prev => ({...prev, regions: false}));
+      }
+    };
+    
+    fetchRegionTags();
+  }, []);
 
   // 사용자 위치 가져오기
   useEffect(() => {
@@ -195,21 +218,27 @@ const FindTemple = () => {
 
             {/* 지역 필터 태그 */}
             <div className="mb-6">
-              <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-hide">
-                {regionTags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    onClick={() => handleRegionClick(tag.name)}
-                    className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
-                      activeRegion === tag.name 
-                        ? 'bg-[#DE7834] text-white' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {tag.name}
-                  </button>
-                ))}
-              </div>
+              {loading.regions ? (
+                <div className="flex justify-center py-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DE7834]"></div>
+                </div>
+              ) : (
+                <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-hide">
+                  {regionTagsList.map((tag) => (
+                    <button
+                      key={tag.id}
+                      onClick={() => handleRegionClick(tag.name)}
+                      className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
+                        activeRegion === tag.name 
+                          ? 'bg-[#DE7834] text-white' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* 가까운 사찰 섹션 */}
