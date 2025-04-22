@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { MapPin, Heart } from 'lucide-react';
-import { Temple } from '@/utils/repository';
+import { Temple } from '../../public/data/templeData/templeRepository';
 
 interface TempleItemProps {
   temple: Temple;
@@ -34,6 +35,9 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
             <MapPin className="w-3 h-3 mr-1" />
             <span className="truncate">{temple.location || temple.direction || ''}</span>
           </div>
+          {temple.distance && (
+            <p className="text-gray-600 text-xs">{temple.distance} 거리</p>
+          )}
           {temple.facilities && temple.facilities.length > 0 && (
             <p className="text-gray-600 text-xs line-clamp-2">
               {temple.facilities.join(" • ")}

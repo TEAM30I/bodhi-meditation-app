@@ -1,40 +1,23 @@
+
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 
 // Interfaces for data types
-export interface NewsItem {
-  id: string;
-  temple: string;
-  source: string;
-  title: string;
-  link: string;
-  date: string;
-}
-
 export interface Temple {
   id: string;
   name: string;
   location: string;
   imageUrl: string;
   distance?: string;
-  rating?: number;
-  reviews?: number;
   description?: string;
   openingHours?: string;
   tags?: string[];
-  hasParkingLot?: boolean;
-  hasTempleStay?: boolean;
   direction?: string;
   websiteUrl?: string;
   likeCount?: number;
   facilities?: string[];
-  nearbyAttractions?: string[];
   contact?: {
     phone?: string;
-  };
-  social?: {
-    instagram?: string;
-    facebook?: string;
   };
   latitude?: number;
   longitude?: number;
@@ -50,20 +33,34 @@ export const regionTags = [
   { id: "suncheon", name: "순천", active: false }
 ];
 
+// 정렬 유형
+export type TempleSort = 'popular' | 'recent' | 'distance';
+
+// 기본 사찰 위치 (서울특별시 관악구 신림로 72)
+export const DEFAULT_LOCATION = {
+  latitude: 37.4839864,
+  longitude: 126.9295952
+};
+
 // Supabase 데이터베이스에서 사찰 목록 가져오기
-export async function getTempleList(): Promise<Temple[]> {
+export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Temple[]> {
   try {
-    const { data, error } = await supabase
-      .from('temples')
-      .select('*');
+    let query = supabase.from('temples').select('*');
+    
+    if (sortBy === 'popular') {
+      query = query.order('follower_count', { ascending: false });
+    } else if (sortBy === 'recent') {
+      query = query.order('created_at', { ascending: false });
+    }
+    
+    const { data, error } = await query;
       
     if (error) {
       console.error('Error fetching temples:', error);
       return []; 
     }
     
-    // Supabase 데이터를 기존 Temple 인터페이스에 맞게 변환
-    return data.map(item => ({
+    let temples = data.map(item => ({
       id: item.id,
       name: item.name,
       location: item.region,
@@ -81,6 +78,28 @@ export async function getTempleList(): Promise<Temple[]> {
       openingHours: item.opening_hours,
       websiteUrl: item.website_url
     }));
+    
+    // Sort by distance if needed (after we have the data with coordinates)
+    if (sortBy === 'distance') {
+      temples = temples
+        .filter(temple => temple.latitude && temple.longitude)
+        .map(temple => {
+          const distance = calculateDistance(
+            DEFAULT_LOCATION.latitude,
+            DEFAULT_LOCATION.longitude,
+            temple.latitude!,
+            temple.longitude!
+          );
+          return { ...temple, distance: formatDistance(distance) };
+        })
+        .sort((a, b) => {
+          const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');
+          const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
+          return distA - distB;
+        });
+    }
+    
+    return temples;
   } catch (error) {
     console.error('Error in getTempleList:', error);
     return []; 
@@ -297,7 +316,11 @@ export async function getTempleDetail(id: string): Promise<Temple | null> {
 }
 
 // 현재 위치 기반으로 근처 사찰 가져오기
-export async function getNearbyTemples(latitude: number, longitude: number, limit = 4): Promise<Temple[]> {
+export async function getNearbyTemples(
+  latitude: number = DEFAULT_LOCATION.latitude, 
+  longitude: number = DEFAULT_LOCATION.longitude, 
+  limit = 4
+): Promise<Temple[]> {
   try {
     // 먼저 모든 사찰을 가져옴
     const { data, error } = await supabase

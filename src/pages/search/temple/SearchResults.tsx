@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleItem from '@/components/search/TempleItem';
 import { searchTemplesDirectly } from '@/integrations/supabase/client';
-import { type Temple } from '@/utils/repository';
+import { Temple, TempleSort, getTempleList, searchTemples, getNearbyTemples } from '../../../public/data/templeData/templeRepository';
+import { getCurrentLocation } from '@/utils/locationUtils';
 
 const SearchResults = () => {
   const location = useLocation();
@@ -18,50 +19,64 @@ const SearchResults = () => {
   
   const [searchValue, setSearchValue] = useState(query || region);
   const [temples, setTemples] = useState<Temple[]>([]);
-  const [activeFilter, setActiveFilter] = useState<'popular' | 'recent'>('popular');
+  const [activeFilter, setActiveFilter] = useState<TempleSort>('popular');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTemples = async () => {
       setLoading(true);
-      // Search temples based on query or region
-      const searchTerm = query || region;
-      if (searchTerm) {
-        try {
-          const { data, error } = await searchTemplesDirectly(searchTerm);
-          if (error) {
-            console.error('Error searching temples:', error);
-            setTemples([]);
-          } else {
-            setTemples(data as Temple[]);
-          }
-        } catch (error) {
-          console.error('Exception searching temples:', error);
-          setTemples([]);
+      try {
+        let results: Temple[] = [];
+        
+        if (nearby) {
+          // Get user location
+          const userLocation = await getCurrentLocation();
+          results = await getNearbyTemples(userLocation.latitude, userLocation.longitude);
+        } else if (query || region) {
+          // Search temples based on query or region
+          const searchTerm = query || region;
+          results = await searchTemples(searchTerm);
+        } else {
+          // Just get all temples with the current sort
+          results = await getTempleList(activeFilter);
         }
-      } else if (nearby) {
-        // If nearby search, we'd typically use geolocation data
-        // For now, let's just return all temples as a placeholder
-        try {
-          const { data, error } = await searchTemplesDirectly("");
-          if (error) {
-            console.error('Error fetching nearby temples:', error);
-            setTemples([]);
-          } else {
-            setTemples(data as Temple[]);
-          }
-        } catch (error) {
-          console.error('Exception fetching nearby temples:', error);
-          setTemples([]);
-        }
-      } else {
+        
+        setTemples(results);
+      } catch (error) {
+        console.error('Error fetching temples:', error);
         setTemples([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchTemples();
   }, [query, region, nearby]);
+
+  // Update sort when filter changes
+  useEffect(() => {
+    const sortTemples = async () => {
+      setLoading(true);
+      try {
+        // If we're in regular search mode (not nearby or specific query)
+        if (!nearby && !query && !region) {
+          const sortedTemples = await getTempleList(activeFilter);
+          setTemples(sortedTemples);
+        } else if (nearby) {
+          // If we're in nearby mode, resort the existing temples by distance
+          const userLocation = await getCurrentLocation();
+          const newResults = await getNearbyTemples(userLocation.latitude, userLocation.longitude);
+          setTemples(newResults);
+        }
+      } catch (error) {
+        console.error('Error sorting temples:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    sortTemples();
+  }, [activeFilter]);
 
   const handleClearSearch = () => {
     setSearchValue('');
@@ -137,6 +152,14 @@ const SearchResults = () => {
             size="sm"
           >
             최신순
+          </Button>
+          <Button
+            variant={activeFilter === 'distance' ? 'default' : 'outline'}
+            onClick={() => setActiveFilter('distance')}
+            className={activeFilter === 'distance' ? 'bg-[#DE7834]' : 'bg-white'}
+            size="sm"
+          >
+            거리순
           </Button>
         </div>
         

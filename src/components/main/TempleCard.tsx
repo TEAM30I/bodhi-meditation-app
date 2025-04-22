@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import { Temple } from '../../public/data/templeData/templeRepository';

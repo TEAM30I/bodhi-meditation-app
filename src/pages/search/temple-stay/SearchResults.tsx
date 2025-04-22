@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, X, Calendar, Users } from 'lucide-react';
@@ -11,12 +12,14 @@ import {
   getTempleStayList,
   getTempleStaysByRegion,
   TempleStay,
-  addSearchTerm,
-} from '@/utils/repository';
+  TempleStaySort
+} from '../../../public/data/templeStayData/templeStayRepository';
+import { addSearchTerm } from '../../../public/data/searchRankingRepository';
 import { typedData } from '@/utils/typeUtils';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { tomorrow, dayAfterTomorrow, fmt } from '@/utils/dateUtils';
 import { toast } from 'sonner';
+import { getCurrentLocation } from '@/utils/locationUtils';
 
 const SearchResults: React.FC = () => {
   const navigate = useNavigate();
@@ -27,13 +30,14 @@ const SearchResults: React.FC = () => {
   const query       = searchParams.get('query')   || '';
   const region      = searchParams.get('region')  || '';
   const initialGuests = Number(searchParams.get('guests') || 1);
+  const nearby = searchParams.get('nearby') === 'true';
 
   /* ───────────── 상태 ───────────── */
   const [searchValue, setSearchValue] = useState(query || region);
   const [guestCount,  setGuestCount]  = useState(initialGuests);
 
   const [templeStays, setTempleStays] = useState<TempleStay[]>([]);
-  const [activeFilter, setActiveFilter] = useState<'popular' | 'recent'>('popular');
+  const [activeFilter, setActiveFilter] = useState<TempleStaySort>('popular');
   const [loading, setLoading] = useState(true);
 
   const [showDatePicker,   setShowDatePicker]   = useState(false);
@@ -53,7 +57,11 @@ const SearchResults: React.FC = () => {
       try {
         let results: TempleStay[] = [];
         
-        if (term) {
+        if (nearby) {
+          // Handle nearby search (even though we don't have lat/long for temple stays in the current schema)
+          // We'll just get all and apply simulated distance
+          results = await getTempleStayList('distance');
+        } else if (term) {
           console.log(`Searching for temple stays with term: ${term}`);
           // Record the search term for analytics
           await addSearchTerm(term, 'temple_stay');
@@ -66,8 +74,8 @@ const SearchResults: React.FC = () => {
             results = await searchTempleStays(term);
           }
         } else {
-          // If no search term, get all temple stays
-          results = await getTempleStayList();
+          // If no search term, get all temple stays with current sort
+          results = await getTempleStayList(activeFilter);
         }
         
         setTempleStays(results);
@@ -86,7 +94,26 @@ const SearchResults: React.FC = () => {
     };
     
     fetchData();
-  }, [query, region, location.search]);
+  }, [query, region, nearby, location.search]);
+
+  // When filter changes
+  useEffect(() => {
+    if (!query && !region && !nearby) {
+      const sortTemplStays = async () => {
+        setLoading(true);
+        try {
+          const results = await getTempleStayList(activeFilter);
+          setTempleStays(results);
+        } catch (error) {
+          console.error('Error sorting temple stays:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      sortTemplStays();
+    }
+  }, [activeFilter]);
 
   /* ───────────── 헬퍼 ───────────── */
   const buildQuery = () =>
@@ -211,6 +238,14 @@ const SearchResults: React.FC = () => {
             onClick={() => setActiveFilter('recent')}
           >
             최신순
+          </Button>
+          <Button
+            variant={activeFilter === 'distance' ? 'default' : 'outline'}
+            size="sm"
+            className={activeFilter === 'distance' ? 'bg-[#DE7834]' : 'bg-white'}
+            onClick={() => setActiveFilter('distance')}
+          >
+            거리순
           </Button>
         </div>
 

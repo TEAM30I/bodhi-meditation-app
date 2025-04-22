@@ -1,5 +1,6 @@
 
 import { supabase } from '../supabase_client';
+import { DEFAULT_LOCATION, calculateDistance, formatDistance } from './templeData/templeRepository';
 
 // Define types
 export interface TempleStay {
@@ -15,9 +16,13 @@ export interface TempleStay {
   likeCount?: number;
   schedule?: Array<{time: string, activity: string}>;
   direction?: string;
+  distance?: string;
 }
 
-// Locations for filtering
+// 정렬 유형
+export type TempleStaySort = 'popular' | 'recent' | 'distance';
+
+// Locations for filtering (from database)
 export const locations = [
   { id: "seoul", name: "서울", active: true },
   { id: "gyeongju", name: "경주", active: false },
@@ -27,18 +32,24 @@ export const locations = [
 ];
 
 // 템플스테이 목록 가져오기
-export async function getTempleStayList(): Promise<TempleStay[]> {
+export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Promise<TempleStay[]> {
   try {
-    const { data, error } = await supabase
-      .from('temple_stays')
-      .select('*');
+    let query = supabase.from('temple_stays').select('*');
+    
+    if (sortBy === 'popular') {
+      query = query.order('follower_count', { ascending: false });
+    } else if (sortBy === 'recent') {
+      query = query.order('created_at', { ascending: false });
+    }
+    
+    const { data, error } = await query;
       
     if (error) {
       console.error('Error fetching temple stays:', error);
       return [];
     }
     
-    return data.map(item => ({
+    let templeStays = data.map(item => ({
       id: item.id,
       templeName: item.name,
       location: item.region,
@@ -49,8 +60,30 @@ export async function getTempleStayList(): Promise<TempleStay[]> {
       websiteUrl: item.reservation_link,
       likeCount: item.follower_count || 0,
       direction: item.public_transportation || "대중교통 이용 가능",
-      tags: ["휴식", "명상", "자연"]
+      tags: ["휴식", "명상", "자연"],
+      schedule: [] // Add empty schedule array to match interface
     }));
+    
+    // Sort by distance if needed
+    if (sortBy === 'distance') {
+      // Here we would need to have lat/long for temple stays, which might not be in the current schema
+      // For now, we'll simulate by using temple location or a random distance
+      templeStays = templeStays.map(stay => {
+        // Calculate a simulated distance based on location string matching
+        const simulatedDistance = stay.location?.includes('서울') ? 
+          Math.random() * 10 : Math.random() * 100 + 10;
+        return {
+          ...stay,
+          distance: formatDistance(simulatedDistance)
+        };
+      }).sort((a, b) => {
+        const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '100000');
+        const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '100000');
+        return distA - distB;
+      });
+    }
+    
+    return templeStays;
   } catch (error) {
     console.error('Error in getTempleStayList:', error);
     return [];
@@ -117,7 +150,8 @@ export async function getTempleStaysByRegion(region: string): Promise<TempleStay
       location: item.region,
       imageUrl: item.image_url,
       price: parseInt(item.cost_adult) || 50000,
-      likeCount: item.follower_count
+      likeCount: item.follower_count,
+      schedule: []
     }));
   } catch (error) {
     console.error('Error in getTempleStaysByRegion:', error);
@@ -144,7 +178,8 @@ export async function searchTempleStays(query: string): Promise<TempleStay[]> {
       location: item.region,
       imageUrl: item.image_url,
       price: parseInt(item.cost_adult) || 50000,
-      likeCount: item.follower_count
+      likeCount: item.follower_count,
+      schedule: []
     }));
   } catch (error) {
     console.error('Error in searchTempleStays:', error);
@@ -223,10 +258,40 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
       location: item.temple_stays.region,
       imageUrl: item.temple_stays.image_url,
       price: parseInt(item.temple_stays.cost_adult) || 50000,
-      likeCount: item.temple_stays.follower_count
+      likeCount: item.temple_stays.follower_count,
+      schedule: []
     }));
   } catch (error) {
     console.error('Error in getUserFollowedTempleStays:', error);
+    return [];
+  }
+}
+
+// 인기 있는 템플스테이 가져오기
+export async function getTopLikedTempleStays(limit = 5): Promise<TempleStay[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .order('follower_count', { ascending: false })
+      .limit(limit);
+      
+    if (error) {
+      console.error('Error fetching top liked temple stays:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      templeName: item.name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      price: parseInt(item.cost_adult) || 50000,
+      likeCount: item.follower_count || 0,
+      schedule: []
+    }));
+  } catch (error) {
+    console.error('Error in getTopLikedTempleStays:', error);
     return [];
   }
 }

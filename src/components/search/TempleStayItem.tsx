@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { MapPin, Heart } from 'lucide-react';
-import { TempleStay } from '@/utils/repository';
+import { TempleStay } from '../../public/data/templeStayData/templeStayRepository';
 
 interface TempleStayItemProps {
   templeStay: TempleStay;
@@ -34,6 +34,11 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
           <MapPin className="w-4 h-4 mr-1" />
           <span>{templeStay.location} • {templeStay.direction}</span>
         </div>
+        {templeStay.distance && (
+          <div className="text-gray-500 text-sm mb-2">
+            거리: {templeStay.distance}
+          </div>
+        )}
         <div className="text-gray-700 text-sm font-medium">
           {templeStay.price.toLocaleString()}원 / 1인
         </div>

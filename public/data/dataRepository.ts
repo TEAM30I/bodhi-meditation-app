@@ -1,3 +1,4 @@
+
 /* ------------------------------------------------------------------
  * 📦 repository.ts
  *  - 각 도메인 모듈의 데이터를 한곳에 모아 재‑export
@@ -11,16 +12,16 @@
 import {
   // Temple‑domain
   regionTags,
-  newsData,
-  nearbyTemples,
   getTempleList,
   getTempleDetail,
   searchTemples,
   filterTemplesByTag,
   followTemple,
   unfollowTemple,
+  getTopLikedTemples,
+  getNearbyTemples,
+  getUserFollowedTemples,
   type Temple,
-  type NewsItem,
 } from "./templeData/templeRepository";
 
 import {
@@ -32,6 +33,8 @@ import {
   filterTempleStaysByTag,
   followTempleStay,
   unfollowTempleStay,
+  getUserFollowedTempleStays,
+  getTempleStaysByRegion,
   type TempleStay,
 } from "./templeStayData/templeStayRepository";
 
@@ -49,12 +52,10 @@ import {
   type Bookmark,
   type ReadingProgress,
   type ScriptureColorScheme,
-} from "./scriptureData/scriptureRepository"; // 경로 수정 필요
+} from "./scriptureData/scriptureRepository";
 
 import {
   // 검색 순위
-  regionSearchRankings,
-  templeStaySearchRankings,
   getRegionSearchRankings,
   getTempleStaySearchRankings,
   addSearchTerm,
@@ -87,14 +88,15 @@ export async function getAllTempleStays(): Promise<TempleStay[]> {
 export {
   // Temple‑domain
   regionTags,
-  newsData,
-  nearbyTemples,
   getTempleList,
   getTempleDetail,
   searchTemples,
   filterTemplesByTag,
   followTemple,
   unfollowTemple,
+  getTopLikedTemples,
+  getNearbyTemples,
+  getUserFollowedTemples,
 
   // TempleStay‑domain
   locations,
@@ -104,6 +106,8 @@ export {
   filterTempleStaysByTag,
   followTempleStay,
   unfollowTempleStay,
+  getUserFollowedTempleStays,
+  getTempleStaysByRegion,
 
   // Scripture‑domain
   scriptures,
@@ -116,8 +120,6 @@ export {
   addBookmark,
 
   // 기타 공용
-  regionSearchRankings,
-  templeStaySearchRankings,
   getRegionSearchRankings,
   getTempleStaySearchRankings,
   addSearchTerm,
@@ -130,7 +132,6 @@ export {
 export type {
   Temple,
   TempleStay,
-  NewsItem,
   Scripture,
   Bookmark,
   ReadingProgress,
