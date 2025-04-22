@@ -9,10 +9,10 @@ import { ScriptureCalendarPrev } from '@/components/scripture/ScriptureCalendar_
 import { 
   getTempleList, 
   getTempleStayList, 
-  readingSchedule, 
-  scriptures,
   Temple,
-  TempleStay
+  TempleStay,
+  readingSchedule,
+  scriptures
 } from '@/utils/repository';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
@@ -30,13 +30,13 @@ const Main = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [temples, templeStays] = await Promise.all([
+        const [templesData, templeStaysData] = await Promise.all([
           getTempleList(),
           getTempleStayList()
         ]);
         
-        setRecommendedTemples(temples.slice(0, 4));
-        setRecommendedTempleStays(templeStays.slice(0, 4));
+        setRecommendedTemples(templesData.slice(0, 4));
+        setRecommendedTempleStays(templeStaysData.slice(0, 4));
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {

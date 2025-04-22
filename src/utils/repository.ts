@@ -2,6 +2,19 @@
 // Repository exports with consistent static imports
 import { supabase } from '../data/supabase_client';
 
+// We need to export all the data structures from the scriptureRepository
+// Importing directly from the data file
+import { 
+  scriptures, 
+  scriptureCategories,
+  readingSchedule,
+  bookmarks,
+  calendarData,
+  getScriptureById,
+  updateReadingProgress,
+  addBookmark
+} from '../data/scriptureData/scriptureRepository';
+
 // Export types from searchRankingRepository
 export interface SearchRanking {
   id: string;
@@ -498,4 +511,81 @@ export async function unfollowTemple(userId: string, templeId: string): Promise<
     console.error('Error in unfollowTemple:', error);
     return false;
   }
+}
+
+// Re-export all the scripture data needed
+export { 
+  scriptures, 
+  scriptureCategories,
+  readingSchedule,
+  bookmarks,
+  calendarData,
+  getScriptureById,
+  updateReadingProgress,
+  addBookmark 
+};
+
+// For temple features
+export const regionTags = [
+  { id: 'seoul', name: '서울', active: true },
+  { id: 'busan', name: '부산', active: false },
+  { id: 'gyeongju', name: '경주', active: false },
+  { id: 'jeonju', name: '전주', active: false },
+  { id: 'gangwon', name: '강원', active: false }
+];
+
+export async function getTopLikedTemples(limit: number = 5): Promise<Temple[]> {
+  const temples = await getTempleList();
+  return temples
+    .sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0))
+    .slice(0, limit);
+}
+
+export async function getNearbyTemples(latitude: number, longitude: number, limit: number = 5): Promise<Temple[]> {
+  const temples = await getTempleList();
+  return temples.slice(0, limit);
+}
+
+export async function filterTemplesByTag(tag: string): Promise<Temple[]> {
+  const temples = await getTempleList();
+  return temples.filter(temple => temple.tags?.includes(tag));
+}
+
+export async function searchTemples(query: string): Promise<Temple[]> {
+  if (!query.trim()) return [];
+  const temples = await getTempleList();
+  const lowercaseQuery = query.toLowerCase();
+  return temples.filter(temple => 
+    temple.name.toLowerCase().includes(lowercaseQuery) || 
+    temple.location.toLowerCase().includes(lowercaseQuery)
+  );
+}
+
+// For temple stay features
+export async function getTopLikedTempleStays(limit: number = 5): Promise<TempleStay[]> {
+  const templeStays = await getTempleStayList();
+  return templeStays
+    .sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0))
+    .slice(0, limit);
+}
+
+export async function filterTempleStaysByTag(tag: string): Promise<TempleStay[]> {
+  const templeStays = await getTempleStayList();
+  return templeStays.filter(stay => stay.tags?.includes(tag));
+}
+
+export async function getTempleStaysByRegion(region: string): Promise<TempleStay[]> {
+  const templeStays = await getTempleStayList();
+  if (!region || region === 'all') return templeStays;
+  return templeStays.filter(stay => stay.location.includes(region));
+}
+
+export async function searchTempleStays(query: string): Promise<TempleStay[]> {
+  if (!query.trim()) return [];
+  const templeStays = await getTempleStayList();
+  const lowercaseQuery = query.toLowerCase();
+  return templeStays.filter(stay => 
+    stay.templeName.toLowerCase().includes(lowercaseQuery) || 
+    stay.location.toLowerCase().includes(lowercaseQuery)
+  );
 }

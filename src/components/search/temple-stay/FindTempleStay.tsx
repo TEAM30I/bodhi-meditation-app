@@ -1,140 +1,196 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { 
+  getTempleStaySearchRankings,
+  getLocations,
+  getTopLikedTempleStays,
+  filterTempleStaysByTag,
+  getTempleStaysByRegion,
+  TempleStay,
+  SearchRanking
+} from '@/utils/repository';
+import { Search, ChevronRight, ArrowUp, ArrowDown, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
-import { GuestSelector } from '@/components/search/GuestSelector';
-import { typedData } from '@/utils/typeUtils';
-import { templeStaySearchRankings, locations } from '@/utils/repository';
+import { Button } from '@/components/ui/button';
+import TempleStayItem from '@/components/search/TempleStayItem';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeLocation, setActiveLocation] = useState('서울');
-  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
-  const [guestCount, setGuestCount] = useState(1);
-  
-  // Use the typedData utility to safely cast repository data
-  const typedRankings = typedData<typeof templeStaySearchRankings>(templeStaySearchRankings);
-  const typedLocations = typedData<typeof locations>(locations);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchRankings, setSearchRankings] = useState<SearchRanking[]>([]);
+  const [locations, setLocations] = useState<{ name: string; active: boolean }[]>([]);
+  const [popularTempleStays, setPopularTempleStays] = useState<TempleStay[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate(`/search/temple-stay/results?query=${searchTerm}`);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [rankingsData, locationsData, popularData] = await Promise.all([
+          getTempleStaySearchRankings(),
+          getLocations(),
+          getTopLikedTempleStays(5)
+        ]);
+        
+        setSearchRankings(rankingsData);
+        setLocations([{ name: '전체', active: true }, ...locationsData.map(loc => ({ ...loc, active: false }))]);
+        setPopularTempleStays(popularData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+
+  const handleSearch = () => {
+    if (searchKeyword.trim()) {
+      navigate(`/search/temple-stay/results?query=${encodeURIComponent(searchKeyword.trim())}`);
+    }
   };
 
-  const handleLocationClick = (location: string) => {
-    setActiveLocation(location);
-    // Update UI without navigation
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
-  const handleDateRangeChange = (range: DateRange) => {
-    setDateRange(range);
+  const handleLocationClick = async (locationName: string) => {
+    setLocations(prev => 
+      prev.map(loc => ({
+        ...loc,
+        active: loc.name === locationName
+      }))
+    );
+    
+    try {
+      setLoading(true);
+      const selectedLocation = locationName === '전체' ? '' : locationName;
+      const filteredStays = await getTempleStaysByRegion(selectedLocation);
+      setPopularTempleStays(filteredStays.slice(0, 5));
+    } catch (error) {
+      console.error('Error filtering by location:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGuestCountChange = (count: number) => {
-    setGuestCount(count);
+  const renderTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up':
+        return <ArrowUp className="w-3 h-3 text-red-500" />;
+      case 'down':
+        return <ArrowDown className="w-3 h-3 text-blue-500" />;
+      case 'new':
+        return <Sparkles className="w-3 h-3 text-yellow-500" />;
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="bg-[#F5F5F5] min-h-screen pb-16">
-      <div className="sticky top-0 z-10 bg-white px-5 py-3 border-b border-[#E5E5EC]">
-        <div className="flex items-center space-x-4">
-          <button onClick={() => navigate('/main')}>
-            <ArrowLeft className="h-6 w-6" />
-          </button>
-          <h1 className="text-lg font-bold flex-1">템플스테이 찾기</h1>
+    <div className="bg-[#F8F8F8] min-h-screen pb-20">
+      <div className="bg-white px-5 py-4 shadow-sm">
+        <div className="flex items-center bg-[#F8F8F8] rounded-full px-4 py-2">
+          <Search className="w-4 h-4 text-gray-400 mr-2" />
+          <input
+            type="text"
+            placeholder="템플스테이를 검색해보세요"
+            className="bg-transparent w-full outline-none text-sm"
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
         </div>
       </div>
 
-      <div className="px-5 pt-6">
-        <form onSubmit={handleSearchSubmit} className="relative">
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="템플스테이 검색"
-            className="w-full pl-10 pr-8 py-3 rounded-lg"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          {searchTerm && (
-            <button 
-              type="button"
-              onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2"
+      {/* 실시간 인기 검색어 */}
+      <div className="px-6 py-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">실시간 인기 검색어</h2>
+          <div className="text-xs text-gray-500">
+            {new Date().toLocaleDateString('ko-KR', {
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })} 기준
+          </div>
+        </div>
+        
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          {searchRankings.slice(0, 6).map((ranking, index) => (
+            <div 
+              key={ranking.id}
+              className="flex items-center space-x-2 cursor-pointer"
+              onClick={() => {
+                setSearchKeyword(ranking.term);
+                navigate(`/search/temple-stay/results?query=${encodeURIComponent(ranking.term)}`);
+              }}
             >
-              <X className="h-5 w-5 text-gray-400" />
-            </button>
+              <span className="w-5 text-gray-500">{index + 1}</span>
+              <span className="flex-1 truncate">{ranking.term}</span>
+              {renderTrendIcon(ranking.trend)}
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* 지역별 필터링 */}
+      <div className="px-6 py-2">
+        <div className="flex items-center mb-3">
+          <h2 className="text-lg font-bold">지역별 템플스테이</h2>
+        </div>
+        
+        <div className="flex flex-wrap gap-2 mb-5">
+          {locations.map((location, index) => (
+            <Badge 
+              key={index}
+              variant={location.active ? "default" : "outline"}
+              className={`cursor-pointer rounded-full ${location.active ? 'bg-[#DE7834]' : ''}`}
+              onClick={() => handleLocationClick(location.name)}
+            >
+              {location.name}
+            </Badge>
+          ))}
+        </div>
+      </div>
+      
+      {/* 인기 템플스테이 */}
+      <div className="px-6 py-2">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">인기 템플스테이</h2>
+          <Button 
+            variant="ghost" 
+            className="text-gray-500 p-0 h-auto"
+            onClick={() => navigate('/search/temple-stay/results')}
+          >
+            <span className="text-sm">전체보기</span>
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+        
+        <div className="space-y-4">
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#DE7834]"></div>
+            </div>
+          ) : popularTempleStays.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              해당 조건에 맞는 템플스테이가 없습니다.
+            </div>
+          ) : (
+            popularTempleStays.map((templeStay) => (
+              <TempleStayItem
+                key={templeStay.id}
+                templeStay={templeStay}
+                onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
+              />
+            ))
           )}
-        </form>
-
-        <div className="mt-6">
-          <h2 className="text-base font-semibold mb-3">인기 검색어</h2>
-          <div className="flex flex-wrap gap-2">
-            {typedRankings.map((ranking) => (
-              <Badge 
-                key={ranking.id} 
-                variant="outline" 
-                className="px-3 py-1 cursor-pointer"
-                onClick={() => setSearchTerm(ranking.term)}
-              >
-                {ranking.term}
-                {ranking.trend === 'up' && <span className="ml-1 text-red-500">↑</span>}
-                {ranking.trend === 'down' && <span className="ml-1 text-blue-500">↓</span>}
-                {ranking.trend === 'new' && <span className="ml-1 text-green-500">N</span>}
-              </Badge>
-            ))}
-          </div>
         </div>
-
-        <div className="mt-6">
-          <h2 className="text-base font-semibold mb-3">지역</h2>
-          <div className="flex flex-wrap gap-2">
-            {typedLocations.map((location, index) => (
-              <Badge 
-                key={index} 
-                variant={activeLocation === location.name ? "default" : "outline"}
-                className={`px-3 py-1 cursor-pointer ${
-                  activeLocation === location.name ? "bg-[#DE7834]" : ""
-                }`}
-                onClick={() => handleLocationClick(location.name)}
-              >
-                {location.name}
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <h2 className="text-base font-semibold mb-3">날짜</h2>
-          <div className="flex items-center space-x-2 bg-white p-3 rounded-lg border border-gray-200">
-            <span className="text-gray-600">날짜 선택</span>
-          </div>
-          <DateRangePicker 
-            dateRange={dateRange} 
-            onChange={handleDateRangeChange} 
-          />
-        </div>
-
-        <div className="mt-6">
-          <h2 className="text-base font-semibold mb-3">인원</h2>
-          <div className="flex items-center space-x-2 bg-white p-3 rounded-lg border border-gray-200">
-            <span className="text-gray-600">{guestCount}명</span>
-          </div>
-          <GuestSelector 
-            value={guestCount} 
-            onChange={handleGuestCountChange} 
-          />
-        </div>
-
-        <Button 
-          className="w-full mt-8 bg-[#DE7834] hover:bg-[#C56A2D]"
-          onClick={() => navigate(`/search/temple-stay/results?query=${searchTerm}&guests=${guestCount}`)}
-        >
-          검색하기
-        </Button>
       </div>
     </div>
   );
