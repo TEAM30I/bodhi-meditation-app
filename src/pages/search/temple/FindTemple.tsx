@@ -1,25 +1,23 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-// 레포지토리에서 필요한 함수와 타입 임포트
 import { 
   regionTags, 
   getTempleList, 
   getTopLikedTemples, 
   getNearbyTemples,
   filterTemplesByTag,
-  Temple 
-} from '../../../../public/data/templeData/templeRepository';
-import { 
-  regionSearchRankings, 
-  getRegionSearchRankings,
   addSearchTerm,
-  SearchRanking 
-} from '../../../../public/data/searchRankingRepository';
+  getRegionSearchRankings,
+  Temple,
+  SearchRanking
+} from '@/utils/repository';
 import { typedData } from '@/utils/typeUtils';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
+import { toast } from 'sonner';
 
 const FindTemple = () => {
   const navigate = useNavigate();
@@ -38,6 +36,29 @@ const FindTemple = () => {
     popular: true,
     rankings: true
   });
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+
+  // 사용자 위치 가져오기
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+        },
+        (error) => {
+          console.error('Error getting user location:', error);
+          toast.error('위치 정보를 가져올 수 없습니다.');
+          // 기본 위치 설정 (서울)
+          setUserLocation({ lat: 37.5665, lng: 126.9780 });
+        }
+      );
+    } else {
+      toast.error('이 브라우저는 위치 정보를 지원하지 않습니다.');
+      // 기본 위치 설정 (서울)
+      setUserLocation({ lat: 37.5665, lng: 126.9780 });
+    }
+  }, []);
 
   // 모든 사찰 데이터 로드
   useEffect(() => {
@@ -49,6 +70,7 @@ const FindTemple = () => {
         setLoading(prev => ({...prev, temples: false}));
       } catch (error) {
         console.error("Failed to load temples:", error);
+        toast.error("사찰 목록을 불러오는데 실패했습니다.");
         setLoading(prev => ({...prev, temples: false}));
       }
     };
@@ -56,25 +78,26 @@ const FindTemple = () => {
     loadTemples();
   }, []);
 
-  // 가까운 사찰 로드 (위치 정보 가정)
+  // 가까운 사찰 로드 (위치 정보 사용)
   useEffect(() => {
     const loadNearbyTemples = async () => {
+      if (!userLocation) return;
+      
       try {
-        // 실제 앱에서는 사용자의 위치 정보를 가져와서 사용
-        const userLat = 37.5665; // 서울 위도 (예시)
-        const userLng = 126.9780; // 서울 경도 (예시)
-        
-        const nearby = await getNearbyTemples(userLat, userLng, 5);
+        const nearby = await getNearbyTemples(userLocation.lat, userLocation.lng, 5);
         setNearbyTemples(nearby);
         setLoading(prev => ({...prev, nearby: false}));
       } catch (error) {
         console.error("Failed to load nearby temples:", error);
+        toast.error("가까운 사찰을 불러오는데 실패했습니다.");
         setLoading(prev => ({...prev, nearby: false}));
       }
     };
 
-    loadNearbyTemples();
-  }, []);
+    if (userLocation) {
+      loadNearbyTemples();
+    }
+  }, [userLocation]);
 
   // 인기 사찰 로드
   useEffect(() => {
@@ -85,6 +108,7 @@ const FindTemple = () => {
         setLoading(prev => ({...prev, popular: false}));
       } catch (error) {
         console.error("Failed to load popular temples:", error);
+        toast.error("인기 사찰을 불러오는데 실패했습니다.");
         setLoading(prev => ({...prev, popular: false}));
       }
     };
@@ -131,6 +155,7 @@ const FindTemple = () => {
       }
     } catch (error) {
       console.error("Error filtering by region:", error);
+      toast.error("지역 필터링에 실패했습니다.");
     }
   };
 
@@ -257,7 +282,7 @@ const FindTemple = () => {
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                {(!loading.nearby ? nearbyTemples : filteredTemples).slice(0, 2).map((temple) => (
+                {(!loading.nearby && nearbyTemples.length > 0 ? nearbyTemples : filteredTemples).slice(0, 2).map((temple) => (
                   <div 
                     key={temple.id} 
                     className="bg-white rounded-lg p-3 h-[120px] cursor-pointer border border-gray-200 shadow-sm"
@@ -289,13 +314,13 @@ const FindTemple = () => {
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                {(!loading.popular ? popularTemples : filteredTemples).slice(0, 4).map((temple) => (
+                {(!loading.popular && popularTemples.length > 0 ? popularTemples : filteredTemples).slice(0, 4).map((temple) => (
                   <div 
                     key={temple.id} 
                     className="bg-white rounded-lg p-3 h-[120px] cursor-pointer border border-gray-200 shadow-sm"
                     onClick={() => handleTempleClick(temple.id)}
                   >
-                    {temple.likeCount && (
+                    {temple.likeCount !== undefined && (
                       <div className="text-xs text-amber-500 mb-1 flex items-center">
                         <span className="mr-1">★</span> {temple.likeCount}
                       </div>
