@@ -334,15 +334,15 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
       return [];
     }
     
-    // Add null check and handle empty data
+    // Check if data exists and is not empty
     if (!data || data.length === 0) {
       return [];
     }
     
-    // Fix: Access each item in the data array properly
+    // Properly map each item in the data array
     return data.map(item => {
-      // Make sure item.temple_stays exists and is not an array
-      if (!item.temple_stays) {
+      // Check if temple_stays property exists on the item
+      if (!item || !item.temple_stays) {
         console.error('Missing temple_stays data for item:', item);
         return null;
       }

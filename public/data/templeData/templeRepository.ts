@@ -373,14 +373,15 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
       return [];
     }
     
-    // Fix: Access each item in the data array properly
+    // Check if data exists and is not empty
     if (!data || data.length === 0) {
       return [];
     }
     
+    // Properly map each item in the data array
     return data.map(item => {
-      // Make sure item.temples exists and is not an array
-      if (!item.temples) {
+      // Check if temples property exists on the item
+      if (!item || !item.temples) {
         console.error('Missing temples data for item:', item);
         return null;
       }
