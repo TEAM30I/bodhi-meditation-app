@@ -11,7 +11,7 @@ interface TempleStayItemProps {
 const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) => {
   return (
     <div 
-      className="bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer"
+      className="bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-all"
       onClick={onClick}
     >
       <div className="relative">

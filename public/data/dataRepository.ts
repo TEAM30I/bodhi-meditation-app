@@ -21,6 +21,7 @@ import {
   getTopLikedTemples,
   getNearbyTemples,
   getUserFollowedTemples,
+  getTopRegions,
   type Temple,
 } from "./templeData/templeRepository";
 
@@ -35,6 +36,7 @@ import {
   unfollowTempleStay,
   getUserFollowedTempleStays,
   getTempleStaysByRegion,
+  getTopLikedTempleStays,
   type TempleStay,
 } from "./templeStayData/templeStayRepository";
 
@@ -53,14 +55,6 @@ import {
   type ReadingProgress,
   type ScriptureColorScheme,
 } from "./scriptureData/scriptureRepository";
-
-import {
-  // 검색 순위
-  getRegionSearchRankings,
-  getTempleStaySearchRankings,
-  addSearchTerm,
-  type SearchRanking,
-} from "./searchRankingRepository";
 
 // 이미지 Repository는 경로 수정 필요
 import { imageRepository } from "./image/imageRepository";
@@ -97,6 +91,7 @@ export {
   getTopLikedTemples,
   getNearbyTemples,
   getUserFollowedTemples,
+  getTopRegions,
 
   // TempleStay‑domain
   locations,
@@ -108,6 +103,7 @@ export {
   unfollowTempleStay,
   getUserFollowedTempleStays,
   getTempleStaysByRegion,
+  getTopLikedTempleStays,
 
   // Scripture‑domain
   scriptures,
@@ -120,9 +116,6 @@ export {
   addBookmark,
 
   // 기타 공용
-  getRegionSearchRankings,
-  getTempleStaySearchRankings,
-  addSearchTerm,
   imageRepository,
 };
 
@@ -135,6 +128,5 @@ export type {
   Scripture,
   Bookmark,
   ReadingProgress,
-  SearchRanking,
   ScriptureColorScheme,
 };

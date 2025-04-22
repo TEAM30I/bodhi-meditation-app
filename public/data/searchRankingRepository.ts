@@ -1,149 +1,115 @@
 
 import { supabase } from './supabase_client';
 
-export interface SearchRanking {
-  id: string;
-  term: string;
-  count: number;
-  trend: 'up' | 'down' | 'stable';
-}
-
-// 지역 검색 순위 가져오기 - 기반 데이터 사용
-export async function getRegionSearchRankings(): Promise<SearchRanking[]> {
+/**
+ * Get region search rankings by combining follower_count and search_count from the temples table
+ */
+export async function getRegionSearchRankings(limit = 8): Promise<{name: string, count: number}[]> {
   try {
     const { data, error } = await supabase
-      .from('search_history')
-      .select('id, temples!inner(*)')
-      .order('searched_at', { ascending: false })
-      .limit(100);
-
+      .from('temples')
+      .select('region, follower_count, search_count');
+      
     if (error) {
-      console.error('Error fetching region search rankings:', error);
+      console.error('Error fetching region rankings:', error);
       return [];
     }
-
-    // Group by region and count occurrences
-    const regionCounts = new Map<string, number>();
-    const regionIds = new Map<string, string>();
-
-    data.forEach(item => {
-      if (!item.temples || !item.temples.region) return;
-      
-      const region = item.temples.region.split(' ')[0]; // Extract first word (e.g., "서울특별시" -> "서울")
-      const count = regionCounts.get(region) || 0;
-      
-      regionCounts.set(region, count + 1);
-      regionIds.set(region, item.id); // Use search history id
-    });
-
-    // Convert to array, sort by count, and format as SearchRanking
-    return Array.from(regionCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([region, count], index) => ({
-        id: regionIds.get(region) || `r${index}`,
-        term: region,
-        count,
-        trend: 'up' // Assuming trend is up for now since we don't have historical data
-      }));
+    
+    // Group by region and sum the follower and search counts
+    const regions = data.reduce((acc, temple) => {
+      if (temple.region) {
+        if (!acc[temple.region]) {
+          acc[temple.region] = {
+            count: 0
+          };
+        }
+        
+        acc[temple.region].count += (temple.follower_count || 0) + (temple.search_count || 0);
+      }
+      return acc;
+    }, {} as Record<string, {count: number}>);
+    
+    // Convert to array and sort
+    return Object.entries(regions)
+      .map(([name, data]) => ({
+        name,
+        count: data.count
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
   } catch (error) {
     console.error('Error in getRegionSearchRankings:', error);
     return [];
   }
 }
 
-// 템플스테이 검색 순위 가져오기 - 기반 데이터 사용
-export async function getTempleStaySearchRankings(): Promise<SearchRanking[]> {
+/**
+ * Get temple stay search rankings by combining follower_count and search_count from the temple_stays table
+ */
+export async function getTempleStaySearchRankings(limit = 8): Promise<{name: string, count: number}[]> {
   try {
     const { data, error } = await supabase
-      .from('search_stay_history')
-      .select('id, temple_stays!inner(*)')
-      .order('searched_at', { ascending: false })
-      .limit(100);
-
+      .from('temple_stays')
+      .select('region, follower_count, search_count');
+      
     if (error) {
-      console.error('Error fetching temple stay search rankings:', error);
+      console.error('Error fetching temple stay rankings:', error);
       return [];
     }
-
-    // Group by region and count occurrences
-    const regionCounts = new Map<string, number>();
-    const regionIds = new Map<string, string>();
-
-    data.forEach(item => {
-      if (!item.temple_stays || !item.temple_stays.region) return;
-      
-      const region = item.temple_stays.region.split(' ')[0]; // Extract first word
-      const count = regionCounts.get(region) || 0;
-      
-      regionCounts.set(region, count + 1);
-      regionIds.set(region, item.id); // Use search history id
-    });
-
-    // Convert to array, sort by count, and format as SearchRanking
-    return Array.from(regionCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([region, count], index) => ({
-        id: regionIds.get(region) || `ts${index}`,
-        term: region,
-        count,
-        trend: 'up' // Assuming trend is up for now
-      }));
+    
+    // Group by region and sum the follower and search counts
+    const regions = data.reduce((acc, templeStay) => {
+      if (templeStay.region) {
+        if (!acc[templeStay.region]) {
+          acc[templeStay.region] = {
+            count: 0
+          };
+        }
+        
+        acc[templeStay.region].count += (templeStay.follower_count || 0) + (templeStay.search_count || 0);
+      }
+      return acc;
+    }, {} as Record<string, {count: number}>);
+    
+    // Convert to array and sort
+    return Object.entries(regions)
+      .map(([name, data]) => ({
+        name,
+        count: data.count
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
   } catch (error) {
     console.error('Error in getTempleStaySearchRankings:', error);
     return [];
   }
 }
 
-// 검색어 추가 함수
-export async function addSearchTerm(term: string, category: 'region' | 'temple_stay', entityId?: string): Promise<boolean> {
+/**
+ * Add a search term to the database to track popularity
+ */
+export async function addSearchTerm(term: string, type: 'temple' | 'temple-stay'): Promise<void> {
+  // Note: This functionality would normally update the search_count in the respective tables
+  // For now, this is a placeholder for future implementation
   try {
-    if (category === 'region' && entityId) {
-      // Add to temple search history
-      const { error } = await supabase
-        .from('search_history')
-        .insert({ temple_id: entityId });
-        
-      if (error) {
-        console.error('Error adding temple search history:', error);
-        return false;
-      }
-      
-      // Increment search count for the temple
-      const { error: updateError } = await supabase
+    if (type === 'temple') {
+      await supabase
         .from('temples')
-        .update({ search_count: supabase.rpc('increment', { row_id: entityId }) })
-        .eq('id', entityId);
-        
-      if (updateError) {
-        console.error('Error updating temple search count:', updateError);
-      }
-    } else if (category === 'temple_stay' && entityId) {
-      // Add to temple stay search history
-      const { error } = await supabase
-        .from('search_stay_history')
-        .insert({ temple_stay_id: entityId });
-        
-      if (error) {
-        console.error('Error adding temple stay search history:', error);
-        return false;
-      }
-      
-      // Increment search count for the temple stay
-      const { error: updateError } = await supabase
+        .update({ search_count: supabase.rpc('increment', { row_id: term }) })
+        .eq('name', term);
+    } else {
+      await supabase
         .from('temple_stays')
-        .update({ search_count: supabase.rpc('increment', { row_id: entityId }) })
-        .eq('id', entityId);
-        
-      if (updateError) {
-        console.error('Error updating temple stay search count:', updateError);
-      }
+        .update({ search_count: supabase.rpc('increment', { row_id: term }) })
+        .eq('name', term);
     }
-    
-    return true;
   } catch (error) {
-    console.error('Error in addSearchTerm:', error);
-    return false;
+    console.error('Error recording search term:', error);
   }
+}
+
+export interface SearchRanking {
+  id: string;
+  name: string;
+  count: number;
 }

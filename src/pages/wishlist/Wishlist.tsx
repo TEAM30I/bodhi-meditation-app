@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Temple } from '@/types/temple';
 import { TempleStay } from '@/types/templeStay';
+import { getUserFollowedTemples, getUserFollowedTempleStays } from '@/utils/repository';
 
 const Wishlist = () => {
   const { user } = useAuth();
@@ -26,48 +27,13 @@ const Wishlist = () => {
           // Use a default ID if user.id is not available
           const userId = user.id || 'anonymous';
           
-          // Fetch temples directly from Supabase
-          const templesResponse = await supabase
-            .from('user_follow_temples')
-            .select('temple_id, temples(*)')
-            .eq('user_id', userId);
-            
-          const templeStaysResponse = await supabase
-            .from('user_follow_temple_stays')
-            .select('temple_stay_id, temple_stays(*)')
-            .eq('user_id', userId);
+          const [templesData, templeStaysData] = await Promise.all([
+            getUserFollowedTemples(userId),
+            getUserFollowedTempleStays(userId)
+          ]);
           
-          if (templesResponse.error) {
-            console.error("Error fetching temples:", templesResponse.error);
-          } else {
-            const templesData = templesResponse.data.map(item => ({
-              id: item.temples.id,
-              name: item.temples.name,
-              location: item.temples.region,
-              imageUrl: item.temples.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
-              description: item.temples.description,
-              likeCount: item.temples.follower_count,
-              latitude: item.temples.latitude,
-              longitude: item.temples.longitude
-            }));
-            setTemples(templesData);
-          }
-          
-          if (templeStaysResponse.error) {
-            console.error("Error fetching temple stays:", templeStaysResponse.error);
-          } else {
-            const templeStaysData = templeStaysResponse.data.map(item => ({
-              id: item.temple_stays.id,
-              templeName: item.temple_stays.name,
-              location: item.temple_stays.region,
-              imageUrl: item.temple_stays.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-              price: parseInt(item.temple_stays.cost_adult) || 50000,
-              likeCount: item.temple_stays.follower_count || 0,
-              direction: item.temple_stays.public_transportation || "대중교통 이용 가능",
-              schedule: []
-            }));
-            setTempleStays(templeStaysData);
-          }
+          setTemples(templesData);
+          setTempleStays(templeStaysData);
         } catch (error) {
           console.error("Error fetching wishlist:", error);
         } finally {

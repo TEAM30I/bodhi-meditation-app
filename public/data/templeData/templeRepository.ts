@@ -1,3 +1,4 @@
+
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -355,6 +356,79 @@ export async function getNearbyTemples(
       .slice(0, limit);
   } catch (error) {
     console.error('Error in getNearbyTemples:', error);
+    return [];
+  }
+}
+
+// Get user followed temples
+export async function getUserFollowedTemples(userId: string): Promise<Temple[]> {
+  try {
+    const { data, error } = await supabase
+      .from('user_follow_temples')
+      .select('temple_id, temples(*)')
+      .eq('user_id', userId);
+      
+    if (error) {
+      console.error('Error fetching user followed temples:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.temples.id,
+      name: item.temples.name,
+      location: item.temples.region,
+      imageUrl: item.temples.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      description: item.temples.description,
+      likeCount: item.temples.follower_count,
+      direction: item.temples.address,
+      latitude: item.temples.latitude,
+      longitude: item.temples.longitude
+    }));
+  } catch (error) {
+    console.error('Error in getUserFollowedTemples:', error);
+    return [];
+  }
+}
+
+// Get top regions
+export async function getTopRegions(limit = 8): Promise<{name: string, count: number}[]> {
+  try {
+    const { data: templeData, error: templeError } = await supabase
+      .from('temples')
+      .select('region, follower_count, search_count');
+      
+    if (templeError) {
+      console.error('Error fetching temple regions:', templeError);
+      return [];
+    }
+    
+    // Group by region and sum follower_count and search_count
+    const regionCounts = templeData.reduce((acc, temple) => {
+      if (temple.region) {
+        if (!acc[temple.region]) {
+          acc[temple.region] = {
+            followerCount: 0,
+            searchCount: 0
+          };
+        }
+        acc[temple.region].followerCount += temple.follower_count || 0;
+        acc[temple.region].searchCount += temple.search_count || 0;
+      }
+      return acc;
+    }, {} as Record<string, {followerCount: number, searchCount: number}>);
+    
+    // Transform to array and sort by combined count
+    const result = Object.entries(regionCounts)
+      .map(([name, counts]) => ({
+        name,
+        count: counts.followerCount + counts.searchCount
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
+    
+    return result;
+  } catch (error) {
+    console.error('Error in getTopRegions:', error);
     return [];
   }
 }

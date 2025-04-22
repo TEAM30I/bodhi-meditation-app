@@ -15,8 +15,8 @@ import { ko } from 'date-fns/locale';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
 import { getCurrentLocation } from '@/utils/locationUtils';
-import { Temple } from '../../public/data/templeData/templeRepository';
-import { TempleStay } from '../../public/data/templeStayData/templeStayRepository';
+import { Temple } from '@/types/temple';
+import { TempleStay } from '@/types/templeStay';
 
 const SearchHome = () => {
   const navigate = useNavigate();
