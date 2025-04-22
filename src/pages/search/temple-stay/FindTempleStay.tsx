@@ -13,19 +13,18 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 // 레포지토리에서 필요한 함수와 타입 임포트
 import { 
-  locations, 
+  getLocations, 
   getTempleStayList, 
   getTopLikedTempleStays, 
   filterTempleStaysByTag,
   getTempleStaysByRegion,
   TempleStay 
-} from '../../../../public/data/templeStayData/templeStayRepository';
+} from '@/utils/repository';
 import { 
-  templeStaySearchRankings, 
   getTempleStaySearchRankings,
   addSearchTerm,
-  SearchRanking 
-} from '../../../../public/data/searchRankingRepository';
+  type SearchRanking 
+} from '@/utils/repository';
 import { typedData } from '@/utils/typeUtils';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { tomorrow, dayAfterTomorrow, fmt } from '@/utils/dateUtils';
@@ -50,14 +49,38 @@ const FindTempleStay: React.FC = () => {
   const [popularTempleStays, setPopularTempleStays] = useState<TempleStay[]>([]);
   const [filteredTempleStays, setFilteredTempleStays] = useState<TempleStay[]>([]);
   const [searchRankings, setSearchRankings] = useState<SearchRanking[]>([]);
+  const [locations, setLocations] = useState<{name: string; active: boolean}[]>([]);
   const [loading, setLoading] = useState({
     templeStays: true,
     popular: true,
     rankings: true,
-    filtered: false
+    filtered: false,
+    locations: true
   });
 
   /* ──────────────── 데이터 로드 ──────────────── */
+  // 지역 데이터 로드
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        const locationData = await getLocations();
+        setLocations(locationData);
+        setLoading(prev => ({...prev, locations: false}));
+      } catch (error) {
+        console.error("Failed to load locations:", error);
+        // 기본 지역 데이터 설정
+        setLocations([
+          { name: '서울', active: true },
+          { name: '경주', active: false },
+          { name: '부산', active: false }
+        ]);
+        setLoading(prev => ({...prev, locations: false}));
+      }
+    };
+
+    loadLocations();
+  }, []);
+
   // 모든 템플스테이 데이터 로드
   useEffect(() => {
     const loadTempleStays = async () => {
@@ -368,7 +391,7 @@ const FindTempleStay: React.FC = () => {
 /* ───────────── 재사용 섹션 컴포넌트 ───────────── */
 interface SectionProps {
 title: string;
-locations: typeof locations;
+locations: {name: string; active: boolean}[];
 activeRegion: string;
 onRegionClick: (r: string) => void;
 onMore: () => void;
