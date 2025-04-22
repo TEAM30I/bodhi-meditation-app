@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusBar from '@/components/login/StatusBar';
@@ -6,6 +5,8 @@ import BackButton from '@/components/login/BackButton';
 import InputField from '@/components/login/InputField';
 import AuthButton from '@/components/login/AuthButton';
 import { useToast } from '@/hooks/use-toast';
+import { sendVerificationCode, verifyCode, getVerificationTimeRemaining } from '@/services/smsService';
+import { supabase } from '@/lib/supabase'; // Assuming you have supabase configured
 
 const FindId: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const FindId: React.FC = () => {
   const [foundUsername, setFoundUsername] = useState('');
   const [showResult, setShowResult] = useState(false);
   
+  // Timer for verification code
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
@@ -31,39 +33,57 @@ const FindId: React.FC = () => {
     };
   }, [timeLeft]);
   
+  // Check remaining time on component mount
+  useEffect(() => {
+    const checkRemainingTime = async () => {
+      const remaining = await getVerificationTimeRemaining();
+      if (remaining > 0) {
+        setTimeLeft(remaining);
+        setShowVerification(true);
+      }
+    };
+    
+    checkRemainingTime();
+  }, []);
+  
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' + secs : secs}`;
   };
   
-  const sendVerificationCode = () => {
+  const sendVerificationSMS = async () => {
     if (!phone) {
-      <InputField
-          type="tel"
-          label="전화번호"
-          placeholder="전화번호를 입력해 주세요"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          icon="phone"
-          rightElement={<SendCodeButton />}
-        />
+      toast({
+        title: "오류",
+        description: "전화번호를 입력해주세요.",
+        variant: "destructive"
+      });
       return;
     }
     
-    // Start countdown timer for 3 minutes (180 seconds)
-    setTimeLeft(180);
-    
-    // Generate random 4 digit code
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    console.log("Verification code:", code); // In real app, send via SMS
-    
-    toast({
-      title: "인증번호 발송",
-      description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
-    });
-    
-    setShowVerification(true);
+    try {
+      setIsLoading(true);
+      await sendVerificationCode(phone);
+      
+      // Set timeout for 3 minutes
+      setTimeLeft(180);
+      setShowVerification(true);
+      
+      toast({
+        title: "인증번호 발송",
+        description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
+      });
+    } catch (error: any) {
+      console.error('Error sending verification code:', error);
+      toast({
+        title: "인증번호 발송 실패",
+        description: error.message || "인증번호 발송 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const verifyAndFindId = async () => {
@@ -97,16 +117,42 @@ const FindId: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // In a real app, verify the code against Cognito or your SMS provider
-      // Here we're simulating finding a user by phone number
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Verify the code
+      const isVerified = await verifyCode(verificationCode);
       
-      // Simulate found username
-      const mockUsername = "bodhi_user" + Math.floor(Math.random() * 100);
-      setFoundUsername(mockUsername);
-      setShowResult(true);
+      if (!isVerified) {
+        toast({
+          title: "인증 실패",
+          description: "유효하지 않은 인증번호입니다.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
       
+      // Find the user by phone number in the database
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('phone', phone.replace(/[^\d]/g, ''))
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        setFoundUsername(data.username);
+        setShowResult(true);
+      } else {
+        toast({
+          title: "사용자 찾기 실패",
+          description: "해당 전화번호로 가입된 계정이 없습니다.",
+          variant: "destructive"
+        });
+      }
     } catch (error: any) {
+      console.error('Error finding ID:', error);
       toast({
         title: "오류",
         description: "아이디 찾기 중 문제가 발생했습니다.",
@@ -120,9 +166,10 @@ const FindId: React.FC = () => {
   // Send code button component for phone verification
   const SendCodeButton = () => (
     <button
-      onClick={sendVerificationCode}
+      onClick={sendVerificationSMS}
       className="text-white text-sm bg-app-orange px-4 py-1 rounded-md"
-      disabled={timeLeft > 0}
+      disabled={isLoading || timeLeft > 0}
+      type="button"
     >
       {timeLeft > 0 ? "재발송" : "인증코드 발송"}
     </button>

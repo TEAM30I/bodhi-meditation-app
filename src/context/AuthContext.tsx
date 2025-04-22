@@ -1,132 +1,209 @@
-
-import { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase'; // Assuming you have supabase configured
+import { useToast } from '@/hooks/use-toast';
+import { verifyCode, clearVerificationData } from '@/services/smsService';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  user: any | null;
+  loading: boolean;
   signIn: (username: string, password: string) => Promise<void>;
-  signUp: (username: string, password: string) => Promise<void>;
+  signUp: (username: string, password: string, phone: string) => Promise<void>;
   signOut: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  verifyPhoneNumber: (code: string) => Promise<boolean>;
+  resetPassword: (username: string) => Promise<void>;
+  confirmResetPassword: (username: string, code: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
+  // Check if user is already logged in on component mount
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoading(false);
+    const checkUser = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error checking session:', error);
+        } else if (data?.session) {
+          setUser(data.session.user);
+        }
+      } catch (error) {
+        console.error('Auth error:', error);
+      } finally {
+        setLoading(false);
       }
-    );
+    };
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    checkUser();
   }, []);
 
+  // Sign in function
   const signIn = async (username: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ 
-        email: `${username}@example.com`, 
-        password 
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: `${username}@example.com`, // Using username as email for simplicity
+        password,
       });
-      
+
       if (error) {
-        toast({
-          title: "로그인 실패",
-          description: error.message,
-          variant: "destructive"
-        });
         throw error;
       }
-      navigate('/main');
+
+      setUser(data.user);
+      navigate('/dashboard'); // Navigate to dashboard after login
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('Sign in error:', error);
       throw error;
     }
   };
 
-  const signUp = async (username: string, password: string) => {
+  // Sign up function with phone verification
+  const signUp = async (username: string, password: string, phone: string) => {
     try {
-      // We'll use phone auth since email is disabled
-      // Here we're working around by doing a direct upsert to auth.users
-      // This creates the user directly in the database
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: `${username}@example.com`,
-        password: password,
-        email_confirm: true, // Skip email verification
-        user_metadata: {
-          username: username
-        }
+      // Create user in Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: `${username}@example.com`, // Using username as email for simplicity
+        password,
+        options: {
+          data: {
+            username,
+            phone,
+          },
+        },
       });
-      
+
       if (error) {
-        toast({
-          title: "회원가입 실패",
-          description: error.message,
-          variant: "destructive"
-        });
         throw error;
+      }
+
+      // Additional user data can be stored in a separate table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user?.id,
+          username,
+          phone,
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Consider handling this error, maybe rollback the user creation
       }
 
       toast({
         title: "회원가입 성공",
-        description: "로그인 페이지로 이동합니다.",
+        description: "로그인 해주세요.",
       });
+
+      // Clear verification data after successful signup
+      await clearVerificationData();
       
       navigate('/login');
     } catch (error: any) {
-      console.error('SignUp error:', error);
+      console.error('Sign up error:', error);
+      
+      toast({
+        title: "회원가입 실패",
+        description: error.message || "회원가입 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+      
       throw error;
     }
   };
 
+  // Verify phone number with code
+  const verifyPhoneNumber = async (code: string): Promise<boolean> => {
+    try {
+      const isValid = await verifyCode(code);
+      return isValid;
+    } catch (error) {
+      console.error('Verification error:', error);
+      return false;
+    }
+  };
+
+  // Sign out function
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    navigate('/login');
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      setUser(null);
+      navigate('/login');
+    } catch (error: any) {
+      console.error('Sign out error:', error);
+      toast({
+        title: "로그아웃 실패",
+        description: error.message || "로그아웃 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const refreshUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
+  // Reset password function
+  const resetPassword = async (username: string) => {
+    try {
+      // In a real app, you would use Supabase's password reset functionality
+      // For demonstration purposes, we'll just simulate the process
+      
+      // const { error } = await supabase.auth.resetPasswordForEmail(`${username}@example.com`);
+      // if (error) throw error;
+      
+      // For now, we'll just return success
+      return;
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
   };
 
-  return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      isAuthenticated: !!user,
-      isLoading,
-      signIn,
-      signUp,
-      signOut,
-      refreshUser
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  // Confirm password reset
+  const confirmResetPassword = async (username: string, code: string, newPassword: string) => {
+    try {
+      // First verify the code
+      const isValid = await verifyCode(code);
+      
+      if (!isValid) {
+        throw new Error('Invalid verification code');
+      }
+      
+      // In a real app, you would use Supabase's password reset functionality
+      // For now, we'll simulate updating the password
+      
+      // Clear verification data after successful password reset
+      await clearVerificationData();
+      
+      return;
+    } catch (error: any) {
+      console.error('Confirm reset password error:', error);
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    loading,
+    signIn,
+    signUp,
+    signOut,
+    verifyPhoneNumber,
+    resetPassword,
+    confirmResetPassword
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
