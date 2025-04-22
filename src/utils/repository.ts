@@ -105,9 +105,27 @@ export interface ScriptureColorScheme {
 }
 
 export interface SearchRanking {
+  id: string;
   term: string;
   count: number;
+  trend: 'up' | 'down' | 'new' | 'same';
 }
+
+// Static data
+export const regionTags = [
+  { id: "seoul", name: "서울", active: true },
+  { id: "gyeongju", name: "경주", active: false },
+  { id: "busan", name: "부산", active: false },
+  { id: "hapcheon", name: "합천", active: false },
+  { id: "yangsan", name: "양산", active: false },
+  { id: "suncheon", name: "순천", active: false }
+];
+
+export const scriptures: Record<string, Scripture> = {};
+export const scriptureCategories = [];
+export const readingSchedule = [];
+export const bookmarks: Bookmark[] = [];
+export const calendarData = [];
 
 // Temple related functions - these will be implemented with direct Supabase calls
 // For now they return empty arrays or placeholders to prevent errors
@@ -153,6 +171,17 @@ export const unfollowTemple = async (userId: string, templeId: string): Promise<
   return true;
 };
 
+// New temple functions to address errors
+export const getTopLikedTemples = async (limit: number = 5): Promise<Temple[]> => {
+  console.log(`getTopLikedTemples called with limit: ${limit} - implement with direct Supabase call`);
+  return [];
+};
+
+export const getNearbyTemples = async (lat: number, lng: number, limit: number = 5): Promise<Temple[]> => {
+  console.log(`getNearbyTemples called with lat: ${lat}, lng: ${lng}, limit: ${limit} - implement with direct Supabase call`);
+  return [];
+};
+
 // Temple Stay related functions
 export const getTempleStayList = async (): Promise<TempleStay[]> => {
   console.log('getTempleStayList called - implement with direct Supabase call');
@@ -196,21 +225,41 @@ export const unfollowTempleStay = async (userId: string, templeStayId: string): 
   return true;
 };
 
+// New temple stay functions to address errors
+export const getLocations = async (): Promise<{name: string; active: boolean}[]> => {
+  console.log('getLocations called - implement with direct Supabase call');
+  return [
+    { name: '서울', active: true },
+    { name: '경주', active: false },
+    { name: '부산', active: false }
+  ];
+};
+
+export const getTopLikedTempleStays = async (limit: number = 5): Promise<TempleStay[]> => {
+  console.log(`getTopLikedTempleStays called with limit: ${limit} - implement with direct Supabase call`);
+  return [];
+};
+
+export const getTempleStaysByRegion = async (region: string): Promise<TempleStay[]> => {
+  console.log(`getTempleStaysByRegion called for region: ${region} - implement with direct Supabase call`);
+  return [];
+};
+
 // 임시 검색 순위 데이터 (실제 데이터베이스 함수 구현 전까지 사용)
 const tempRegionSearchRankings: SearchRanking[] = [
-  { term: '서울', count: 120 },
-  { term: '부산', count: 95 },
-  { term: '경주', count: 88 },
-  { term: '강원도', count: 76 },
-  { term: '전주', count: 62 },
+  { id: "1", term: '서울', count: 120, trend: 'same' },
+  { id: "2", term: '부산', count: 95, trend: 'up' },
+  { id: "3", term: '경주', count: 88, trend: 'down' },
+  { id: "4", term: '강원도', count: 76, trend: 'same' },
+  { id: "5", term: '전주', count: 62, trend: 'new' },
 ];
 
 const tempTempleStaySearchRankings: SearchRanking[] = [
-  { term: '템플라이프', count: 85 },
-  { term: '휴식형', count: 72 },
-  { term: '명상', count: 65 },
-  { term: '체험형', count: 54 },
-  { term: '당일형', count: 47 },
+  { id: "1", term: '템플라이프', count: 85, trend: 'up' },
+  { id: "2", term: '휴식형', count: 72, trend: 'same' },
+  { id: "3", term: '명상', count: 65, trend: 'down' },
+  { id: "4", term: '체험형', count: 54, trend: 'new' },
+  { id: "5", term: '당일형', count: 47, trend: 'same' },
 ];
 
 // 검색 순위 관련 함수들 (임시 데이터 반환)
@@ -245,4 +294,37 @@ export const addSearchTerm = async (
   } catch (error) {
     console.error('Error recording search term:', error);
   }
+};
+
+// Scripture related functions
+export const getScriptureById = (id: string): Scripture | undefined => {
+  console.log(`getScriptureById called for id: ${id}`);
+  return undefined;
+};
+
+export const updateReadingProgress = (
+  scriptureId: string, 
+  progress: number, 
+  chapterId: string, 
+  pageIndex: number
+): void => {
+  console.log(`updateReadingProgress called for scriptureId: ${scriptureId}`);
+};
+
+export const addBookmark = (
+  userId: string, 
+  scriptureId: string, 
+  chapterId: string, 
+  pageIndex: number, 
+  title: string
+): Bookmark => {
+  console.log(`addBookmark called for scriptureId: ${scriptureId}`);
+  return {
+    id: 'temp-id',
+    scriptureId,
+    chapterId,
+    pageIndex,
+    title,
+    date: new Date().toISOString()
+  };
 };
