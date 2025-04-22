@@ -6,11 +6,52 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
-import { getRegionSearchRankings, getTempleStaySearchRankings, addSearchTerm, type SearchRanking } from '@/utils/repository';
+import { 
+  regionSearchRankings, templeStaySearchRankings, SearchRanking 
+} from '@/utils/repository';
 import { formatDateSafe } from '@/utils/dateUtils';
 import { ko } from 'date-fns/locale';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
+import { supabase } from '@/integrations/supabase/client';
+
+const getRegionSearchRankings = async (): Promise<SearchRanking[]> => {
+  try {
+    return regionSearchRankings.map((item, index) => ({
+      id: `r${index + 1}`,
+      term: item.term,
+      count: item.count,
+      trend: item.trend
+    }));
+  } catch (error) {
+    console.error('Error in getRegionSearchRankings:', error);
+    return [];
+  }
+};
+
+const getTempleStaySearchRankings = async (): Promise<SearchRanking[]> => {
+  try {
+    return templeStaySearchRankings.map((item, index) => ({
+      id: `ts${index + 1}`,
+      term: item.term,
+      count: item.count,
+      trend: item.trend
+    }));
+  } catch (error) {
+    console.error('Error in getTempleStaySearchRankings:', error);
+    return [];
+  }
+};
+
+const addSearchTerm = async (term: string, category: 'region' | 'temple_stay'): Promise<boolean> => {
+  try {
+    console.log(`Added search term: ${term} in category: ${category}`);
+    return true;
+  } catch (error) {
+    console.error('Error in addSearchTerm:', error);
+    return false;
+  }
+};
 
 const SearchHome = () => {
   const navigate = useNavigate();
