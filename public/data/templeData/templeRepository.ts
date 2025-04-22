@@ -1,3 +1,4 @@
+
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -28,16 +29,6 @@ export interface Temple {
   latitude?: number;
   longitude?: number;
 }
-
-// Keep regionTags as it's used for UI filtering
-export const regionTags = [
-  { id: "seoul", name: "서울", active: true },
-  { id: "gyeongju", name: "경주", active: false },
-  { id: "busan", name: "부산", active: false },
-  { id: "hapcheon", name: "합천", active: false },
-  { id: "yangsan", name: "양산", active: false },
-  { id: "suncheon", name: "순천", active: false }
-];
 
 // 정렬 유형
 export type TempleSort = 'popular' | 'recent' | 'distance';
@@ -376,22 +367,24 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
     if (!data || data.length === 0) {
       return [];
     }
-    
-    // Properly map each item in the data array
-    return data.filter(item => item && item.temples).map(item => {
-      const temple = item.temples;
-      return {
-        id: temple.id,
-        name: temple.name,
-        location: temple.region,
-        imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
-        description: temple.description,
-        likeCount: temple.follower_count,
-        direction: temple.address,
-        latitude: temple.latitude,
-        longitude: temple.longitude
-      };
-    });
+
+    // 확인 후 매핑 - 각 항목이 단일 객체이므로 멤버 변수로 접근
+    return data
+      .filter(item => item && item.temples) // 유효한 데이터만 필터링
+      .map(item => {
+        const temple = item.temples; // temple 객체에 접근
+        return {
+          id: temple.id,
+          name: temple.name,
+          location: temple.region,
+          imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+          description: temple.description,
+          likeCount: temple.follower_count,
+          direction: temple.address,
+          latitude: temple.latitude,
+          longitude: temple.longitude
+        };
+      });
   } catch (error) {
     console.error('Error in getUserFollowedTemples:', error);
     return [];

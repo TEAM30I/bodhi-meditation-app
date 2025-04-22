@@ -1,3 +1,4 @@
+
 // TempleStay Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -35,16 +36,6 @@ export interface TempleStay {
     email?: string;
   };
 }
-
-// Locations for filtering (will be fetched from API)
-export const locations = [
-  "서울",
-  "경주",
-  "부산",
-  "합천",
-  "양산",
-  "순천"
-];
 
 // Sort types
 export type TempleStaySort = 'popular' | 'recent' | 'price-asc' | 'price-desc' | 'distance';
@@ -338,19 +329,21 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
       return [];
     }
     
-    // Properly filter and map each item in the data array
-    return data.filter(item => item && item.temple_stays).map(item => {
-      const templeStay = item.temple_stays;
-      return {
-        id: templeStay.id,
-        templeName: templeStay.name,
-        location: templeStay.region,
-        imageUrl: templeStay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-        price: parseInt(templeStay.cost_adult) || 50000,
-        likeCount: templeStay.follower_count,
-        direction: templeStay.public_transportation
-      };
-    });
+    // 확인 후 매핑 - 각 항목이 단일 객체이므로 멤버 변수로 접근
+    return data
+      .filter(item => item && item.temple_stays) // 유효한 데이터만 필터링
+      .map(item => {
+        const templeStay = item.temple_stays; // temple_stays 객체에 접근 
+        return {
+          id: templeStay.id,
+          templeName: templeStay.name,
+          location: templeStay.region,
+          imageUrl: templeStay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+          price: parseInt(templeStay.cost_adult) || 50000,
+          likeCount: templeStay.follower_count,
+          direction: templeStay.public_transportation
+        };
+      });
   } catch (error) {
     console.error('Error in getUserFollowedTempleStays:', error);
     return [];
