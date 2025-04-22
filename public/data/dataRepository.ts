@@ -11,7 +11,6 @@
 // 모든 import를 상대 경로로 변경하여 빌드 에러 해결
 import {
   // Temple‑domain
-  regionTags,
   getTempleList,
   getTempleDetail,
   searchTemples,
@@ -22,12 +21,13 @@ import {
   getNearbyTemples,
   getUserFollowedTemples,
   getTopRegions,
+  getTempleRegions,
   type Temple,
+  type TempleSort
 } from "./templeData/templeRepository";
 
 import {
   // TempleStay‑domain
-  locations,
   getTempleStayList,
   getTempleStayDetail,
   searchTempleStays,
@@ -37,7 +37,9 @@ import {
   getUserFollowedTempleStays,
   getTempleStaysByRegion,
   getTopLikedTempleStays,
+  getTempleStayRegions,
   type TempleStay,
+  type TempleStaySort
 } from "./templeStayData/templeStayRepository";
 
 import {
@@ -81,7 +83,6 @@ export async function getAllTempleStays(): Promise<TempleStay[]> {
  * ────────────────────────────────────────────────────────────*/
 export {
   // Temple‑domain
-  regionTags,
   getTempleList,
   getTempleDetail,
   searchTemples,
@@ -92,9 +93,9 @@ export {
   getNearbyTemples,
   getUserFollowedTemples,
   getTopRegions,
+  getTempleRegions,
 
   // TempleStay‑domain
-  locations,
   getTempleStayList,
   getTempleStayDetail,
   searchTempleStays,
@@ -104,6 +105,7 @@ export {
   getUserFollowedTempleStays,
   getTempleStaysByRegion,
   getTopLikedTempleStays,
+  getTempleStayRegions,
 
   // Scripture‑domain
   scriptures,
@@ -129,4 +131,6 @@ export type {
   Bookmark,
   ReadingProgress,
   ScriptureColorScheme,
+  TempleSort,
+  TempleStaySort
 };

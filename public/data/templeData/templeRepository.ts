@@ -368,11 +368,13 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
       return [];
     }
 
-    // 확인 후 매핑 - 각 항목이 단일 객체이므로 멤버 변수로 접근
-    return data
-      .filter(item => item && item.temples) // 유효한 데이터만 필터링
+    // Map data to the expected format, with careful property access
+    const temples = data
+      .filter(item => item && typeof item === 'object' && 'temples' in item && item.temples)
       .map(item => {
-        const temple = item.temples; // temple 객체에 접근
+        // Make TypeScript aware this is an object with specific properties
+        const temple = item.temples as any;
+        
         return {
           id: temple.id,
           name: temple.name,
@@ -385,8 +387,33 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
           longitude: temple.longitude
         };
       });
+      
+    return temples;
   } catch (error) {
     console.error('Error in getUserFollowedTemples:', error);
+    return [];
+  }
+}
+
+// Get temple regions from database
+export async function getTempleRegions(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temples')
+      .select('region')
+      .not('region', 'is', null)
+      .order('region', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching temple regions:', error);
+      return [];
+    }
+    
+    // Extract unique regions
+    const regions = [...new Set(data.map(item => item.region).filter(Boolean))];
+    return regions;
+  } catch (error) {
+    console.error('Error in getTempleRegions:', error);
     return [];
   }
 }

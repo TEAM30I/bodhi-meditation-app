@@ -1,4 +1,3 @@
-
 // TempleStay Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -329,11 +328,13 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
       return [];
     }
     
-    // 확인 후 매핑 - 각 항목이 단일 객체이므로 멤버 변수로 접근
-    return data
-      .filter(item => item && item.temple_stays) // 유효한 데이터만 필터링
+    // Map data to the expected format, with careful property access
+    const templeStays = data
+      .filter(item => item && typeof item === 'object' && 'temple_stays' in item && item.temple_stays)
       .map(item => {
-        const templeStay = item.temple_stays; // temple_stays 객체에 접근 
+        // Make TypeScript aware this is an object with specific properties
+        const templeStay = item.temple_stays as any; 
+        
         return {
           id: templeStay.id,
           templeName: templeStay.name,
@@ -344,6 +345,8 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
           direction: templeStay.public_transportation
         };
       });
+      
+    return templeStays;
   } catch (error) {
     console.error('Error in getUserFollowedTempleStays:', error);
     return [];
@@ -375,6 +378,29 @@ export async function getTopLikedTempleStays(limit = 5): Promise<TempleStay[]> {
     }));
   } catch (error) {
     console.error('Error in getTopLikedTempleStays:', error);
+    return [];
+  }
+}
+
+// Get all available regions from database
+export async function getTempleStayRegions(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('region')
+      .not('region', 'is', null)
+      .order('region', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching temple stay regions:', error);
+      return [];
+    }
+    
+    // Extract unique regions
+    const regions = [...new Set(data.map(item => item.region).filter(Boolean))];
+    return regions;
+  } catch (error) {
+    console.error('Error in getTempleStayRegions:', error);
     return [];
   }
 }
