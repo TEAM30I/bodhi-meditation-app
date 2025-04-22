@@ -1,50 +1,131 @@
-// Importing from our centralized repository file
-import {
-  Temple,
-  TempleStay,
-  NewsItem,
-  Scripture,
-  Bookmark,
-  ReadingProgress,
-  SearchRanking,
-  ScriptureColorScheme,
-  
-  // Repository functions
-  getTempleList as getTempleListOriginal,
-  getTempleDetail as getTempleDetailOriginal,
-  searchTemples as searchTemplesOriginal,
-  filterTemplesByTag as filterTemplesByTagOriginal,
-  followTemple as followTempleOriginal,
-  unfollowTemple as unfollowTempleOriginal,
-  getTempleStayList as getTempleStayListOriginal,
-  getTempleStayDetail as getTempleStayDetailOriginal,
-  searchTempleStays as searchTempleStaysOriginal,
-  filterTempleStaysByTag as filterTempleStaysByTagOriginal,
-  followTempleStay as followTempleStayOriginal,
-  unfollowTempleStay as unfollowTempleStayOriginal,
-} from '../data/dataRepository';
 
+// Repository file with types and functions for temple and temple stay data
 import { searchTemplesDirectly, searchTempleStaysDirectly } from '@/integrations/supabase/client';
 
-// Re-export types
-export type {
-  Temple,
-  TempleStay,
-  NewsItem,
-  Scripture,
-  Bookmark,
-  ReadingProgress,
-  SearchRanking,
-  ScriptureColorScheme,
+// Type definitions
+export interface Temple {
+  id: string;
+  name: string;
+  location: string;
+  imageUrl: string;
+  distance?: string;
+  rating?: number;
+  reviews?: number;
+  description?: string;
+  openingHours?: string;
+  tags?: string[];
+  hasParkingLot?: boolean;
+  hasTempleStay?: boolean;
+  direction?: string;
+  websiteUrl?: string;
+  likeCount?: number;
+  facilities?: string[];
+  nearbyAttractions?: string[];
+  contact?: {
+    phone?: string;
+  };
+  social?: {
+    instagram?: string;
+    facebook?: string;
+  };
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface TempleStay {
+  id: string;
+  templeName: string;
+  location: string;
+  direction: string;
+  price: number;
+  likeCount: number;
+  description: string;
+  duration: string;
+  imageUrl: string;
+  websiteUrl: string;
+  schedule: {
+    time: string;
+    activity: string;
+  }[];
+  tags?: string[];
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface NewsItem {
+  id: string;
+  temple: string;
+  source: string;
+  title: string;
+  link: string;
+  date: string;
+}
+
+export interface Scripture {
+  id: string;
+  title: string;
+  categories: string[];
+  colorScheme: ScriptureColorScheme;
+  content: string;
+  chapters: ScriptureChapter[];
+  progress?: number;
+  hasStarted?: boolean;
+  lastReadChapter?: string;
+  lastPageIndex?: number;
+}
+
+export interface ScriptureChapter {
+  id: string;
+  title: string;
+  original: string;
+  explanation: string;
+}
+
+export interface Bookmark {
+  id: string;
+  scriptureId: string;
+  chapterId: string;
+  pageIndex: number;
+  title: string;
+  note?: string;
+  date: string;
+}
+
+export interface ReadingProgress {
+  scriptureId: string;
+  chapterId: string;
+  pageIndex: number;
+  progress: number;
+}
+
+export interface ScriptureColorScheme {
+  bg: string;
+  text: string;
+  progressBg: string;
+}
+
+export interface SearchRanking {
+  term: string;
+  count: number;
+}
+
+// Temple related functions - these will be implemented with direct Supabase calls
+// For now they return empty arrays or placeholders to prevent errors
+export const getTempleList = async (): Promise<Temple[]> => {
+  console.log('getTempleList called - implement with direct Supabase call');
+  return [];
 };
 
-// Temple related functions
-export const getTempleList = getTempleListOriginal;
-export const getTempleDetail = getTempleDetailOriginal;
+export const getTempleDetail = async (id: string): Promise<Temple | null> => {
+  console.log(`getTempleDetail called for id: ${id} - implement with direct Supabase call`);
+  return null;
+};
 
 // Updated search function to use direct Supabase connection
 export const searchTemples = async (query: string): Promise<Temple[]> => {
   try {
+    if (!query.trim()) return [];
+    
     const { data, error } = await searchTemplesDirectly(query);
     if (error) {
       console.error('Error searching temples:', error);
@@ -57,17 +138,37 @@ export const searchTemples = async (query: string): Promise<Temple[]> => {
   }
 };
 
-export const filterTemplesByTag = filterTemplesByTagOriginal;
-export const followTemple = followTempleOriginal;
-export const unfollowTemple = unfollowTempleOriginal;
+export const filterTemplesByTag = async (tag: string): Promise<Temple[]> => {
+  console.log(`filterTemplesByTag called for tag: ${tag} - implement with direct Supabase call`);
+  return [];
+};
+
+export const followTemple = async (userId: string, templeId: string): Promise<boolean> => {
+  console.log(`followTemple called for userId: ${userId}, templeId: ${templeId} - implement with direct Supabase call`);
+  return true;
+};
+
+export const unfollowTemple = async (userId: string, templeId: string): Promise<boolean> => {
+  console.log(`unfollowTemple called for userId: ${userId}, templeId: ${templeId} - implement with direct Supabase call`);
+  return true;
+};
 
 // Temple Stay related functions
-export const getTempleStayList = getTempleStayListOriginal;
-export const getTempleStayDetail = getTempleStayDetailOriginal;
+export const getTempleStayList = async (): Promise<TempleStay[]> => {
+  console.log('getTempleStayList called - implement with direct Supabase call');
+  return [];
+};
+
+export const getTempleStayDetail = async (id: string): Promise<TempleStay | null> => {
+  console.log(`getTempleStayDetail called for id: ${id} - implement with direct Supabase call`);
+  return null;
+};
 
 // Updated search function for temple stays
 export const searchTempleStays = async (query: string): Promise<TempleStay[]> => {
   try {
+    if (!query.trim()) return [];
+    
     const { data, error } = await searchTempleStaysDirectly(query);
     if (error) {
       console.error('Error searching temple stays:', error);
@@ -80,15 +181,20 @@ export const searchTempleStays = async (query: string): Promise<TempleStay[]> =>
   }
 };
 
-export const filterTempleStaysByTag = filterTempleStaysByTagOriginal;
-export const followTempleStay = followTempleStayOriginal;
-export const unfollowTempleStay = unfollowTempleStayOriginal;
+export const filterTempleStaysByTag = async (tag: string): Promise<TempleStay[]> => {
+  console.log(`filterTempleStaysByTag called for tag: ${tag} - implement with direct Supabase call`);
+  return [];
+};
 
-// 검색 순위 관련 타입 정의
-export interface SearchRanking {
-  term: string;
-  count: number;
-}
+export const followTempleStay = async (userId: string, templeStayId: string): Promise<boolean> => {
+  console.log(`followTempleStay called for userId: ${userId}, templeStayId: ${templeStayId} - implement with direct Supabase call`);
+  return true;
+};
+
+export const unfollowTempleStay = async (userId: string, templeStayId: string): Promise<boolean> => {
+  console.log(`unfollowTempleStay called for userId: ${userId}, templeStayId: ${templeStayId} - implement with direct Supabase call`);
+  return true;
+};
 
 // 임시 검색 순위 데이터 (실제 데이터베이스 함수 구현 전까지 사용)
 const tempRegionSearchRankings: SearchRanking[] = [
