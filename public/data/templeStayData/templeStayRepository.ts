@@ -334,6 +334,7 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
       return [];
     }
     
+    // Fix: Access each item in the data array, not the array itself
     return data.map(item => {
       const templeStay = item.temple_stays;
       return {

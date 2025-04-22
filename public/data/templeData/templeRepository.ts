@@ -1,4 +1,3 @@
-
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -373,6 +372,7 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
       return [];
     }
     
+    // Fix: Access each item in the data array, not the array itself
     return data.map(item => {
       const temple = item.temples;
       return {
