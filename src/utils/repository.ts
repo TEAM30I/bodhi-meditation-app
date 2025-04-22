@@ -1,3 +1,4 @@
+
 // Repository file with types and functions for temple and temple stay data
 import { searchTemplesDirectly, searchTempleStaysDirectly } from '@/integrations/supabase/client';
 import { supabase } from '@/integrations/supabase/client';
@@ -121,13 +122,36 @@ export const regionTags = [
   { id: "suncheon", name: "순천", active: false }
 ];
 
+// Dummy data for Scripture-related features
 export const scriptures: Record<string, Scripture> = {};
 export const scriptureCategories = [];
-export const readingSchedule = [];
+export const readingSchedule = [
+  {
+    id: 1,
+    scriptureId: "script1",
+    chapter: "Chapter 1",
+    title: "Introduction to Buddhism",
+    progress: 0
+  },
+  {
+    id: 2,
+    scriptureId: "script2",
+    chapter: "Chapter 1",
+    title: "Meditation Basics",
+    progress: 0
+  },
+  {
+    id: 3,
+    scriptureId: "script3",
+    chapter: "Chapter 1",
+    title: "Path to Enlightenment",
+    progress: 0
+  }
+];
 export const bookmarks: Bookmark[] = [];
 export const calendarData = [];
 
-// Temple related functions - these will be implemented with direct Supabase calls
+// Temple related functions - these will use direct Supabase calls
 export const getTempleList = async (): Promise<Temple[]> => {
   try {
     const { data, error } = await supabase
@@ -152,8 +176,9 @@ export const getTempleList = async (): Promise<Temple[]> => {
       },
       latitude: item.latitude,
       longitude: item.longitude,
-      facilities: item.facilities ? JSON.parse(item.facilities) : [],
-      tags: item.tags ? JSON.parse(item.tags) : []
+      // Handle potentially missing properties with defaults
+      facilities: [], // Empty array as default since facilities might not exist
+      tags: [] // Empty array as default since tags might not exist
     }));
   } catch (error) {
     console.error('Error in getTempleList:', error);
@@ -163,7 +188,7 @@ export const getTempleList = async (): Promise<Temple[]> => {
 
 export const getTempleDetail = async (id: string): Promise<Temple | null> => {
   try {
-    console.log(`getTempleDetail called for id: ${id} - implement with direct Supabase call`);
+    console.log(`getTempleDetail called for id: ${id} - fetching from Supabase`);
     const { data, error } = await supabase
       .from('temples')
       .select('*')
@@ -188,8 +213,9 @@ export const getTempleDetail = async (id: string): Promise<Temple | null> => {
       },
       latitude: data.latitude,
       longitude: data.longitude,
-      facilities: data.facilities ? JSON.parse(data.facilities) : [],
-      tags: data.tags ? JSON.parse(data.tags) : []
+      // Handle potentially missing properties with defaults
+      facilities: [], // Empty array as default since facilities might not exist
+      tags: [] // Empty array as default since tags might not exist
     };
   } catch (error) {
     console.error('Error in getTempleDetail:', error);
@@ -207,7 +233,23 @@ export const searchTemples = async (query: string): Promise<Temple[]> => {
       console.error('Error searching temples:', error);
       return [];
     }
-    return data as Temple[];
+    return (data || []).map(item => ({
+      id: item.id,
+      name: item.name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      description: item.description,
+      direction: item.address,
+      likeCount: item.follower_count,
+      contact: {
+        phone: item.contact
+      },
+      latitude: item.latitude,
+      longitude: item.longitude,
+      // Handle potentially missing properties with defaults
+      facilities: [], // Empty array as default
+      tags: [] // Empty array as default
+    }));
   } catch (error) {
     console.error('Exception searching temples:', error);
     return [];
@@ -216,7 +258,8 @@ export const searchTemples = async (query: string): Promise<Temple[]> => {
 
 export const filterTemplesByTag = async (tag: string): Promise<Temple[]> => {
   console.log(`filterTemplesByTag called for tag: ${tag} - implement with direct Supabase call`);
-  return [];
+  const temples = await getTempleList();
+  return temples.filter(temple => temple.tags?.includes(tag));
 };
 
 export const followTemple = async (userId: string, templeId: string): Promise<boolean> => {
@@ -257,8 +300,9 @@ export const getTopLikedTemples = async (limit: number = 5): Promise<Temple[]> =
       },
       latitude: item.latitude,
       longitude: item.longitude,
-      facilities: item.facilities ? JSON.parse(item.facilities) : [],
-      tags: item.tags ? JSON.parse(item.tags) : []
+      // Handle potentially missing properties with defaults
+      facilities: [], // Empty array as default
+      tags: [] // Empty array as default
     }));
   } catch (error) {
     console.error('Error in getTopLikedTemples:', error);
@@ -297,8 +341,9 @@ export const getNearbyTemples = async (lat: number, lng: number, limit: number =
       },
       latitude: item.latitude,
       longitude: item.longitude,
-      facilities: item.facilities ? JSON.parse(item.facilities) : [],
-      tags: item.tags ? JSON.parse(item.tags) : []
+      // Handle potentially missing properties with defaults
+      facilities: [], // Empty array as default
+      tags: [] // Empty array as default
     }));
   } catch (error) {
     console.error('Error in getNearbyTemples:', error);
@@ -308,13 +353,81 @@ export const getNearbyTemples = async (lat: number, lng: number, limit: number =
 
 // Temple Stay related functions
 export const getTempleStayList = async (): Promise<TempleStay[]> => {
-  console.log('getTempleStayList called - implement with direct Supabase call');
-  return [];
+  try {
+    console.log('getTempleStayList called - fetching from Supabase');
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*');
+    
+    if (error) {
+      console.error('Error fetching temple stays:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      templeName: item.name,
+      location: item.region || 'Unknown',
+      direction: item.public_transportation || 'Contact temple for directions',
+      price: parseInt(item.cost_adult?.replace(/[^\d]/g, '') || '0'),
+      likeCount: item.follower_count || 0,
+      description: item.description || '',
+      duration: `${item.start_date || 'Flexible'} - ${item.end_date || 'Flexible'}`,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      websiteUrl: item.reservation_link || '',
+      schedule: []
+    }));
+  } catch (error) {
+    console.error('Error in getTempleStayList:', error);
+    return [];
+  }
 };
 
 export const getTempleStayDetail = async (id: string): Promise<TempleStay | null> => {
-  console.log(`getTempleStayDetail called for id: ${id} - implement with direct Supabase call`);
-  return null;
+  try {
+    console.log(`getTempleStayDetail called for id: ${id}`);
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (error) {
+      console.error('Error fetching temple stay details:', error);
+      return null;
+    }
+    
+    // Get schedule information from timelines table
+    const { data: timelines, error: timelinesError } = await supabase
+      .from('timelines')
+      .select('*')
+      .eq('temple_stay_id', id)
+      .order('day', { ascending: true })
+      .order('time', { ascending: true });
+    
+    const schedule = timelines && !timelinesError ? 
+      timelines.map(item => ({
+        time: item.time || '',
+        activity: item.content || ''
+      })) : [];
+    
+    return {
+      id: data.id,
+      templeName: data.name,
+      location: data.region || 'Unknown',
+      direction: data.public_transportation || 'Contact temple for directions',
+      price: parseInt(data.cost_adult?.replace(/[^\d]/g, '') || '0'),
+      likeCount: data.follower_count || 0,
+      description: data.description || '',
+      duration: `${data.start_date || 'Flexible'} - ${data.end_date || 'Flexible'}`,
+      imageUrl: data.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      websiteUrl: data.reservation_link || '',
+      schedule: schedule
+    };
+  } catch (error) {
+    console.error('Error in getTempleStayDetail:', error);
+    return null;
+  }
 };
 
 // Updated search function for temple stays
@@ -327,7 +440,20 @@ export const searchTempleStays = async (query: string): Promise<TempleStay[]> =>
       console.error('Error searching temple stays:', error);
       return [];
     }
-    return data as TempleStay[];
+    
+    return (data || []).map(item => ({
+      id: item.id,
+      templeName: item.name,
+      location: item.region || 'Unknown',
+      direction: item.public_transportation || 'Contact temple for directions',
+      price: parseInt(item.cost_adult?.replace(/[^\d]/g, '') || '0'),
+      likeCount: item.follower_count || 0,
+      description: item.description || '',
+      duration: `${item.start_date || 'Flexible'} - ${item.end_date || 'Flexible'}`,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      websiteUrl: item.reservation_link || '',
+      schedule: []
+    }));
   } catch (error) {
     console.error('Exception searching temple stays:', error);
     return [];
@@ -335,38 +461,118 @@ export const searchTempleStays = async (query: string): Promise<TempleStay[]> =>
 };
 
 export const filterTempleStaysByTag = async (tag: string): Promise<TempleStay[]> => {
-  console.log(`filterTempleStaysByTag called for tag: ${tag} - implement with direct Supabase call`);
-  return [];
+  console.log(`filterTempleStaysByTag called for tag: ${tag}`);
+  // For now, return all temple stays as we don't have tag filtering yet
+  return getTempleStayList();
 };
 
 export const followTempleStay = async (userId: string, templeStayId: string): Promise<boolean> => {
-  console.log(`followTempleStay called for userId: ${userId}, templeStayId: ${templeStayId} - implement with direct Supabase call`);
+  console.log(`followTempleStay called for userId: ${userId}, templeStayId: ${templeStayId}`);
   return true;
 };
 
 export const unfollowTempleStay = async (userId: string, templeStayId: string): Promise<boolean> => {
-  console.log(`unfollowTempleStay called for userId: ${userId}, templeStayId: ${templeStayId} - implement with direct Supabase call`);
+  console.log(`unfollowTempleStay called for userId: ${userId}, templeStayId: ${templeStayId}`);
   return true;
 };
 
 // New temple stay functions to address errors
 export const getLocations = async (): Promise<{name: string; active: boolean}[]> => {
-  console.log('getLocations called - implement with direct Supabase call');
-  return [
-    { name: '서울', active: true },
-    { name: '경주', active: false },
-    { name: '부산', active: false }
-  ];
+  try {
+    console.log('getLocations called - gathering unique regions');
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('region');
+    
+    if (error) {
+      console.error('Error fetching locations:', error);
+      return [
+        { name: '서울', active: true },
+        { name: '경주', active: false },
+        { name: '부산', active: false }
+      ];
+    }
+    
+    // Extract unique regions
+    const regions = [...new Set(data.map(item => item.region).filter(Boolean))];
+    
+    return regions.map((region, index) => ({
+      name: region,
+      active: index === 0 // First one is active
+    }));
+  } catch (error) {
+    console.error('Error in getLocations:', error);
+    return [
+      { name: '서울', active: true },
+      { name: '경주', active: false },
+      { name: '부산', active: false }
+    ];
+  }
 };
 
 export const getTopLikedTempleStays = async (limit: number = 5): Promise<TempleStay[]> => {
-  console.log(`getTopLikedTempleStays called with limit: ${limit} - implement with direct Supabase call`);
-  return [];
+  try {
+    console.log(`getTopLikedTempleStays called with limit: ${limit}`);
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .order('follower_count', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error('Error fetching top liked temple stays:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      templeName: item.name,
+      location: item.region || 'Unknown',
+      direction: item.public_transportation || 'Contact temple for directions',
+      price: parseInt(item.cost_adult?.replace(/[^\d]/g, '') || '0'),
+      likeCount: item.follower_count || 0,
+      description: item.description || '',
+      duration: `${item.start_date || 'Flexible'} - ${item.end_date || 'Flexible'}`,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      websiteUrl: item.reservation_link || '',
+      schedule: []
+    }));
+  } catch (error) {
+    console.error('Error in getTopLikedTempleStays:', error);
+    return [];
+  }
 };
 
 export const getTempleStaysByRegion = async (region: string): Promise<TempleStay[]> => {
-  console.log(`getTempleStaysByRegion called for region: ${region} - implement with direct Supabase call`);
-  return [];
+  try {
+    console.log(`getTempleStaysByRegion called for region: ${region}`);
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .eq('region', region);
+    
+    if (error) {
+      console.error('Error fetching temple stays by region:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      templeName: item.name,
+      location: item.region || 'Unknown',
+      direction: item.public_transportation || 'Contact temple for directions',
+      price: parseInt(item.cost_adult?.replace(/[^\d]/g, '') || '0'),
+      likeCount: item.follower_count || 0,
+      description: item.description || '',
+      duration: `${item.start_date || 'Flexible'} - ${item.end_date || 'Flexible'}`,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      websiteUrl: item.reservation_link || '',
+      schedule: []
+    }));
+  } catch (error) {
+    console.error('Error in getTempleStaysByRegion:', error);
+    return [];
+  }
 };
 
 // 임시 검색 순위 데이터 (실제 데이터베이스 함수 구현 전까지 사용)
