@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase_client';
 
 export interface SearchRanking {
@@ -11,11 +10,8 @@ export interface SearchRanking {
 // Supabase에서 지역 검색 랭킹 가져오기
 export async function getRegionSearchRankings(): Promise<SearchRanking[]> {
   try {
-    const { data, error } = await supabase.from('search_history')
-      .select('term, count(*) as count')
-      .eq('category', 'region')
-      .group('term')
-      .order('count', { ascending: false })
+    const { data, error } = await supabase
+      .rpc('get_region_search_rankings')
       .limit(10);
       
     if (error) {
@@ -24,7 +20,8 @@ export async function getRegionSearchRankings(): Promise<SearchRanking[]> {
     }
     
     // 트렌드 정보를 가져옴
-    const { data: trendsData, error: trendsError } = await supabase.from('search_trends')
+    const { data: trendsData, error: trendsError } = await supabase
+      .from('search_trends')
       .select('term, trend')
       .eq('category', 'region');
       
@@ -33,17 +30,12 @@ export async function getRegionSearchRankings(): Promise<SearchRanking[]> {
     }
     
     // 트렌드 정보와 결합
-    const result = data.map((item, index) => {
-      // 트렌드 정보 찾기
-      const trendInfo = trendsData?.find(t => t.term === item.term);
-      
-      return {
-        id: `r${index + 1}`,
-        term: item.term,
-        count: parseInt(item.count),
-        trend: (trendInfo?.trend as 'up' | 'down' | 'new' | 'same') || 'same'
-      };
-    });
+    const result = data.map((item: any, index: number) => ({
+      id: `r${index + 1}`,
+      term: item.term,
+      count: parseInt(item.count),
+      trend: (trendsData?.find(t => t.term === item.term)?.trend as 'up' | 'down' | 'new' | 'same') || 'same'
+    }));
     
     return result;
   } catch (error) {
@@ -55,11 +47,8 @@ export async function getRegionSearchRankings(): Promise<SearchRanking[]> {
 // Supabase에서 템플스테이 검색 랭킹 가져오기
 export async function getTempleStaySearchRankings(): Promise<SearchRanking[]> {
   try {
-    const { data, error } = await supabase.from('search_history')
-      .select('term, count(*) as count')
-      .eq('category', 'temple_stay')
-      .group('term')
-      .order('count', { ascending: false })
+    const { data, error } = await supabase
+      .rpc('get_temple_stay_search_rankings')
       .limit(10);
       
     if (error) {
@@ -68,7 +57,8 @@ export async function getTempleStaySearchRankings(): Promise<SearchRanking[]> {
     }
     
     // 트렌드 정보를 가져옴
-    const { data: trendsData, error: trendsError } = await supabase.from('search_trends')
+    const { data: trendsData, error: trendsError } = await supabase
+      .from('search_trends')
       .select('term, trend')
       .eq('category', 'temple_stay');
       
@@ -77,17 +67,12 @@ export async function getTempleStaySearchRankings(): Promise<SearchRanking[]> {
     }
     
     // 트렌드 정보와 결합
-    const result = data.map((item, index) => {
-      // 트렌드 정보 찾기
-      const trendInfo = trendsData?.find(t => t.term === item.term);
-      
-      return {
-        id: `ts${index + 1}`,
-        term: item.term,
-        count: parseInt(item.count),
-        trend: (trendInfo?.trend as 'up' | 'down' | 'new' | 'same') || 'same'
-      };
-    });
+    const result = data.map((item: any, index: number) => ({
+      id: `ts${index + 1}`,
+      term: item.term,
+      count: parseInt(item.count),
+      trend: (trendsData?.find(t => t.term === item.term)?.trend as 'up' | 'down' | 'new' | 'same') || 'same'
+    }));
     
     return result;
   } catch (error) {

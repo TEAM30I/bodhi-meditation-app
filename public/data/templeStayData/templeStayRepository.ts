@@ -1,4 +1,3 @@
-
 // Temple Stay Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 
@@ -23,16 +22,28 @@ export interface TempleStay {
   longitude?: number;
 }
 
-// 지역 데이터 (UI에서 사용되므로 유지)
-export const locations = [
-  { name: "서울", active: true },
-  { name: "경주", active: false },
-  { name: "부산", active: false },
-  { name: "합천", active: false },
-  { name: "양산", active: false },
-  { name: "여수", active: false },
-  { name: "순천", active: false }
-];
+// Fetch locations from database
+export async function getLocations(): Promise<{ name: string; active: boolean }[]> {
+  try {
+    const { data, error } = await supabase
+      .from('locations')
+      .select('name')
+      .order('name', { ascending: true });
+      
+    if (error) {
+      console.error('Error fetching locations:', error);
+      return [];
+    }
+    
+    return data.map(location => ({
+      name: location.name,
+      active: false
+    }));
+  } catch (error) {
+    console.error('Error in getLocations:', error);
+    return [];
+  }
+}
 
 // 템플스테이 목록 가져오기
 export async function getTempleStayList(): Promise<TempleStay[]> {

@@ -1,4 +1,3 @@
-
 // Repository exports with consistent static imports
 export { 
   getRegionSearchRankings, 
@@ -25,7 +24,7 @@ export {
 } from '/public/data/templeData/templeRepository';
 
 export {
-  locations,
+  getLocations,
   getTempleStayList,
   getTempleStayDetail,
   getTopLikedTempleStays,
