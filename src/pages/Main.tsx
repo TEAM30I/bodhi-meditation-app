@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
@@ -10,12 +11,24 @@ import { Button } from '@/components/ui/button';
 
 import {
   regionTags,
-  nearbyTemples,
   readingSchedule,
-} from '@/utils/repository';
+  getNearbyTemples,
+  getTempleStayList
+} from '@/repositories';
+import { useQuery } from '@tanstack/react-query';
 
 const Main: React.FC = () => {
   const navigate = useNavigate();
+
+  const { data: nearbyTemples = [] } = useQuery({
+    queryKey: ['nearbyTemples'],
+    queryFn: () => getNearbyTemples(37.5665, 126.9780) // Seoul coordinates
+  });
+
+  const { data: templeStays = [] } = useQuery({
+    queryKey: ['templeStays'],
+    queryFn: getTempleStayList
+  });
 
   return (
     <div className="pb-24">
@@ -124,18 +137,18 @@ const Main: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          {nearbyTemples.map((temple) => (
+          {templeStays.slice(0, 4).map((templeStay) => (
             <TempleStayCard
-              key={temple.id}
+              key={templeStay.id}
               templeStay={{
-                id: temple.id,
-                templeName: temple.name,
-                location: temple.location,
-                imageUrl: temple.imageUrl,
-                price: 50000,
-                likeCount: 120,
+                id: templeStay.id,
+                templeName: templeStay.templeName,
+                location: templeStay.location,
+                imageUrl: templeStay.imageUrl,
+                price: templeStay.price,
+                likeCount: templeStay.likeCount,
               }}
-              onClick={() => navigate(`/search/temple-stay/detail/${temple.id}`)}
+              onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
             />
           ))}
         </div>
