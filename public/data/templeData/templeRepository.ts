@@ -1,3 +1,4 @@
+
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -372,21 +373,30 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
       return [];
     }
     
-    // Fix: Access each item in the data array, not the array itself
+    // Fix: Access each item in the data array properly
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
     return data.map(item => {
-      const temple = item.temples;
+      // Make sure item.temples exists and is not an array
+      if (!item.temples) {
+        console.error('Missing temples data for item:', item);
+        return null;
+      }
+      
       return {
-        id: temple.id,
-        name: temple.name,
-        location: temple.region, // Map region to location for interface compliance
-        imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
-        description: temple.description,
-        likeCount: temple.follower_count,
-        direction: temple.address,
-        latitude: temple.latitude,
-        longitude: temple.longitude
+        id: item.temples.id,
+        name: item.temples.name,
+        location: item.temples.region, // Map region to location for interface compliance
+        imageUrl: item.temples.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+        description: item.temples.description,
+        likeCount: item.temples.follower_count,
+        direction: item.temples.address,
+        latitude: item.temples.latitude,
+        longitude: item.temples.longitude
       };
-    });
+    }).filter(Boolean) as Temple[]; // Filter out any null values
   } catch (error) {
     console.error('Error in getUserFollowedTemples:', error);
     return [];

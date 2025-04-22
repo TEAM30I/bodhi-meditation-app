@@ -334,19 +334,29 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
       return [];
     }
     
-    // Fix: Access each item in the data array, not the array itself
+    // Add null check and handle empty data
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    // Fix: Access each item in the data array properly
     return data.map(item => {
-      const templeStay = item.temple_stays;
+      // Make sure item.temple_stays exists and is not an array
+      if (!item.temple_stays) {
+        console.error('Missing temple_stays data for item:', item);
+        return null;
+      }
+      
       return {
-        id: templeStay.id,
-        templeName: templeStay.name,
-        location: templeStay.region,
-        imageUrl: templeStay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-        price: parseInt(templeStay.cost_adult) || 50000,
-        likeCount: templeStay.follower_count,
-        direction: templeStay.public_transportation
+        id: item.temple_stays.id,
+        templeName: item.temple_stays.name,
+        location: item.temple_stays.region,
+        imageUrl: item.temple_stays.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+        price: parseInt(item.temple_stays.cost_adult) || 50000,
+        likeCount: item.temple_stays.follower_count,
+        direction: item.temple_stays.public_transportation
       };
-    });
+    }).filter(Boolean) as TempleStay[]; // Filter out any null values
   } catch (error) {
     console.error('Error in getUserFollowedTempleStays:', error);
     return [];
