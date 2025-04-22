@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
-import { regionSearchRankings, templeStaySearchRankings, SearchRanking } from '/public/data/searchRankingRepository';
+import { getRegionSearchRankings, getTempleStaySearchRankings, addSearchTerm, type SearchRanking } from '@/utils/repository';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { typedData } from '@/utils/typeUtils';
@@ -17,6 +18,9 @@ const SearchHome = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'temple' | 'temple-stay'>('temple');
   const [searchValue, setSearchValue] = useState('');
+  const [regionSearchRankings, setRegionSearchRankings] = useState<SearchRanking[]>([]);
+  const [templeStaySearchRankings, setTempleStaySearchRankings] = useState<SearchRanking[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Set default dates to tomorrow and day after tomorrow
   const tomorrow = new Date();
@@ -33,7 +37,41 @@ const SearchHome = () => {
   const [showGuestSelector, setShowGuestSelector] = useState(false);
   const [guestCount, setGuestCount] = useState(1);
 
-  const handleSearch = () => {
+  // Fetch search rankings on component mount
+  useEffect(() => {
+    const fetchSearchRankings = async () => {
+      try {
+        const [regionRankings, templeStayRankings] = await Promise.all([
+          getRegionSearchRankings(),
+          getTempleStaySearchRankings()
+        ]);
+        
+        setRegionSearchRankings(regionRankings);
+        setTempleStaySearchRankings(templeStayRankings);
+      } catch (error) {
+        console.error('Error fetching search rankings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchSearchRankings();
+  }, []);
+
+  const handleSearch = async () => {
+    if (!searchValue.trim()) return;
+    
+    // Record search term
+    try {
+      await addSearchTerm(
+        searchValue,
+        activeTab === 'temple' ? 'region' : 'temple_stay'
+      );
+    } catch (error) {
+      console.error('Error adding search term:', error);
+    }
+    
+    // Navigate to search results
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${searchValue}`);
     } else {
@@ -87,8 +125,19 @@ const SearchHome = () => {
     return '날짜 선택';
   };
 
-  const handleRankingItemClick = (term: string) => {
+  const handleRankingItemClick = async (term: string) => {
     setSearchValue(term);
+    
+    // Record search term click
+    try {
+      await addSearchTerm(
+        term, 
+        activeTab === 'temple' ? 'region' : 'temple_stay'
+      );
+    } catch (error) {
+      console.error('Error adding search term:', error);
+    }
+    
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${term}`);
     } else {
@@ -97,8 +146,8 @@ const SearchHome = () => {
   };
 
   const activeSearchRankings = activeTab === 'temple' 
-    ? typedData<SearchRanking[]>(regionSearchRankings)
-    : typedData<SearchRanking[]>(templeStaySearchRankings);
+    ? regionSearchRankings
+    : templeStaySearchRankings;
 
   return (
     <PageLayout>
@@ -193,16 +242,22 @@ const SearchHome = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">인기 검색어</h3>
               <div className="flex flex-wrap gap-2">
-                {activeSearchRankings.map((ranking, index) => (
-                  <Badge
-                    key={index}
-                    variant="outline"
-                    className="px-3 py-1 text-sm cursor-pointer"
-                    onClick={() => handleRankingItemClick(ranking.term)}
-                  >
-                    {ranking.term}
-                  </Badge>
-                ))}
+                {loading ? (
+                  <p className="text-sm text-gray-500">검색어를 불러오는 중...</p>
+                ) : activeSearchRankings.length > 0 ? (
+                  activeSearchRankings.map((ranking, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="px-3 py-1 text-sm cursor-pointer"
+                      onClick={() => handleRankingItemClick(ranking.term)}
+                    >
+                      {ranking.term}
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">검색어가 없습니다.</p>
+                )}
               </div>
             </div>
           </div>
