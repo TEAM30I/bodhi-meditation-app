@@ -20,7 +20,7 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
           alt={templeStay.templeName}
           className="w-full h-40 object-cover"
         />
-        {templeStay.likeCount > 0 && (
+        {templeStay.likeCount !== undefined && templeStay.likeCount > 0 && (
           <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
             <Heart className="w-3 h-3 mr-1 fill-white text-white" />
             <span>{templeStay.likeCount}</span>

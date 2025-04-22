@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, Heart } from 'lucide-react';
 import { Temple } from '../../public/data/templeData/templeRepository';
 
 interface TempleCardProps {
@@ -27,6 +27,12 @@ const TempleCard: React.FC<TempleCardProps> = ({ temple, onClick }) => {
           <MapPin className="w-3 h-3 mr-1" />
           <span>{temple.location}</span>
         </div>
+        {temple.likeCount !== undefined && temple.likeCount > 0 && (
+          <div className="flex items-center text-amber-500 text-xs mt-1">
+            <Heart className="w-3 h-3 mr-1 fill-amber-500" />
+            <span>{temple.likeCount}</span>
+          </div>
+        )}
       </div>
     </div>
   );

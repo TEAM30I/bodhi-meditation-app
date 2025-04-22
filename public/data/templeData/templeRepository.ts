@@ -1,6 +1,6 @@
-
 // Temple Repository with Supabase Integration
 import { supabase } from '../supabase_client';
+import { calculateDistance, formatDistance, DEFAULT_LOCATION } from '../../../src/utils/locationUtils';
 
 // Interfaces for data types
 export interface Temple {
@@ -35,12 +35,6 @@ export const regionTags = [
 
 // 정렬 유형
 export type TempleSort = 'popular' | 'recent' | 'distance';
-
-// 기본 사찰 위치 (서울특별시 관악구 신림로 72)
-export const DEFAULT_LOCATION = {
-  latitude: 37.4839864,
-  longitude: 126.9295952
-};
 
 // Supabase 데이터베이스에서 사찰 목록 가져오기
 export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Temple[]> {
@@ -347,62 +341,29 @@ export async function getNearbyTemples(
       );
       
       return {
-        ...temple,
-        distance: distance
+        id: temple.id,
+        name: temple.name,
+        location: temple.region,
+        imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+        description: temple.description,
+        direction: temple.address,
+        distance: formatDistance(distance),
+        likeCount: temple.follower_count,
+        latitude: temple.latitude,
+        longitude: temple.longitude
       };
     });
     
     // 거리 기준 정렬
-    const sortedTemples = templesWithDistance
-      .sort((a, b) => a.distance - b.distance)
+    return templesWithDistance
+      .sort((a, b) => {
+        const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');
+        const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
+        return distA - distB;
+      })
       .slice(0, limit);
-    
-    // 결과 형식 변환
-    return sortedTemples.map(temple => ({
-      id: temple.id,
-      name: temple.name,
-      location: temple.region,
-      imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
-      description: temple.description,
-      direction: temple.address,
-      distance: formatDistance(temple.distance),
-      likeCount: temple.follower_count,
-      latitude: temple.latitude,
-      longitude: temple.longitude
-    }));
   } catch (error) {
     console.error('Error in getNearbyTemples:', error);
     return [];
-  }
-}
-
-// 두 좌표 사이의 거리를 계산하는 함수 (Haversine 공식)
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // 지구 반경 (km)
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
-  
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2); 
-  
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-  const distance = R * c; // 킬로미터 단위
-  
-  return distance;
-}
-
-// 각도를 라디안으로 변환
-function deg2rad(deg: number): number {
-  return deg * (Math.PI/180);
-}
-
-// 거리 포맷팅 (1km 미만은 m로 표시)
-function formatDistance(distance: number): string {
-  if (distance < 1) {
-    return `${Math.round(distance * 1000)}m`;
-  } else {
-    return `${distance.toFixed(1)}km`;
   }
 }

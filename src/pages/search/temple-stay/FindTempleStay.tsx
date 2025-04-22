@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -7,25 +8,21 @@ import {
   Users,
   X,
   ChevronRight,
+  Heart
 } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 // 레포지토리에서 필요한 함수와 타입 임포트
 import { 
-  getLocations, 
+  locations, 
   getTempleStayList, 
   getTopLikedTempleStays, 
   filterTempleStaysByTag,
   getTempleStaysByRegion,
+  getTopRegions,
   TempleStay 
 } from '@/utils/repository';
-import { 
-  getTempleStaySearchRankings,
-  addSearchTerm,
-  type SearchRanking 
-} from '@/utils/repository';
-import { typedData } from '@/utils/typeUtils';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { tomorrow, dayAfterTomorrow, fmt } from '@/utils/dateUtils';
 
@@ -48,39 +45,15 @@ const FindTempleStay: React.FC = () => {
   const [latestTempleStays, setLatestTempleStays] = useState<TempleStay[]>([]);
   const [popularTempleStays, setPopularTempleStays] = useState<TempleStay[]>([]);
   const [filteredTempleStays, setFilteredTempleStays] = useState<TempleStay[]>([]);
-  const [searchRankings, setSearchRankings] = useState<SearchRanking[]>([]);
-  const [locations, setLocations] = useState<{name: string; active: boolean}[]>([]);
+  const [topRegions, setTopRegions] = useState<{name: string, count: number}[]>([]);
   const [loading, setLoading] = useState({
     templeStays: true,
     popular: true,
-    rankings: true,
     filtered: false,
-    locations: true
+    topRegions: true
   });
 
   /* ──────────────── 데이터 로드 ──────────────── */
-  // 지역 데이터 로드
-  useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        const locationData = await getLocations();
-        setLocations(locationData);
-        setLoading(prev => ({...prev, locations: false}));
-      } catch (error) {
-        console.error("Failed to load locations:", error);
-        // 기본 지역 데이터 설정
-        setLocations([
-          { name: '서울', active: true },
-          { name: '경주', active: false },
-          { name: '부산', active: false }
-        ]);
-        setLoading(prev => ({...prev, locations: false}));
-      }
-    };
-
-    loadLocations();
-  }, []);
-
   // 모든 템플스테이 데이터 로드
   useEffect(() => {
     const loadTempleStays = async () => {
@@ -89,10 +62,8 @@ const FindTempleStay: React.FC = () => {
         setTempleStays(allTempleStays);
         
         // 최신순으로 정렬 (id가 최신이라고 가정)
-        const latest = [...allTempleStays].sort((a, b) => 
-          b.id.localeCompare(a.id)
-        ).slice(0, 4);
-        setLatestTempleStays(latest);
+        const latest = await getTempleStayList('recent');
+        setLatestTempleStays(latest.slice(0, 4));
         
         // 초기 필터링된 템플스테이는 서울 지역
         const seoulTempleStays = allTempleStays.filter(
@@ -126,36 +97,27 @@ const FindTempleStay: React.FC = () => {
     loadPopularTempleStays();
   }, []);
 
-  // 검색 랭킹 로드
+  // 인기 지역 로드
   useEffect(() => {
-    const loadSearchRankings = async () => {
+    const loadTopRegions = async () => {
       try {
-        const rankings = await getTempleStaySearchRankings();
-        setSearchRankings(rankings);
-        setLoading(prev => ({...prev, rankings: false}));
+        const regions = await getTopRegions(8);
+        setTopRegions(regions);
+        setLoading(prev => ({...prev, topRegions: false}));
       } catch (error) {
-        console.error("Failed to load search rankings:", error);
-        setLoading(prev => ({...prev, rankings: false}));
+        console.error("Failed to load top regions:", error);
+        setLoading(prev => ({...prev, topRegions: false}));
       }
     };
 
-    loadSearchRankings();
+    loadTopRegions();
   }, []);
 
   /* ──────────────── 이벤트 핸들러 ──────────────── */
   const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchValue.trim()) return;
-
-    try {
-      // 검색어를 검색 기록에 추가
-      await addSearchTerm(searchValue, 'temple_stay');
-      navigate(buildQuery());
-    } catch (error) {
-      console.error("Error submitting search:", error);
-      // 에러가 발생해도 검색 결과 페이지로 이동
-      navigate(buildQuery());
-    }
+    navigate(buildQuery());
   };
 
   const handleRegionClick = async (region: string) => {
@@ -163,9 +125,6 @@ const FindTempleStay: React.FC = () => {
     setLoading(prev => ({...prev, filtered: true}));
 
     try {
-      // 검색어를 검색 기록에 추가
-      await addSearchTerm(region, 'temple_stay');
-      
       // 지역으로 템플스테이 필터링 (API 호출)
       const regionTempleStays = await getTempleStaysByRegion(region);
       
@@ -223,9 +182,9 @@ const FindTempleStay: React.FC = () => {
     
   const handleSearch = () => navigate(buildQuery());
 
-  const handleSearchRankingClick = (term: string) => {
-    setSearchValue(term);
-    handleSearch();
+  const handleNearbySearch = async () => {
+    // 현재 위치 기반 검색 결과 페이지로 이동
+    navigate(`/search/temple-stay/results?nearby=true&from=${fmt(dateRange.from!)}&to=${fmt(dateRange.to!)}&guests=${guestCount}`);
   };
 
   /* ──────────────── 로딩 상태 ──────────────── */
@@ -281,6 +240,17 @@ const FindTempleStay: React.FC = () => {
             </button>
           </div>
 
+          <button
+            className="w-full flex items-center justify-between mt-3 p-3 bg-white rounded-lg border border-gray-300"
+            onClick={handleNearbySearch}
+          >
+            <div className="flex items-center gap-2">
+              <Search className="h-5 w-5 text-gray-500" />
+              <span className="text-sm text-gray-700">내 주변에서 검색</span>
+            </div>
+            <ChevronRight className="h-5 w-5 text-gray-400" />
+          </button>
+
           {/* 날짜 선택기 */}
           {showDatePicker && (
             <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
@@ -330,31 +300,10 @@ const FindTempleStay: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* 인기 검색어 섹션 */}
-        {!loading.rankings && searchRankings.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-base font-bold mb-2">인기 검색어</h2>
-            <div className="flex flex-wrap gap-2">
-              {searchRankings.slice(0, 5).map((ranking) => (
-                <button
-                  key={ranking.id}
-                  onClick={() => handleSearchRankingClick(ranking.term)}
-                  className="px-3 py-1 bg-white rounded-full text-sm border border-gray-200 flex items-center"
-                >
-                  <span className="text-[#DE7834] font-medium mr-1">{ranking.term}</span>
-                  {ranking.trend === 'up' && <span className="text-green-500 text-xs">↑</span>}
-                  {ranking.trend === 'down' && <span className="text-red-500 text-xs">↓</span>}
-                  {ranking.trend === 'new' && <span className="text-blue-500 text-xs">N</span>}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         
         {/* ✅ 검색하기 버튼 */}
         <Button
-          className="w-full h-11 mt-4 bg-[#DE7834] hover:bg-[#c96b2e]"
+          className="w-full h-11 mt-4 mb-6 bg-[#DE7834] hover:bg-[#c96b2e]"
           onClick={handleSearch}
         >
           검색하기
@@ -374,91 +323,96 @@ const FindTempleStay: React.FC = () => {
 
         {/* 많이 찾는 템플스테이 */}
         <Section
-        title="많이 찾는 템플스테이"
-        locations={locations}
-        activeRegion={activeRegion}
-        onRegionClick={handleRegionClick}
-        onMore={() => navigate('/search/temple-stay/results?section=popular')}
-        templeStays={!loading.popular ? popularTempleStays : templeStays.slice(0, 4)}
-        isLoading={loading.popular}
-        onItemClick={handleTempleStayClick}
+          title="많이 찾는 템플스테이"
+          locations={locations}
+          activeRegion={activeRegion}
+          onRegionClick={handleRegionClick}
+          onMore={() => navigate('/search/temple-stay/results?section=popular')}
+          templeStays={!loading.popular ? popularTempleStays : templeStays.slice(0, 4)}
+          isLoading={loading.popular}
+          onItemClick={handleTempleStayClick}
         />
-        </div>
-        </div>
-        );
-    };
+      </div>
+    </div>
+  );
+};
 
 /* ───────────── 재사용 섹션 컴포넌트 ───────────── */
 interface SectionProps {
-title: string;
-locations: {name: string; active: boolean}[];
-activeRegion: string;
-onRegionClick: (r: string) => void;
-onMore: () => void;
-templeStays: TempleStay[];
-isLoading?: boolean;
-onItemClick: (id: string) => void;
+  title: string;
+  locations: {name: string; active: boolean}[];
+  activeRegion: string;
+  onRegionClick: (r: string) => void;
+  onMore: () => void;
+  templeStays: TempleStay[];
+  isLoading?: boolean;
+  onItemClick: (id: string) => void;
 }
+
 const Section: React.FC<SectionProps> = ({
-title,
-locations,
-activeRegion,
-onRegionClick,
-onMore,
-templeStays,
-isLoading = false,
-onItemClick,
+  title,
+  locations,
+  activeRegion,
+  onRegionClick,
+  onMore,
+  templeStays,
+  isLoading = false,
+  onItemClick,
 }) => (
-<div className="mb-6">
-<div className="flex justify-between items-center mb-3">
-<h2 className="text-base font-bold">{title}</h2>
-<button className="text-sm text-gray-500 flex items-center" onClick={onMore}>
-더보기 <ChevronRight className="h-4 w-4 ml-1" />
-</button>
-</div>
-
-<div className="flex overflow-x-auto gap-2 pb-2 mb-3 scrollbar-hide">
-{locations.map((loc, idx) => (
-<button
-key={idx}
-onClick={() => onRegionClick(loc.name)}
-className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
-  activeRegion === loc.name ? 'bg-[#DE7834] text-white' : 'bg-gray-100 text-gray-800'
-}`}
->
-{loc.name}
-</button>
-))}
-</div>
-
-{isLoading ? (
-<div className="grid grid-cols-2 gap-4 h-[120px] items-center justify-center">
-<p className="text-center col-span-2 text-gray-500">로딩 중...</p>
-</div>
-) : (
-<div className="grid grid-cols-2 gap-4">
-{templeStays.map((ts) => (
-<div
-  key={ts.id}
-  className="bg-gray-200 rounded-lg p-2 h-[120px] relative cursor-pointer"
-  onClick={() => onItemClick(ts.id)}
->
-  {ts.likeCount && (
-    <div className="absolute bottom-2 left-2 bg-yellow-400 text-xs px-1.5 py-0.5 rounded flex items-center">
-      <span className="mr-1">★</span> {typeof ts.likeCount === 'number' ? ts.likeCount.toFixed(1) : ts.likeCount}
+  <div className="mb-6">
+    <div className="flex justify-between items-center mb-3">
+      <h2 className="text-base font-bold">{title}</h2>
+      <button className="text-sm text-gray-500 flex items-center" onClick={onMore}>
+        더보기 <ChevronRight className="h-4 w-4 ml-1" />
+      </button>
     </div>
-  )}
-  <div className="mt-auto">
-    <p className="text-xs text-gray-700">
-      {ts.location} {ts.templeName}
-    </p>
-    <p className="text-xs font-medium">{ts.price.toLocaleString()}원</p>
+
+    <div className="flex overflow-x-auto gap-2 pb-2 mb-3 scrollbar-hide">
+      {locations.map((loc, idx) => (
+        <button
+          key={idx}
+          onClick={() => onRegionClick(loc.name)}
+          className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
+            activeRegion === loc.name ? 'bg-[#DE7834] text-white' : 'bg-gray-100 text-gray-800'
+          }`}
+        >
+          {loc.name}
+        </button>
+      ))}
+    </div>
+
+    {isLoading ? (
+      <div className="grid grid-cols-2 gap-4 h-[120px] items-center justify-center">
+        <p className="text-center col-span-2 text-gray-500">로딩 중...</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-2 gap-4">
+        {templeStays.map((ts) => (
+          <div
+            key={ts.id}
+            className="bg-white rounded-lg p-3 h-[120px] flex flex-col justify-between border border-gray-200 cursor-pointer"
+            onClick={() => onItemClick(ts.id)}
+          >
+            <div className="flex justify-between items-start">
+              <div className="text-xs font-medium text-gray-800 line-clamp-2">
+                {ts.templeName}
+              </div>
+              {ts.likeCount !== undefined && ts.likeCount > 0 && (
+                <div className="flex items-center text-amber-500 text-xs ml-1">
+                  <Heart className="w-3 h-3 mr-0.5 fill-amber-500" />
+                  <span>{ts.likeCount}</span>
+                </div>
+              )}
+            </div>
+            <div className="mt-auto">
+              <p className="text-xs text-gray-500">{ts.location}</p>
+              <p className="text-xs font-medium text-[#DE7834]">{ts.price.toLocaleString()}원</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
   </div>
-</div>
-))}
-</div>
-)}
-</div>
 );
 
 export default FindTempleStay;

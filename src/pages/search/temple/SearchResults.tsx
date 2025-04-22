@@ -5,8 +5,7 @@ import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleItem from '@/components/search/TempleItem';
-import { searchTemplesDirectly } from '@/integrations/supabase/client';
-import { Temple, TempleSort, getTempleList, searchTemples, getNearbyTemples } from '../../../public/data/templeData/templeRepository';
+import { Temple, getTempleList, searchTemples, getNearbyTemples } from '@/utils/repository';
 import { getCurrentLocation } from '@/utils/locationUtils';
 
 const SearchResults = () => {
@@ -19,7 +18,7 @@ const SearchResults = () => {
   
   const [searchValue, setSearchValue] = useState(query || region);
   const [temples, setTemples] = useState<Temple[]>([]);
-  const [activeFilter, setActiveFilter] = useState<TempleSort>('popular');
+  const [activeFilter, setActiveFilter] = useState<'popular' | 'recent' | 'distance'>('popular');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -98,7 +97,7 @@ const SearchResults = () => {
   const handleSearch = () => navigate(`/search/temple/results?query=${searchValue}`);
   
   return (
-    <div className="bg-[#F8F8F8] min-h-screen pb-16">
+    <div className="bg-white min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
         <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
           
@@ -126,8 +125,8 @@ const SearchResults = () => {
             )}
           </form>
         </div>
-        {/* ✅ 검색하기 버튼 (위치 검색어만 있으므로 바로) */}
-            <Button
+        {/* ✅ 검색하기 버튼 */}
+        <Button
           className="w-full h-11 mb-4 bg-[#DE7834] hover:bg-[#c96b2e]"
           onClick={handleSearch}
         >

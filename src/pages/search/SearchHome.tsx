@@ -1,64 +1,29 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronLeft } from 'lucide-react';
+import { ArrowLeft, Search, MapPin, Calendar, Users, X, ChevronLeft, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
 import { 
-  regionSearchRankings, templeStaySearchRankings, SearchRanking 
+  getTopLikedTemples, getTopLikedTempleStays, getTopRegions 
 } from '@/utils/repository';
 import { formatDateSafe } from '@/utils/dateUtils';
 import { ko } from 'date-fns/locale';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
-import { supabase } from '@/integrations/supabase/client';
-
-const getRegionSearchRankings = async (): Promise<SearchRanking[]> => {
-  try {
-    return regionSearchRankings.map((item, index) => ({
-      id: `r${index + 1}`,
-      term: item.term,
-      count: item.count,
-      trend: item.trend
-    }));
-  } catch (error) {
-    console.error('Error in getRegionSearchRankings:', error);
-    return [];
-  }
-};
-
-const getTempleStaySearchRankings = async (): Promise<SearchRanking[]> => {
-  try {
-    return templeStaySearchRankings.map((item, index) => ({
-      id: `ts${index + 1}`,
-      term: item.term,
-      count: item.count,
-      trend: item.trend
-    }));
-  } catch (error) {
-    console.error('Error in getTempleStaySearchRankings:', error);
-    return [];
-  }
-};
-
-const addSearchTerm = async (term: string, category: 'region' | 'temple_stay'): Promise<boolean> => {
-  try {
-    console.log(`Added search term: ${term} in category: ${category}`);
-    return true;
-  } catch (error) {
-    console.error('Error in addSearchTerm:', error);
-    return false;
-  }
-};
+import { getCurrentLocation } from '@/utils/locationUtils';
+import { Temple } from '../../public/data/templeData/templeRepository';
+import { TempleStay } from '../../public/data/templeStayData/templeStayRepository';
 
 const SearchHome = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'temple' | 'temple-stay'>('temple');
   const [searchValue, setSearchValue] = useState('');
-  const [regionSearchRankings, setRegionSearchRankings] = useState<SearchRanking[]>([]);
-  const [templeStaySearchRankings, setTempleStaySearchRankings] = useState<SearchRanking[]>([]);
+  const [topTemples, setTopTemples] = useState<Temple[]>([]);
+  const [topRegions, setTopRegions] = useState<{name: string, count: number}[]>([]);
   const [loading, setLoading] = useState(true);
   
   const tomorrow = new Date();
@@ -76,37 +41,78 @@ const SearchHome = () => {
   const [guestCount, setGuestCount] = useState(1);
 
   useEffect(() => {
-    const fetchSearchRankings = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const [regionRankings, templeStayRankings] = await Promise.all([
-          getRegionSearchRankings(),
-          getTempleStaySearchRankings()
-        ]);
-        
-        setRegionSearchRankings(regionRankings);
-        setTempleStaySearchRankings(templeStayRankings);
+        if (activeTab === 'temple') {
+          const temples = await getTopLikedTemples(8);
+          setTopTemples(temples);
+        } else {
+          const regions = await getTopRegions(8);
+          setTopRegions(regions);
+        }
       } catch (error) {
-        console.error('Error fetching search rankings:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchSearchRankings();
-  }, []);
+    fetchData();
+  }, [activeTab]);
 
-  const handleSearch = async () => {
-    if (!searchValue.trim()) return;
-    
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
+  const handleTabChange = (tab: 'temple' | 'temple-stay') => {
+    setActiveTab(tab);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch();
+  };
+
+  const handleNearbySearch = async () => {
     try {
-      await addSearchTerm(
-        searchValue,
-        activeTab === 'temple' ? 'region' : 'temple_stay'
-      );
+      const userLocation = await getCurrentLocation();
+      
+      if (activeTab === 'temple') {
+        navigate('/search/temple/results?nearby=true');
+      } else {
+        // For temple-stay, also include date and guest count
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const dayAfterTomorrow = new Date();
+        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+        
+        navigate(`/search/temple-stay/results?nearby=true&from=${formatDateSafe(tomorrow)}&to=${formatDateSafe(dayAfterTomorrow)}&guests=1`);
+      }
     } catch (error) {
-      console.error('Error adding search term:', error);
+      console.error('Error getting user location:', error);
+      // Fallback to default location
+      if (activeTab === 'temple') {
+        navigate('/search/temple/results?nearby=true');
+      } else {
+        navigate('/search/temple-stay/results?nearby=true');
+      }
     }
-    
+  };
+
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+    if (range.from && range.to) {
+      setShowDatePicker(false);
+    }
+  };
+
+  const handleGuestCountChange = (count: number) => {
+    setGuestCount(count);
+  };
+
+  const handleSearch = () => {
     if (activeTab === 'temple') {
       navigate(`/search/temple/results?query=${searchValue}`);
     } else {
@@ -126,71 +132,17 @@ const SearchHome = () => {
     }
   };
 
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
-  };
-
-  const handleTabChange = (tab: 'temple' | 'temple-stay') => {
-    setActiveTab(tab);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSearch();
-  };
-
-  const handleNearbySearch = () => {
+  const handleRegionClick = (region: string) => {
     if (activeTab === 'temple') {
-      navigate('/search/temple/results?nearby=true');
+      navigate(`/search/temple/results?region=${region}`);
     } else {
-      navigate('/search/temple-stay/results?nearby=true');
+      navigate(`/search/temple-stay/results?region=${region}`);
     }
   };
-
-  const handleDateRangeChange = (range: DateRange) => {
-    setDateRange(range);
-    if (range.from && range.to) {
-      setShowDatePicker(false);
-    }
-  };
-
-  const handleGuestCountChange = (count: number) => {
-    setGuestCount(count);
-  };
-
-  const formatDateRange = () => {
-    if (dateRange.from && dateRange.to) {
-      return `${formatDateSafe(dateRange.from)} - ${formatDateSafe(dateRange.to)}`;
-    }
-    return '날짜 선택';
-  };
-
-  const handleRankingItemClick = async (term: string) => {
-    setSearchValue(term);
-    
-    try {
-      await addSearchTerm(
-        term, 
-        activeTab === 'temple' ? 'region' : 'temple_stay'
-      );
-    } catch (error) {
-      console.error('Error adding search term:', error);
-    }
-    
-    if (activeTab === 'temple') {
-      navigate(`/search/temple/results?query=${term}`);
-    } else {
-      navigate(`/search/temple-stay/results?query=${term}`);
-    }
-  };
-
-  const activeSearchRankings = activeTab === 'temple' 
-    ? regionSearchRankings
-    : templeStaySearchRankings;
 
   return (
     <PageLayout>
-      <div className="w-full min-h-screen bg-[#F8F8F8] font-['Pretendard']">
+      <div className="w-full min-h-screen bg-white font-['Pretendard']">
         <div className="w-full bg-white shadow-sm">
           <div className="flex justify-between items-center px-6 py-3 max-w-[480px] mx-auto">
             <button 
@@ -199,27 +151,10 @@ const SearchHome = () => {
             >
               <ChevronLeft className="w-6 h-6 text-gray-900" />
             </button>
-            <div className="flex-1 mx-2">
-              <form onSubmit={handleSearchSubmit} className="relative">
-                <Input
-                  type="text"
-                  placeholder="검색어를 입력하세요"
-                  value={searchValue}
-                  onChange={handleSearchInputChange}
-                  className="w-full pl-10 pr-4 py-2 bg-[#E5E9ED] bg-opacity-87 rounded-full"
-                />
-                <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                {searchValue && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchValue('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                  >
-                    <X className="w-4 h-4 text-gray-500" />
-                  </button>
-                )}
-              </form>
+            <div className="flex-1 mx-2 text-center">
+              <h1 className="text-lg font-bold">검색</h1>
             </div>
+            <div className="w-6"></div> {/* Spacer to center the title */}
           </div>
         </div>
 
@@ -242,6 +177,16 @@ const SearchHome = () => {
               </Button>
             </div>
 
+            <form onSubmit={handleSearchSubmit} className="relative mb-4">
+              <Input
+                value={searchValue}
+                onChange={handleSearchInputChange}
+                placeholder={activeTab === 'temple' ? "도시, 지역, 지하철역" : "도시, 지역, 사찰명"}
+                className="w-full pl-10 pr-4 py-2 bg-[#F5F5F5] rounded-full"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </form>
+
             {activeTab === 'temple-stay' && (
               <div className="space-y-3 mb-6">
                 <button
@@ -250,7 +195,11 @@ const SearchHome = () => {
                 >
                   <div className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-gray-500" />
-                    <span className="text-sm">{formatDateRange()}</span>
+                    <span className="text-sm">
+                      {dateRange.from && dateRange.to ? 
+                        `${formatDateSafe(dateRange.from)} - ${formatDateSafe(dateRange.to)}` : 
+                        "날짜 선택"}
+                    </span>
                   </div>
                   <ArrowLeft className="w-4 h-4 text-gray-400 rotate-180" />
                 </button>
@@ -274,71 +223,108 @@ const SearchHome = () => {
             >
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-gray-500" />
-                <span className="text-sm">내 주변 사찰</span>
+                <span className="text-sm">내 주변 {activeTab === 'temple' ? '사찰' : '템플스테이'}</span>
               </div>
               <ArrowLeft className="w-4 h-4 text-gray-400 rotate-180" />
             </button>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">인기 검색어</h3>
-              <div className="flex flex-wrap gap-2">
+            {activeTab === 'temple' ? (
+              // Temple tab content
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">많이 둘러본 사찰</h3>
                 {loading ? (
-                  <p className="text-sm text-gray-500">검색어를 불러오는 중...</p>
-                ) : activeSearchRankings.length > 0 ? (
-                  activeSearchRankings.map((ranking, index) => (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className="px-3 py-1 text-sm cursor-pointer"
-                      onClick={() => handleRankingItemClick(ranking.term)}
-                    >
-                      {ranking.term}
-                    </Badge>
-                  ))
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#DE7834]"></div>
+                  </div>
                 ) : (
-                  <p className="text-sm text-gray-500">검색어가 없습니다.</p>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-4">
+                      {topTemples.map((temple, index) => (
+                        <div 
+                          key={temple.id} 
+                          className="cursor-pointer"
+                          onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
+                        >
+                          <div className="flex items-center mb-1">
+                            <span className="text-[#DE7834] font-bold mr-2">{index + 1}</span>
+                            <span className="line-clamp-1">{temple.name}</span>
+                          </div>
+                          {temple.location && (
+                            <div className="text-xs text-gray-500">{temple.location}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
+            ) : (
+              // Temple-stay tab content
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">많이 찾는 지역</h3>
+                {loading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#DE7834]"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-4">
+                      {topRegions.map((region, index) => (
+                        <div 
+                          key={region.name} 
+                          className="cursor-pointer"
+                          onClick={() => handleRegionClick(region.name)}
+                        >
+                          <div className="flex items-center mb-1">
+                            <span className="text-[#DE7834] font-bold mr-2">{index + 1}</span>
+                            <span>{region.name}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
+
+        {showDatePicker && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">날짜 선택</h3>
+                <button onClick={() => setShowDatePicker(false)}>
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <DateRangePicker
+                dateRange={dateRange}
+                onChange={handleDateRangeChange}
+              />
+            </div>
+          </div>
+        )}
+
+        {showGuestSelector && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">인원 선택</h3>
+                <button onClick={() => setShowGuestSelector(false)}>
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <GuestSelector
+                value={guestCount}
+                onChange={handleGuestCountChange}
+              />
+            </div>
+          </div>
+        )}
+
+        <BottomNav />
       </div>
-
-      {showDatePicker && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">날짜 선택</h3>
-              <button onClick={() => setShowDatePicker(false)}>
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <DateRangePicker
-              dateRange={dateRange}
-              onChange={handleDateRangeChange}
-            />
-          </div>
-        </div>
-      )}
-
-      {showGuestSelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">인원 선택</h3>
-              <button onClick={() => setShowGuestSelector(false)}>
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <GuestSelector
-              value={guestCount}
-              onChange={handleGuestCountChange}
-            />
-          </div>
-        </div>
-      )}
-
-      <BottomNav />
     </PageLayout>
   );
 };

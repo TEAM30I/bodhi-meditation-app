@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Search, ChevronRight, ChevronLeft, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
   regionTags, 
@@ -9,12 +9,8 @@ import {
   getTopLikedTemples, 
   getNearbyTemples,
   filterTemplesByTag,
-  addSearchTerm,
-  getRegionSearchRankings,
-  Temple,
-  SearchRanking
+  Temple
 } from '@/utils/repository';
-import { typedData } from '@/utils/typeUtils';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
 import { toast } from 'sonner';
@@ -28,13 +24,11 @@ const FindTemple = () => {
   const [temples, setTemples] = useState<Temple[]>([]);
   const [nearbyTemples, setNearbyTemples] = useState<Temple[]>([]);
   const [popularTemples, setPopularTemples] = useState<Temple[]>([]);
-  const [searchRankings, setSearchRankings] = useState<SearchRanking[]>([]);
   const [filteredTemples, setFilteredTemples] = useState<Temple[]>([]);
   const [loading, setLoading] = useState({
     temples: true,
     nearby: true,
-    popular: true,
-    rankings: true
+    popular: true
   });
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
 
@@ -115,31 +109,12 @@ const FindTemple = () => {
 
     loadPopularTemples();
   }, []);
-
-  // 검색 랭킹 로드
-  useEffect(() => {
-    const loadSearchRankings = async () => {
-      try {
-        const rankings = await getRegionSearchRankings();
-        setSearchRankings(rankings);
-        setLoading(prev => ({...prev, rankings: false}));
-      } catch (error) {
-        console.error("Failed to load search rankings:", error);
-        setLoading(prev => ({...prev, rankings: false}));
-      }
-    };
-
-    loadSearchRankings();
-  }, []);
   
   // 지역 필터링 함수
   const handleRegionClick = async (region: string) => {
     setActiveRegion(region);
     
     try {
-      // 검색어를 검색 기록에 추가
-      await addSearchTerm(region, 'region');
-      
       // 지역으로 사찰 필터링
       const filtered = temples.filter(temple => 
         temple.location.includes(region)
@@ -167,16 +142,7 @@ const FindTemple = () => {
     e.preventDefault();
     
     if (!searchValue.trim()) return;
-
-    try {
-      // 검색어를 검색 기록에 추가
-      await addSearchTerm(searchValue, 'region');
-      navigate(`/search/temple/results?query=${searchValue}`);
-    } catch (error) {
-      console.error("Error submitting search:", error);
-      // 에러가 발생해도 검색 결과 페이지로 이동
-      navigate(`/search/temple/results?query=${searchValue}`);
-    }
+    navigate(`/search/temple/results?query=${searchValue}`);
   };
 
   const handleTempleClick = (id: string) => {
@@ -226,30 +192,6 @@ const FindTemple = () => {
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
             </form>
-
-            {/* 검색 순위 섹션 */}
-            {!loading.rankings && searchRankings.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-3">인기 검색어</h2>
-                <div className="flex flex-wrap gap-2">
-                  {searchRankings.slice(0, 5).map((ranking) => (
-                    <button
-                      key={ranking.id}
-                      onClick={() => {
-                        setSearchValue(ranking.term);
-                        handleSearchSubmit(new Event('submit') as any);
-                      }}
-                      className="px-3 py-1 bg-white rounded-full text-sm border border-gray-200 flex items-center"
-                    >
-                      <span className="text-[#DE7834] font-bold mr-1">{ranking.term}</span>
-                      {ranking.trend === 'up' && <span className="text-green-500 text-xs">↑</span>}
-                      {ranking.trend === 'down' && <span className="text-red-500 text-xs">↓</span>}
-                      {ranking.trend === 'new' && <span className="text-blue-500 text-xs">N</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* 지역 필터 태그 */}
             <div className="mb-6">
@@ -320,9 +262,10 @@ const FindTemple = () => {
                     className="bg-white rounded-lg p-3 h-[120px] cursor-pointer border border-gray-200 shadow-sm"
                     onClick={() => handleTempleClick(temple.id)}
                   >
-                    {temple.likeCount !== undefined && (
+                    {temple.likeCount !== undefined && temple.likeCount > 0 && (
                       <div className="text-xs text-amber-500 mb-1 flex items-center">
-                        <span className="mr-1">★</span> {temple.likeCount}
+                        <Heart className="w-3 h-3 mr-1 fill-amber-500" />
+                        <span>{temple.likeCount}</span>
                       </div>
                     )}
                     <div className="text-sm font-medium mt-auto">

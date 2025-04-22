@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, X, Calendar, Users } from 'lucide-react';
@@ -13,8 +12,7 @@ import {
   getTempleStaysByRegion,
   TempleStay,
   TempleStaySort
-} from '../../../public/data/templeStayData/templeStayRepository';
-import { addSearchTerm } from '../../../public/data/searchRankingRepository';
+} from '@/utils/repository';
 import { typedData } from '@/utils/typeUtils';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { tomorrow, dayAfterTomorrow, fmt } from '@/utils/dateUtils';
@@ -63,8 +61,6 @@ const SearchResults: React.FC = () => {
           results = await getTempleStayList('distance');
         } else if (term) {
           console.log(`Searching for temple stays with term: ${term}`);
-          // Record the search term for analytics
-          await addSearchTerm(term, 'temple_stay');
           
           if (region) {
             // If region parameter exists, search by region
@@ -139,7 +135,7 @@ const SearchResults: React.FC = () => {
 
   /* ───────────── 렌더 ───────────── */
   return (
-    <div className="bg-[#F8F8F8] min-h-screen pb-24">
+    <div className="bg-white min-h-screen pb-24">
       {/* ── 헤더 ── */}
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
         <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center gap-4">

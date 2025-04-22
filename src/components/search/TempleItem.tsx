@@ -21,7 +21,7 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
             alt={temple.name}
             className="w-full h-full object-cover"
           />
-          {temple.likeCount && temple.likeCount > 0 && (
+          {temple.likeCount !== undefined && temple.likeCount > 0 && (
             <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
               <Heart className="w-3 h-3 mr-1 fill-white text-white" />
               <span>{temple.likeCount}</span>

@@ -1,6 +1,6 @@
 
 import { supabase } from '../supabase_client';
-import { DEFAULT_LOCATION, calculateDistance, formatDistance } from './templeData/templeRepository';
+import { calculateDistance, formatDistance, DEFAULT_LOCATION } from '../../../src/utils/locationUtils';
 
 // Define types
 export interface TempleStay {
@@ -151,6 +151,7 @@ export async function getTempleStaysByRegion(region: string): Promise<TempleStay
       imageUrl: item.image_url,
       price: parseInt(item.cost_adult) || 50000,
       likeCount: item.follower_count,
+      direction: item.public_transportation || "대중교통 이용 가능",
       schedule: []
     }));
   } catch (error) {
@@ -179,6 +180,7 @@ export async function searchTempleStays(query: string): Promise<TempleStay[]> {
       imageUrl: item.image_url,
       price: parseInt(item.cost_adult) || 50000,
       likeCount: item.follower_count,
+      direction: item.public_transportation || "대중교통 이용 가능",
       schedule: []
     }));
   } catch (error) {
@@ -259,6 +261,7 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
       imageUrl: item.temple_stays.image_url,
       price: parseInt(item.temple_stays.cost_adult) || 50000,
       likeCount: item.temple_stays.follower_count,
+      direction: item.temple_stays.public_transportation || "대중교통 이용 가능",
       schedule: []
     }));
   } catch (error) {
@@ -288,10 +291,52 @@ export async function getTopLikedTempleStays(limit = 5): Promise<TempleStay[]> {
       imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
       price: parseInt(item.cost_adult) || 50000,
       likeCount: item.follower_count || 0,
+      direction: item.public_transportation || "대중교통 이용 가능",
       schedule: []
     }));
   } catch (error) {
     console.error('Error in getTopLikedTempleStays:', error);
+    return [];
+  }
+}
+
+// 종합적인 순위로 정렬된 지역 가져오기
+export async function getTopRegions(limit = 8): Promise<{name: string, count: number}[]> {
+  try {
+    // 이 함수는 지역별 템플스테이의 팔로워 수와 검색 수를 합산하여 인기 있는 지역을 반환
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('region, follower_count, search_count');
+      
+    if (error) {
+      console.error('Error fetching temple stays for region ranking:', error);
+      return [];
+    }
+    
+    // 지역별로 데이터 집계
+    const regionMap = new Map<string, {followers: number, searches: number}>();
+    
+    data.forEach(stay => {
+      if (!stay.region) return;
+      
+      const region = stay.region.split(' ')[0]; // 첫 단어만 사용 (예: "서울특별시" -> "서울")
+      const current = regionMap.get(region) || {followers: 0, searches: 0};
+      
+      regionMap.set(region, {
+        followers: current.followers + (stay.follower_count || 0),
+        searches: current.searches + (stay.search_count || 0)
+      });
+    });
+    
+    // 종합 점수 계산 및 정렬
+    const regions = Array.from(regionMap.entries()).map(([name, stats]) => ({
+      name,
+      count: stats.followers + stats.searches
+    }));
+    
+    return regions.sort((a, b) => b.count - a.count).slice(0, limit);
+  } catch (error) {
+    console.error('Error in getTopRegions:', error);
     return [];
   }
 }
