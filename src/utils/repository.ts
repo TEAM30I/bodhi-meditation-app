@@ -435,11 +435,36 @@ export const searchTempleStays = async (query: string): Promise<TempleStay[]> =>
   try {
     if (!query.trim()) return [];
     
-    const { data, error } = await searchTempleStaysDirectly(query);
+    console.log(`Searching temple stays for: ${query}`);
+    
+    // Try to find temples with matching name first
+    const templeResponse = await supabase
+      .from('temples')
+      .select('id, name')
+      .ilike('name', `%${query}%`);
+      
+    if (templeResponse.error) {
+      console.error('Error searching temples for temple stays:', templeResponse.error);
+    }
+    
+    let templeIds: string[] = [];
+    if (templeResponse.data && templeResponse.data.length > 0) {
+      templeIds = templeResponse.data.map(t => t.id);
+      console.log(`Found temples matching query: ${templeIds.join(', ')}`);
+    }
+    
+    // Search temple stays by name, region, description, or associated temple
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .or(`name.ilike.%${query}%,region.ilike.%${query}%,description.ilike.%${query}%${templeIds.length > 0 ? `,temple_id.in.(${templeIds.join(',')})` : ''}`);
+    
     if (error) {
       console.error('Error searching temple stays:', error);
       return [];
     }
+    
+    console.log(`Found ${data.length} temple stays matching criteria`);
     
     return (data || []).map(item => ({
       id: item.id,
@@ -452,7 +477,8 @@ export const searchTempleStays = async (query: string): Promise<TempleStay[]> =>
       duration: `${item.start_date || 'Flexible'} - ${item.end_date || 'Flexible'}`,
       imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
       websiteUrl: item.reservation_link || '',
-      schedule: []
+      schedule: [],
+      tags: []
     }));
   } catch (error) {
     console.error('Exception searching temple stays:', error);

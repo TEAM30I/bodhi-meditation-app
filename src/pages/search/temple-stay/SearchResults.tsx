@@ -9,11 +9,14 @@ import { GuestSelector } from '@/components/search/GuestSelector';
 import {
   searchTempleStays,
   getTempleStayList,
+  getTempleStaysByRegion,
   TempleStay,
+  addSearchTerm,
 } from '@/utils/repository';
 import { typedData } from '@/utils/typeUtils';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { tomorrow, dayAfterTomorrow, fmt } from '@/utils/dateUtils';
+import { toast } from 'sonner';
 
 const SearchResults: React.FC = () => {
   const navigate = useNavigate();
@@ -43,15 +46,47 @@ const SearchResults: React.FC = () => {
 
   /* ───────────── 데이터 로드 ───────────── */
   useEffect(() => {
-    setLoading(true);
-    const term = query || region;
-    if (term) {
-      setTempleStays(typedData<TempleStay[]>(searchTempleStays(term)));
-    } else {
-      setTempleStays(typedData<TempleStay[]>(getTempleStayList()));
-    }
-    setLoading(false);
-  }, [location.search]);
+    const fetchData = async () => {
+      setLoading(true);
+      const term = query || region;
+      
+      try {
+        let results: TempleStay[] = [];
+        
+        if (term) {
+          console.log(`Searching for temple stays with term: ${term}`);
+          // Record the search term for analytics
+          await addSearchTerm(term, 'temple_stay');
+          
+          if (region) {
+            // If region parameter exists, search by region
+            results = await getTempleStaysByRegion(region);
+          } else {
+            // Otherwise search by the query term
+            results = await searchTempleStays(term);
+          }
+        } else {
+          // If no search term, get all temple stays
+          results = await getTempleStayList();
+        }
+        
+        setTempleStays(results);
+        
+        if (results.length === 0) {
+          toast.info('검색 결과가 없습니다.');
+        } else {
+          console.log(`Found ${results.length} temple stays`);
+        }
+      } catch (error) {
+        console.error('Error fetching temple stays:', error);
+        toast.error('검색 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [query, region, location.search]);
 
   /* ───────────── 헬퍼 ───────────── */
   const buildQuery = () =>
