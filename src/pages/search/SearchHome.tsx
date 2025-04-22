@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { GuestSelector } from '@/components/search/GuestSelector';
 import { getRegionSearchRankings, getTempleStaySearchRankings, addSearchTerm, type SearchRanking } from '@/utils/repository';
-import { format } from 'date-fns';
+import { formatDateSafe } from '@/utils/dateUtils';
 import { ko } from 'date-fns/locale';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';
@@ -72,11 +72,11 @@ const SearchHome = () => {
       let queryParams = `query=${searchValue}`;
       
       if (dateRange.from) {
-        queryParams += `&from=${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })}`;
+        queryParams += `&from=${formatDateSafe(dateRange.from)}`;
       }
       
       if (dateRange.to) {
-        queryParams += `&to=${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
+        queryParams += `&to=${formatDateSafe(dateRange.to)}`;
       }
       
       queryParams += `&guests=${guestCount}`;
@@ -119,7 +119,7 @@ const SearchHome = () => {
 
   const formatDateRange = () => {
     if (dateRange.from && dateRange.to) {
-      return `${format(dateRange.from, 'MM.dd(EEE)', { locale: ko })} - ${format(dateRange.to, 'MM.dd(EEE)', { locale: ko })}`;
+      return `${formatDateSafe(dateRange.from)} - ${formatDateSafe(dateRange.to)}`;
     }
     return '날짜 선택';
   };

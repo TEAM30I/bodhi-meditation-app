@@ -1,10 +1,6 @@
 
 import React from 'react';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 export interface DateRange {

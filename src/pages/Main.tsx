@@ -1,8 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
-import { Search, Bell, ChevronRight, Home, Book, UserCircle, Heart } from 'lucide-react';
+import { Search, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/context/AuthContext';
 import { typedData } from '@/utils/typeUtils';
@@ -196,33 +195,7 @@ const Main = () => {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white z-10">
-        <div className="flex justify-around items-center h-16 max-w-screen-lg mx-auto">
-          <button className="flex items-center justify-center w-14 h-14 text-[#DE7834]">
-            <Home size={28} />
-          </button>
-          <button className="flex items-center justify-center w-14 h-14 text-gray-400"
-            onClick={() => navigate('/scripture')}
-          >
-            <Book size={28} />
-          </button>
-          <button className="flex items-center justify-center w-14 h-14 text-gray-400"
-            onClick={() => navigate('/search')}
-          >
-            <Search size={28} />
-          </button>
-          <button className="flex items-center justify-center w-14 h-14 text-gray-400"
-            onClick={() => navigate('/wishlist')}
-          >
-            <Heart size={28} />
-          </button>
-          <button className="flex items-center justify-center w-14 h-14 text-gray-400"
-            onClick={() => navigate('/profile')}
-          >
-            <UserCircle size={28} />
-          </button>
-        </div>
-      </div>
+      <BottomNav />
     </div>
   );
 };
