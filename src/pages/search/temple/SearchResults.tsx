@@ -5,8 +5,8 @@ import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleItem from '@/components/search/TempleItem';
-import { searchTemples, type Temple } from '@/utils/repository';
-import { typedData } from '@/utils/typeUtils';
+import { searchTemplesDirectly } from '@/integrations/supabase/client';
+import { type Temple } from '@/utils/repository';
 
 const SearchResults = () => {
   const location = useLocation();
@@ -22,21 +22,45 @@ const SearchResults = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    // Search temples based on query or region
-    const searchTerm = query || region;
-    if (searchTerm) {
-      const results = searchTemples(searchTerm);
-      setTemples(typedData<Temple[]>(results));
-    } else if (nearby) {
-      // If nearby search, we'd typically use geolocation data
-      // For now, let's just return all temples as a placeholder
-      const results = searchTemples("");
-      setTemples(typedData<Temple[]>(results));
-    } else {
-      setTemples([]);
-    }
-    setLoading(false);
+    const fetchTemples = async () => {
+      setLoading(true);
+      // Search temples based on query or region
+      const searchTerm = query || region;
+      if (searchTerm) {
+        try {
+          const { data, error } = await searchTemplesDirectly(searchTerm);
+          if (error) {
+            console.error('Error searching temples:', error);
+            setTemples([]);
+          } else {
+            setTemples(data as Temple[]);
+          }
+        } catch (error) {
+          console.error('Exception searching temples:', error);
+          setTemples([]);
+        }
+      } else if (nearby) {
+        // If nearby search, we'd typically use geolocation data
+        // For now, let's just return all temples as a placeholder
+        try {
+          const { data, error } = await searchTemplesDirectly("");
+          if (error) {
+            console.error('Error fetching nearby temples:', error);
+            setTemples([]);
+          } else {
+            setTemples(data as Temple[]);
+          }
+        } catch (error) {
+          console.error('Exception fetching nearby temples:', error);
+          setTemples([]);
+        }
+      } else {
+        setTemples([]);
+      }
+      setLoading(false);
+    };
+
+    fetchTemples();
   }, [query, region, nearby]);
 
   const handleClearSearch = () => {
@@ -55,7 +79,9 @@ const SearchResults = () => {
   const handleTempleClick = (id: string) => {
     navigate(`/search/temple/detail/${id}`);
   };
+  
   const handleSearch = () => navigate(`/search/temple/results?query=${searchValue}`);
+  
   return (
     <div className="bg-[#F8F8F8] min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
