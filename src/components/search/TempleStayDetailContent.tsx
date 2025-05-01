@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TempleStay } from '@/utils/repository';
 import { toast } from 'sonner';
+import { CalendarClock } from 'lucide-react';
 
 interface TempleStayDetailContentProps {
   templeStay: TempleStay;
@@ -32,27 +33,75 @@ const TempleStayDetailContent: React.FC<TempleStayDetailContentProps> = ({
     }
   };
 
+  // Group timeline items by day
+  const groupedSchedule = React.useMemo(() => {
+    if (!templeStay.schedule || templeStay.schedule.length === 0) {
+      return {};
+    }
+
+    return templeStay.schedule.reduce((acc, item) => {
+      const day = item.day || 1;
+      if (!acc[day]) {
+        acc[day] = [];
+      }
+      acc[day].push(item);
+      return acc;
+    }, {} as Record<number, typeof templeStay.schedule>);
+  }, [templeStay.schedule]);
+
+  // Get days in order
+  const days = Object.keys(groupedSchedule).map(Number).sort((a, b) => a - b);
+
   return (
     <div className="space-y-6">
-      {/* 상세 정보 */}
+      {/* 상세 정보 - 프로그램 일정 */}
       <div>
         <h2 className="text-xl font-bold mb-4">프로그램 일정</h2>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-gray-100 rounded-full py-1 px-3 text-center text-xs">
-            10:00
+        
+        {templeStay.schedule && templeStay.schedule.length > 0 ? (
+          days.length > 0 ? (
+            <div className="space-y-4">
+              {days.map(day => (
+                <div key={day} className="space-y-2">
+                  {days.length > 1 && <h3 className="font-medium">Day {day}</h3>}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {groupedSchedule[day]?.map((item, index) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-3 flex items-start">
+                        <CalendarClock className="mr-2 h-5 w-5 text-[#DE7834] flex-shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-medium text-sm">{item.time}</div>
+                          <div className="text-gray-700 text-sm">{item.activity}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">일정 정보가 없습니다.</p>
+          )
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-gray-100 rounded-full py-1 px-3 text-center text-xs">
+                10:00
+              </div>
+              <div className="bg-gray-100 rounded-full py-1 px-3 text-center text-xs">
+                13:30-15:40
+              </div>
+              <div className="bg-gray-100 rounded-full py-1 px-3 text-center text-xs">
+                17:50-19:00
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-gray-200 h-6 rounded"></div>
+              <div className="bg-gray-200 h-6 rounded"></div>
+              <div className="bg-gray-200 h-6 rounded"></div>
+            </div>
+            <p className="text-gray-500 text-sm italic">일정 정보가 준비 중입니다.</p>
           </div>
-          <div className="bg-gray-100 rounded-full py-1 px-3 text-center text-xs">
-            13:30-15:40
-          </div>
-          <div className="bg-gray-100 rounded-full py-1 px-3 text-center text-xs">
-            17:50-19:00
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-3 mt-2">
-          <div className="bg-gray-200 h-6 rounded"></div>
-          <div className="bg-gray-200 h-6 rounded"></div>
-          <div className="bg-gray-200 h-6 rounded"></div>
-        </div>
+        )}
       </div>
 
       {/* 프로그램 소개 */}
