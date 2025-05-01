@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, Share } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TempleStay } from '@/utils/repository';
+import { toast } from 'sonner';
 
 interface TempleStayDetailContentProps {
   templeStay: TempleStay;
@@ -14,7 +15,22 @@ const TempleStayDetailContent: React.FC<TempleStayDetailContentProps> = ({
   templeStay,
   onGoToReservation
 }) => {
-  const isWishlist = false; // 상태 관리를 위한 변수, 실제로는 상태 관리 필요
+  const [isWishlist, setIsWishlist] = useState(false); // 찜 상태 관리
+
+  const handleToggleWishlist = () => {
+    setIsWishlist(!isWishlist);
+    
+    // 토스트 메시지 표시
+    if (!isWishlist) {
+      toast.success("찜 목록에 추가되었습니다", {
+        duration: 2000,
+      });
+    } else {
+      toast.success("찜 목록에서 삭제되었습니다", {
+        duration: 2000,
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -66,22 +82,19 @@ const TempleStayDetailContent: React.FC<TempleStayDetailContentProps> = ({
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 flex items-center justify-between">
+        <Button
+          onClick={handleToggleWishlist}
+          className="w-12 h-12 rounded-full bg-white border border-gray-200 hover:bg-gray-100 flex items-center justify-center"
+          variant="outline"
+        >
+          <Heart className={`w-6 h-6 ${isWishlist ? 'fill-[#DE7834] stroke-[#DE7834]' : 'stroke-gray-600'}`} />
+        </Button>
         <Button
           onClick={onGoToReservation}
-          className="w-full bg-[#1A1A1A] hover:bg-[#333333] text-white py-3 rounded-lg flex items-center justify-center"
+          className="flex-1 ml-3 bg-[#1A1A1A] hover:bg-[#333333] text-white py-3 rounded-lg"
         >
-          {isWishlist ? (
-            <>
-              <Heart className="w-5 h-5 mr-2 fill-[#DE7834] stroke-[#DE7834]" />
-              찜 목록에서 삭제하기
-            </>
-          ) : (
-            <>
-              <Heart className="w-5 h-5 mr-2" />
-              찜 목록에 추가했어요
-            </>
-          )}
+          예약하러 가기
         </Button>
       </div>
     </div>

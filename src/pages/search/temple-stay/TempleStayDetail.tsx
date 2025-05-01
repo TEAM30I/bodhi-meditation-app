@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share, MapPin, Home } from 'lucide-react';
 import { getTempleStayDetail, TempleStay } from '@/utils/repository';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import TempleStayDetailContent from '@/components/search/TempleStayDetailContent';
 
 const TempleStayDetail: React.FC = () => {
@@ -60,6 +60,9 @@ const TempleStayDetail: React.FC = () => {
 
   return (
     <div className="bg-white min-h-screen pb-24">
+      {/* Sonner Toaster */}
+      <Toaster position="bottom-center" />
+      
       {/* Header with navigation */}
       <div className="fixed top-0 left-0 right-0 z-10 bg-transparent flex justify-between items-center p-4">
         <button onClick={() => navigate(-1)} className="bg-white/80 backdrop-blur-sm p-2 rounded-full">
@@ -89,9 +92,6 @@ const TempleStayDetail: React.FC = () => {
         <div className="flex justify-between items-start">
           <h1 className="text-xl font-bold">{templeStay.templeName}</h1>
           <div className="flex space-x-2">
-            <button className="p-1">
-              <Heart className="w-5 h-5 text-gray-600" />
-            </button>
             <button className="p-1">
               <Share className="w-5 h-5 text-gray-600" />
             </button>
