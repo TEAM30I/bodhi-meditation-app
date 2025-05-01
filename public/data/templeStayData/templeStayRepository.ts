@@ -1,4 +1,3 @@
-
 // TempleStay Repository with Supabase Integration
 import { supabase } from '../supabase_client';
 import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
@@ -50,22 +49,6 @@ export async function getTempleStayLocations(): Promise<string[]> {
     return [];
   }
 }
-
-// Export locations for UI components that need immediate access
-// This will be populated with data from the database
-export const locations: string[] = [];
-
-// Populate locations array on module initialization
-(async () => {
-  try {
-    const regions = await getTempleStayRegions();
-    // Clear the array and add all regions
-    locations.length = 0;
-    locations.push(...regions);
-  } catch (error) {
-    console.error('Error initializing locations array:', error);
-  }
-})();
 
 // Fetch temple stays from Supabase
 export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Promise<TempleStay[]> {
@@ -431,3 +414,7 @@ export async function getTempleStayRegions(): Promise<string[]> {
     return [];
   }
 }
+
+// Export empty locations array for backward compatibility
+// This will be filled by the getTempleStayLocations function instead of being hardcoded
+export const locations: string[] = [];

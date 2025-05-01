@@ -23,7 +23,6 @@ import {
   getTopRegions,
   getTempleRegions,
   getRegionTags,
-  regionTags,
   type Temple,
   type TempleSort,
   type RegionTag
@@ -42,7 +41,6 @@ import {
   getTopLikedTempleStays,
   getTempleStayRegions,
   getTempleStayLocations,
-  locations,
   type TempleStay,
   type TempleStaySort
 } from "./templeStayData/templeStayRepository";
@@ -100,7 +98,6 @@ export {
   getTopRegions,
   getTempleRegions,
   getRegionTags,
-  regionTags,
 
   // TempleStay‑domain
   getTempleStayList,
@@ -114,7 +111,6 @@ export {
   getTopLikedTempleStays,
   getTempleStayRegions,
   getTempleStayLocations,
-  locations,
 
   // Scripture‑domain
   scriptures,

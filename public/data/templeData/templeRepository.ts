@@ -37,23 +37,16 @@ export interface RegionTag {
 }
 
 // Export regionTags for UI components that need immediate access
+// This will be populated with data from the database rather than hardcoded
 export const regionTags: RegionTag[] = [];
 
-// Populate regionTags on module initialization
+// Initialize regionTags on module load
 (async () => {
   try {
-    const regions = await getTempleRegions();
-    // Clear the array and recreate with data from DB
+    const tags = await getRegionTags();
+    // Clear the array and add the fetched tags
     regionTags.length = 0;
-    
-    // Add all regions as tags
-    regions.forEach((region, index) => {
-      regionTags.push({
-        id: `region-${index}`,
-        name: region,
-        active: index === 0 // First one active by default
-      });
-    });
+    regionTags.push(...tags);
   } catch (error) {
     console.error('Error initializing regionTags array:', error);
   }
