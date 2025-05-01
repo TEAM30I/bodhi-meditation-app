@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share, MapPin, Home } from 'lucide-react';
@@ -59,67 +58,80 @@ const TempleStayDetail: React.FC = () => {
   }
 
   return (
-    <div className="bg-white min-h-screen pb-24">
+    <div className="bg-white min-h-screen relative">
       {/* Sonner Toaster */}
       <Toaster position="bottom-center" />
       
       {/* Header with navigation */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-transparent flex justify-between items-center p-4">
-        <button onClick={() => navigate(-1)} className="bg-white/80 backdrop-blur-sm p-2 rounded-full">
+      <div className="fixed top-0 left-0 right-0 z-20 bg-transparent flex justify-between items-center p-4 max-w-[480px] mx-auto">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:bg-white/90 transition-colors"
+        >
           <ArrowLeft className="h-5 w-5 text-black" />
         </button>
-        <button onClick={() => navigate('/')} className="bg-white/80 backdrop-blur-sm p-2 rounded-full">
+        <button 
+          onClick={() => navigate('/')} 
+          className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:bg-white/90 transition-colors"
+        >
           <Home className="h-5 w-5 text-black" />
         </button>
       </div>
 
-      {/* Image at the top */}
-      <div className="relative">
-        <img 
-          src={templeStay.imageUrl || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay"} 
-          alt={templeStay.templeName}
-          className="w-full h-64 object-cover"
-        />
-        
-        {/* Image indicator (e.g., 1/4) */}
-        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-          1/4
+      {/* Main Content Container */}
+      <div className="max-w-[480px] mx-auto">
+        {/* Image at the top */}
+        <div className="relative w-full">
+          <img 
+            src={templeStay.imageUrl || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay"} 
+            alt={templeStay.templeName}
+            className="w-full h-[300px] object-cover"
+          />
+          
+          {/* Image indicator */}
+          <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
+            1/4
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="p-5">
+          {/* Title and actions */}
+          <div className="flex justify-between items-start mb-4">
+            <h1 className="text-2xl font-bold text-gray-900">{templeStay.templeName}</h1>
+            <div className="flex space-x-2">
+              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <Share className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Location */}
+          <div className="flex items-center text-gray-600 text-sm mb-3">
+            <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="leading-relaxed">{templeStay.location} • {templeStay.direction || '도보 10분'}</span>
+          </div>
+          
+          {/* Website
+          {templeStay.websiteUrl && (
+            <div className="text-gray-500 text-sm mb-4 break-words">
+              {templeStay.websiteUrl}
+            </div>
+          )} */}
+          
+          {/* Divider */}
+          <div className="border-b border-gray-200 my-5"></div>
+          
+          {/* Detail content */}
+          <TempleStayDetailContent 
+            templeStay={templeStay} 
+            onGoToReservation={handleReservation}
+          />
         </div>
       </div>
 
-      {/* Title and actions */}
-      <div className="p-4">
-        <div className="flex justify-between items-start">
-          <h1 className="text-xl font-bold">{templeStay.templeName}</h1>
-          <div className="flex space-x-2">
-            <button className="p-1">
-              <Share className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
-        
-        {/* Location */}
-        <div className="flex items-center text-gray-600 text-sm mt-2">
-          <MapPin className="w-4 h-4 mr-1" />
-          <span>{templeStay.location} • {templeStay.direction || '도보 10분'}</span>
-        </div>
-        
-        {/* Website */}
-        {templeStay.websiteUrl && (
-          <div className="text-gray-500 text-sm mt-1">
-            {templeStay.websiteUrl}
-          </div>
-        )}
-        
-        {/* Divider */}
-        <div className="border-b border-gray-200 my-4"></div>
-        
-        {/* Detail content */}
-        <TempleStayDetailContent 
-          templeStay={templeStay} 
-          onGoToReservation={handleReservation}
-        />
-      </div>
+      {/* Bottom Padding for Mobile */}
+      <div className="h-24"></div>
     </div>
   );
 };
