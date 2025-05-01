@@ -1,207 +1,420 @@
+// TempleStay Repository with Supabase Integration
+import { supabase } from '../supabase_client';
+import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
 
-// Temple Stay repository data
+// Default location to use for distance calculations (서울특별시 관악구 신림로 72)
+const DEFAULT_LOCATION = {
+  latitude: 37.4812845,
+  longitude: 126.9292231
+};
 
+// Interface for TempleStay data type
 export interface TempleStay {
   id: string;
   templeName: string;
   location: string;
-  direction: string;
-  price: number;
-  likeCount: number;
-  description: string;
-  duration: string;
   imageUrl: string;
-  websiteUrl: string;
-  schedule: {
+  price: number;
+  description?: string;
+  schedule?: Array<{
     time: string;
     activity: string;
-  }[];
+    day?: number;
+  }>;
+  direction?: string;
+  facilities?: string[];
+  likeCount?: number;
+  distance?: string;
+  longitude?: number;
+  latitude?: number;
   tags?: string[];
+  duration?: string;
+  websiteUrl?: string;
+  contact?: {
+    phone?: string;
+    email?: string;
+  };
 }
 
-export const templeStays: Record<string, TempleStay> = {
-  "ts-bulguksa": {
-    id: "ts-bulguksa",
-    templeName: "불국사 템플스테이",
-    location: "경주시",
-    direction: "경주시 불국로 385",
-    price: 50000,
-    likeCount: 482,
-    description: "불국사에서 진행하는, 참선을 주제로 한 당일형 템플스테이입니다.",
-    duration: "1박 2일",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bulguksa+Stay",
-    websiteUrl: "https://www.bulguksa.or.kr/templestay",
-    schedule: [
-      { time: "17:00", activity: "입소 및 오리엔테이션" },
-      { time: "18:00", activity: "저녁 공양" },
-      { time: "19:30", activity: "저녁 예불 및 참선" },
-      { time: "21:00", activity: "취침" },
-      { time: "04:30", activity: "기상" },
-      { time: "05:00", activity: "아침 예불" },
-      { time: "06:00", activity: "참선" },
-      { time: "07:00", activity: "아침 공양" },
-      { time: "09:00", activity: "퇴소" }
-    ],
-    tags: ["참선", "명상", "당일형"]
-  },
-  "ts-haeinsa": {
-    id: "ts-haeinsa",
-    templeName: "해인사 템플스테이",
-    location: "합천군",
-    direction: "합천군 가야면 해인사길 122",
-    price: 70000,
-    likeCount: 361,
-    description: "팔만대장경의 본사인 해인사에서 진행하는 1박 2일 템플스테이입니다.",
-    duration: "1박 2일",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Haeinsa+Stay",
-    websiteUrl: "https://www.haeinsa.or.kr/templestay",
-    schedule: [
-      { time: "15:00", activity: "입소 및 오리엔테이션" },
-      { time: "16:00", activity: "사찰 투어" },
-      { time: "18:00", activity: "저녁 공양" },
-      { time: "19:30", activity: "저녁 예불 및 참선" },
-      { time: "21:00", activity: "취침" },
-      { time: "04:30", activity: "기상" },
-      { time: "05:00", activity: "아침 예불" },
-      { time: "06:00", activity: "참선" },
-      { time: "07:00", activity: "아침 공양" },
-      { time: "08:00", activity: "108배" },
-      { time: "09:00", activity: "퇴소" }
-    ],
-    tags: ["108배", "사찰투어", "팔만대장경"]
-  },
-  "ts-tongdosa": {
-    id: "ts-tongdosa",
-    templeName: "통도사 템플스테이",
-    location: "양산시",
-    direction: "양산시 하북면 통도사로 108",
-    price: 60000,
-    likeCount: 295,
-    description: "통도사에서 진행하는 1박 2일 템플스테이입니다. 불보종찰 통도사에서 수행자의 삶을 체험해보세요.",
-    duration: "1박 2일",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Tongdosa+Stay",
-    websiteUrl: "https://www.tongdosa.or.kr/templestay",
-    schedule: [
-      { time: "14:00", activity: "입소 및 오리엔테이션" },
-      { time: "15:00", activity: "사찰 예절 및 불교 강좌" },
-      { time: "17:00", activity: "저녁 예불" },
-      { time: "18:00", activity: "저녁 공양" },
-      { time: "19:30", activity: "참선" },
-      { time: "21:00", activity: "취침" },
-      { time: "04:30", activity: "기상" },
-      { time: "05:00", activity: "아침 예불" },
-      { time: "07:00", activity: "아침 공양" },
-      { time: "08:00", activity: "사찰 탐방" },
-      { time: "11:00", activity: "퇴소" }
-    ],
-    tags: ["참선", "불교 강좌", "사찰 탐방"]
-  },
-  "ts-jogyesa": {
-    id: "ts-jogyesa",
-    templeName: "조계사 템플스테이",
-    location: "서울시",
-    direction: "서울시 종로구 우정국로 55",
-    price: 40000,
-    likeCount: 180,
-    description: "도심 속 사찰인 조계사에서 진행하는 당일형 템플스테이로, 바쁜 일상 속에서 잠시 휴식을 취해보세요.",
-    duration: "당일",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Jogyesa+Stay",
-    websiteUrl: "https://www.jogyesa.kr/templestay",
-    schedule: [
-      { time: "09:00", activity: "입소 및 오리엔테이션" },
-      { time: "10:00", activity: "명상 체험" },
-      { time: "12:00", activity: "점심 공양" },
-      { time: "13:30", activity: "108배" },
-      { time: "15:00", activity: "차담" },
-      { time: "16:30", activity: "소감 나누기" },
-      { time: "17:00", activity: "퇴소" }
-    ],
-    tags: ["도심 템플스테이", "당일형", "명상"]
-  },
-  "ts-bongeunsa": {
-    id: "ts-bongeunsa",
-    templeName: "봉은사 템플스테이",
-    location: "서울시",
-    direction: "서울시 강남구 봉은사로 531",
-    price: 45000,
-    likeCount: 210,
-    description: "서울 강남 한복판에 위치한 봉은사에서 진행하는, 명상과 힐링에 초점을 맞춘 템플스테이입니다.",
-    duration: "당일",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bongeunsa+Stay",
-    websiteUrl: "https://www.bongeunsa.org/templestay",
-    schedule: [
-      { time: "13:00", activity: "입소 및 오리엔테이션" },
-      { time: "14:00", activity: "사찰 탐방" },
-      { time: "15:30", activity: "차담 및 명상" },
-      { time: "17:00", activity: "저녁 예불" },
-      { time: "18:00", activity: "저녁 공양" },
-      { time: "19:30", activity: "연등 만들기" },
-      { time: "21:00", activity: "퇴소" }
-    ],
-    tags: ["도심 템플스테이", "당일형", "연등 만들기"]
-  },
-  "ts-songgwangsa": {
-    id: "ts-songgwangsa",
-    templeName: "송광사 템플스테이",
-    location: "순천시",
-    direction: "순천시 송광면 송광사길 100",
-    price: 65000,
-    likeCount: 320,
-    description: "승보종찰 송광사에서 진행하는 2박 3일 템플스테이로, 깊은 산속에서 수행자의 삶을 경험해보세요.",
-    duration: "2박 3일",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Songgwangsa+Stay",
-    websiteUrl: "https://www.songgwangsa.org/templestay",
-    schedule: [
-      { time: "14:00", activity: "입소 및 오리엔테이션" },
-      { time: "15:00", activity: "사찰 예절 및 불교 강좌" },
-      { time: "17:00", activity: "저녁 예불" },
-      { time: "18:00", activity: "저녁 공양" },
-      { time: "19:30", activity: "참선" },
-      { time: "21:00", activity: "취침" },
-      { time: "04:30", activity: "기상" },
-      { time: "05:00", activity: "아침 예불" },
-      { time: "07:00", activity: "아침 공양" },
-      { time: "09:00", activity: "108배" },
-      { time: "12:00", activity: "점심 공양" },
-      { time: "14:00", activity: "산책 및 명상" },
-      { time: "17:00", activity: "저녁 예불" },
-      { time: "21:00", activity: "취침" },
-      { time: "09:00", activity: "퇴소" }
-    ],
-    tags: ["산사체험", "장기형", "명상"]
+// Sort types
+export type TempleStaySort = 'popular' | 'recent' | 'price-asc' | 'price-desc' | 'distance';
+
+// Get all available regions for UI location selection
+export async function getTempleStayLocations(): Promise<string[]> {
+  try {
+    const regions = await getTempleStayRegions();
+    return regions;
+  } catch (error) {
+    console.error('Error fetching temple stay locations:', error);
+    return [];
   }
-};
-
-export const locations = [
-  { name: "서울", active: true },
-  { name: "경주", active: false },
-  { name: "부산", active: false },
-  { name: "합천", active: false },
-  { name: "양산", active: false },
-  { name: "여수", active: false },
-  { name: "순천", active: false }
-];
-
-export function getTempleStayList(): TempleStay[] {
-  return Object.values(templeStays);
 }
 
-export function getTopLikedTempleStays(limit = 5): TempleStay[] {
-  return Object.values(templeStays)
-    .sort((a, b) => b.likeCount - a.likeCount)
-    .slice(0, limit);
+// Fetch temple stays from Supabase
+export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Promise<TempleStay[]> {
+  try {
+    let query = supabase.from('temple_stays').select('*');
+    
+    if (sortBy === 'popular') {
+      query = query.order('follower_count', { ascending: false });
+    } else if (sortBy === 'recent') {
+      query = query.order('created_at', { ascending: false });
+    } else if (sortBy === 'price-asc') {
+      query = query.order('cost_adult', { ascending: true });
+    } else if (sortBy === 'price-desc') {
+      query = query.order('cost_adult', { ascending: false });
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching temple stays:', error);
+      return [];
+    }
+    
+    // Map database results to TempleStay type
+    let templeStays = data.map(item => {
+      return {
+        id: item.id,
+        templeName: item.name,
+        location: item.region, // Map region to location for interface compliance
+        imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+        price: parseInt(item.cost_adult) || 50000,
+        description: item.description,
+        likeCount: item.follower_count,
+        direction: item.public_transportation,
+        longitude: item.longitude,
+        latitude: item.latitude,
+        websiteUrl: item.reservation_link
+      };
+    });
+    
+    // If sort by distance, calculate distances and sort
+    if (sortBy === 'distance') {
+      templeStays = templeStays
+        .filter(stay => stay.latitude && stay.longitude)
+        .map(stay => {
+          const distance = calculateDistance(
+            DEFAULT_LOCATION.latitude,
+            DEFAULT_LOCATION.longitude,
+            stay.latitude!,
+            stay.longitude!
+          );
+          return { ...stay, distance: formatDistance(distance) };
+        })
+        .sort((a, b) => {
+          const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');
+          const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
+          return distA - distB;
+        });
+    }
+    
+    return templeStays;
+  } catch (error) {
+    console.error('Error in getTempleStayList:', error);
+    return [];
+  }
 }
 
-export function searchTempleStays(query: string): TempleStay[] {
+// Fetch temple stay detail by ID
+export async function getTempleStayDetail(id: string): Promise<TempleStay | null> {
+  try {
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching temple stay details:', error);
+      return null;
+    }
+    
+    // Also fetch schedule if available
+    const { data: scheduleData, error: scheduleError } = await supabase
+      .from('timelines')
+      .select('*')
+      .eq('temple_stay_id', id)
+      .order('day', { ascending: true })
+      .order('time', { ascending: true });
+    
+    if (scheduleError) {
+      console.error('Error fetching temple stay schedule:', scheduleError);
+    }
+    
+    const schedule = scheduleData ? scheduleData.map(item => ({
+      time: item.time,
+      activity: item.content,
+      day: item.day
+    })) : [];
+    
+    const templeStay: TempleStay = {
+      id: data.id,
+      templeName: data.name,
+      location: data.region,
+      imageUrl: data.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      price: parseInt(data.cost_adult) || 50000,
+      description: data.description,
+      likeCount: data.follower_count,
+      direction: data.public_transportation,
+      schedule: schedule,
+      longitude: data.longitude,
+      latitude: data.latitude,
+      facilities: data.facilities ? JSON.parse(data.facilities) : [],
+      tags: data.tags ? JSON.parse(data.tags) : [],
+      websiteUrl: data.reservation_link,
+      contact: {
+        phone: data.contact
+      }
+    };
+    
+    return templeStay;
+  } catch (error) {
+    console.error('Error in getTempleStayDetail:', error);
+    return null;
+  }
+}
+
+// Search temple stays by text query
+export async function searchTempleStays(query: string): Promise<TempleStay[]> {
   if (!query) return [];
-  const lowercaseQuery = query.toLowerCase();
-  return Object.values(templeStays).filter(templeStay => 
-    templeStay.templeName.toLowerCase().includes(lowercaseQuery) || 
-    templeStay.location.toLowerCase().includes(lowercaseQuery) ||
-    templeStay.tags?.some(tag => tag.toLowerCase().includes(lowercaseQuery))
-  );
+  
+  try {
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .or(`name.ilike.%${query}%,region.ilike.%${query}%,description.ilike.%${query}%`);
+    
+    if (error) {
+      console.error('Error searching temple stays:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      templeName: item.name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      price: parseInt(item.cost_adult) || 50000,
+      likeCount: item.follower_count,
+      direction: item.public_transportation
+    }));
+  } catch (error) {
+    console.error('Error in searchTempleStays:', error);
+    return [];
+  }
 }
 
-export function filterTempleStaysByTag(tag: string): TempleStay[] {
-  return Object.values(templeStays).filter(templeStay => templeStay.tags?.includes(tag));
+// Filter temple stays by tag
+export async function filterTempleStaysByTag(tag: string): Promise<TempleStay[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .eq('region', tag);
+    
+    if (error) {
+      console.error('Error filtering temple stays by tag:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      templeName: item.name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      price: parseInt(item.cost_adult) || 50000,
+      likeCount: item.follower_count,
+      direction: item.public_transportation
+    }));
+  } catch (error) {
+    console.error('Error in filterTempleStaysByTag:', error);
+    return [];
+  }
 }
+
+// Get temple stays by region
+export async function getTempleStaysByRegion(region: string): Promise<TempleStay[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .eq('region', region);
+    
+    if (error) {
+      console.error('Error fetching temple stays by region:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      templeName: item.name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      price: parseInt(item.cost_adult) || 50000,
+      likeCount: item.follower_count,
+      direction: item.public_transportation
+    }));
+  } catch (error) {
+    console.error('Error in getTempleStaysByRegion:', error);
+    return [];
+  }
+}
+
+// Follow temple stay
+export async function followTempleStay(userId: string, templeStayId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('user_follow_temple_stays')
+      .insert({ user_id: userId, temple_stay_id: templeStayId });
+    
+    if (error) {
+      console.error('Error following temple stay:', error);
+      return false;
+    }
+    
+    // Update follower count
+    const { error: updateError } = await supabase
+      .from('temple_stays')
+      .update({ follower_count: supabase.rpc('increment', { row_id: templeStayId }) })
+      .eq('id', templeStayId);
+    
+    if (updateError) {
+      console.error('Error updating follower count:', updateError);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in followTempleStay:', error);
+    return false;
+  }
+}
+
+// Unfollow temple stay
+export async function unfollowTempleStay(userId: string, templeStayId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('user_follow_temple_stays')
+      .delete()
+      .eq('user_id', userId)
+      .eq('temple_stay_id', templeStayId);
+    
+    if (error) {
+      console.error('Error unfollowing temple stay:', error);
+      return false;
+    }
+    
+    // Update follower count
+    const { error: updateError } = await supabase
+      .from('temple_stays')
+      .update({ follower_count: supabase.rpc('decrement', { row_id: templeStayId }) })
+      .eq('id', templeStayId);
+    
+    if (updateError) {
+      console.error('Error updating follower count:', updateError);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in unfollowTempleStay:', error);
+    return false;
+  }
+}
+
+// Get user followed temple stays
+export async function getUserFollowedTempleStays(userId: string): Promise<TempleStay[]> {
+  try {
+    const { data, error } = await supabase
+      .from('user_follow_temple_stays')
+      .select('temple_stay_id, temple_stays(*)')
+      .eq('user_id', userId);
+    
+    if (error) {
+      console.error('Error fetching user followed temple stays:', error);
+      return [];
+    }
+    
+    // Check if data exists and is not empty
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    // Map data to the expected format with proper type checking
+    const templeStays = data
+      .filter(item => item && item.temple_stays)
+      .map(item => {
+        const templeStay = item.temple_stays as any;
+        
+        return {
+          id: templeStay.id,
+          templeName: templeStay.name,
+          location: templeStay.region,
+          imageUrl: templeStay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+          price: parseInt(templeStay.cost_adult) || 50000,
+          likeCount: templeStay.follower_count,
+          direction: templeStay.public_transportation
+        };
+      });
+      
+    return templeStays;
+  } catch (error) {
+    console.error('Error in getUserFollowedTempleStays:', error);
+    return [];
+  }
+}
+
+// Get top liked temple stays
+export async function getTopLikedTempleStays(limit = 5): Promise<TempleStay[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*')
+      .order('follower_count', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error('Error fetching top liked temple stays:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      templeName: item.name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      price: parseInt(item.cost_adult) || 50000,
+      likeCount: item.follower_count,
+      direction: item.public_transportation
+    }));
+  } catch (error) {
+    console.error('Error in getTopLikedTempleStays:', error);
+    return [];
+  }
+}
+
+// Get all available regions from database
+export async function getTempleStayRegions(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('region')
+      .not('region', 'is', null)
+      .order('region', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching temple stay regions:', error);
+      return [];
+    }
+    
+    // Extract unique regions
+    const regions = [...new Set(data.map(item => item.region).filter(Boolean))];
+    return regions;
+  } catch (error) {
+    console.error('Error in getTempleStayRegions:', error);
+    return [];
+  }
+}
+
+// Export empty locations array for backward compatibility
+// This will be filled by the getTempleStayLocations function instead of being hardcoded
+export const locations: string[] = [];

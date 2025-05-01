@@ -1,33 +1,115 @@
 
-export interface SearchRanking {
-  id: string;
-  term: string;
-  count: number;
-  trend: 'up' | 'down' | 'new' | 'same';
+import { supabase } from './supabase_client';
+
+/**
+ * Get region search rankings by combining follower_count and search_count from the temples table
+ */
+export async function getRegionSearchRankings(limit = 8): Promise<{name: string, count: number}[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temples')
+      .select('region, follower_count, search_count');
+      
+    if (error) {
+      console.error('Error fetching region rankings:', error);
+      return [];
+    }
+    
+    // Group by region and sum the follower and search counts
+    const regions = data.reduce((acc, temple) => {
+      if (temple.region) {
+        if (!acc[temple.region]) {
+          acc[temple.region] = {
+            count: 0
+          };
+        }
+        
+        acc[temple.region].count += (temple.follower_count || 0) + (temple.search_count || 0);
+      }
+      return acc;
+    }, {} as Record<string, {count: number}>);
+    
+    // Convert to array and sort
+    return Object.entries(regions)
+      .map(([name, data]) => ({
+        name,
+        count: data.count
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
+  } catch (error) {
+    console.error('Error in getRegionSearchRankings:', error);
+    return [];
+  }
 }
 
-export const regionSearchRankings: SearchRanking[] = [
-  { id: "r1", term: "경주", count: 8452, trend: 'up' },
-  { id: "r2", term: "서울", count: 7123, trend: 'same' },
-  { id: "r3", term: "불국사", count: 5678, trend: 'up' },
-  { id: "r4", term: "해인사", count: 4521, trend: 'down' },
-  { id: "r5", term: "통도사", count: 3987, trend: 'up' },
-  { id: "r6", term: "부산", count: 3654, trend: 'down' },
-  { id: "r7", term: "양산", count: 2987, trend: 'new' },
-  { id: "r8", term: "조계사", count: 2854, trend: 'up' },
-  { id: "r9", term: "봉은사", count: 2753, trend: 'same' },
-  { id: "r10", term: "속초", count: 2541, trend: 'down' }
-];
+/**
+ * Get temple stay search rankings by combining follower_count and search_count from the temple_stays table
+ */
+export async function getTempleStaySearchRankings(limit = 8): Promise<{name: string, count: number}[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('region, follower_count, search_count');
+      
+    if (error) {
+      console.error('Error fetching temple stay rankings:', error);
+      return [];
+    }
+    
+    // Group by region and sum the follower and search counts
+    const regions = data.reduce((acc, templeStay) => {
+      if (templeStay.region) {
+        if (!acc[templeStay.region]) {
+          acc[templeStay.region] = {
+            count: 0
+          };
+        }
+        
+        acc[templeStay.region].count += (templeStay.follower_count || 0) + (templeStay.search_count || 0);
+      }
+      return acc;
+    }, {} as Record<string, {count: number}>);
+    
+    // Convert to array and sort
+    return Object.entries(regions)
+      .map(([name, data]) => ({
+        name,
+        count: data.count
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
+  } catch (error) {
+    console.error('Error in getTempleStaySearchRankings:', error);
+    return [];
+  }
+}
 
-export const templeStaySearchRankings: SearchRanking[] = [
-  { id: "ts1", term: "서울", count: 9876, trend: 'same' },
-  { id: "ts2", term: "경주", count: 8765, trend: 'up' },
-  { id: "ts3", term: "명상", count: 7654, trend: 'up' },
-  { id: "ts4", term: "참선", count: 6543, trend: 'down' },
-  { id: "ts5", term: "불국사", count: 5432, trend: 'up' },
-  { id: "ts6", term: "당일", count: 4321, trend: 'new' },
-  { id: "ts7", term: "해인사", count: 3210, trend: 'down' },
-  { id: "ts8", term: "통도사", count: 2987, trend: 'same' },
-  { id: "ts9", term: "1박2일", count: 2876, trend: 'up' },
-  { id: "ts10", term: "송광사", count: 2654, trend: 'new' }
-];
+/**
+ * Add a search term to the database to track popularity
+ */
+export async function addSearchTerm(term: string, type: 'temple' | 'temple-stay'): Promise<void> {
+  // Note: This functionality would normally update the search_count in the respective tables
+  // For now, this is a placeholder for future implementation
+  try {
+    if (type === 'temple') {
+      await supabase
+        .from('temples')
+        .update({ search_count: supabase.rpc('increment', { row_id: term }) })
+        .eq('name', term);
+    } else {
+      await supabase
+        .from('temple_stays')
+        .update({ search_count: supabase.rpc('increment', { row_id: term }) })
+        .eq('name', term);
+    }
+  } catch (error) {
+    console.error('Error recording search term:', error);
+  }
+}
+
+export interface SearchRanking {
+  id: string;
+  name: string;
+  count: number;
+}

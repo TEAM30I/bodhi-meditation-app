@@ -1,6 +1,6 @@
+
 import { useNavigate } from 'react-router-dom';
 import { Book, Search, Heart, User, Home } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NavItemProps {
   icon: JSX.Element;
@@ -45,25 +45,25 @@ const BottomNav = () => {
             onClick={() => navigate('/main')}
           />
           <NavItem 
-            icon={<Book size={28} />} 
+            icon={<Book size={28} className={isScripturePath ? "fill-[rgba(222,120,52,0.2)] stroke-[#DE7834]" : ""} />} 
             label="경전" 
             isActive={isScripturePath}
             onClick={() => navigate('/scripture')}
           />
           <NavItem 
-            icon={<Search size={28} />} 
+            icon={<Search size={28} className={isSearchPath ? "fill-[rgba(222,120,52,0.2)] stroke-[#DE7834]" : ""} />} 
             label="검색" 
             isActive={isSearchPath}
             onClick={() => navigate('/search')}
           />
           <NavItem 
-            icon={<Heart size={28} />} 
+            icon={<Heart size={28} className={isWishlistPath ? "fill-[rgba(222,120,52,0.2)] stroke-[#DE7834]" : ""} />} 
             label="찜" 
             isActive={isWishlistPath}
             onClick={() => navigate('/wishlist')}
           />
           <NavItem 
-            icon={<User size={28} />} 
+            icon={<User size={28} className={isProfilePath ? "fill-[rgba(222,120,52,0.2)] stroke-[#DE7834]" : ""} />} 
             label="마이페이지" 
             isActive={isProfilePath}
             onClick={() => navigate('/profile')}

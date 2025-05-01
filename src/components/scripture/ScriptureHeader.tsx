@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { ArrowLeft, Search, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, ChevronDown } from 'lucide-react';
 import { Scripture } from '../../../public/data/scriptureData/scriptureRepository';
@@ -7,6 +9,22 @@ import { Scripture } from '../../../public/data/scriptureData/scriptureRepositor
 interface ScriptureHeaderProps {
   scripture: Scripture;
   currentChapterIndex: number;
+  theme: 'light' | 'dark';
+  showChapterDropdown: boolean;
+  onSearchToggle: (e: React.MouseEvent) => void;
+  onChapterDropdownToggle: (e: React.MouseEvent) => void;
+  onChapterSelect: (index: number) => void;
+}
+
+const ScriptureHeader: React.FC<ScriptureHeaderProps> = ({
+  scripture,
+  currentChapterIndex,
+  theme,
+  showChapterDropdown,
+  onSearchToggle,
+  onChapterDropdownToggle,
+  onChapterSelect,
+}) => {
   showChapterDropdown: boolean;
   toggleChapterDropdown: (e: React.MouseEvent) => void;
   selectChapter: (index: number) => void;
@@ -38,6 +56,7 @@ const ScriptureHeader = ({
           </button>
           <div 
             className="flex items-center cursor-pointer"
+            onClick={onChapterDropdownToggle}
             onClick={toggleChapterDropdown}
           >
             <span className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
@@ -48,6 +67,7 @@ const ScriptureHeader = ({
         </div>
         
         <div className="flex items-center gap-4">
+          <button onClick={onSearchToggle}>
           <button onClick={toggleSearch}>
             <Search size={24} className={theme === 'dark' ? 'text-white' : 'text-black'} />
           </button>
@@ -70,6 +90,7 @@ const ScriptureHeader = ({
                     ? 'text-white hover:bg-gray-700' 
                     : 'text-gray-700 hover:bg-gray-100'
                 } ${currentChapterIndex === index ? 'font-bold' : ''}`}
+                onClick={() => onChapterSelect(index)}
                 onClick={() => selectChapter(index)}
               >
                 {chapter.title}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Share2, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
@@ -8,6 +9,10 @@ import { useSettings } from '@/hooks/useSettings';
 import ScriptureHeader from '@/components/scripture/ScriptureHeader';
 import ScriptureSearch from '@/components/scripture/ScriptureSearch';
 import SettingsPanel from '@/components/scripture/SettingsPanel';
+import ScriptureHeader from '@/components/scripture/ScriptureHeader';
+import ScriptureSearch from '@/components/scripture/ScriptureSearch';
+import ScriptureNavigation from '@/components/scripture/ScriptureNavigation';
+import PageNavigation from '@/components/scripture/PageNavigation';
 import PageLayout from '@/components/PageLayout';
 
 const ScriptureReader = () => {
@@ -25,6 +30,8 @@ const ScriptureReader = () => {
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   
   const contentRef = useRef<HTMLDivElement>(null);
+  const typedGetScriptureById = typedData<typeof getScriptureById>(getScriptureById);
+  const scripture: Scripture | undefined = id ? typedGetScriptureById(id) : undefined;
   const { settings } = useSettings();
   
   const [fontSize, setFontSize] = useState(settings?.font_size ?? 16);
@@ -117,12 +124,6 @@ const ScriptureReader = () => {
     );
   }
 
-  const currentChapter = scripture.chapters[currentChapterIndex];
-  
-  const handleBackClick = () => {
-    navigate('/scripture');
-  };
-
   const handlePrevPage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (currentPageIndex > 0) {
@@ -143,6 +144,14 @@ const ScriptureReader = () => {
       setCurrentPageIndex(0);
     }
     window.scrollTo(0, 0);
+  };
+
+  const toggleControls = () => {
+    setShowControls(!showControls);
+  };
+
+  const handleTabChange = (tab: 'original' | 'explanation') => {
+    setActiveTab(tab);
   };
 
   const toggleControls = () => setShowControls(!showControls);
@@ -172,6 +181,19 @@ const ScriptureReader = () => {
     setSearchQuery(e.target.value);
   };
 
+  const navigateSearchResult = (direction: 'next' | 'prev') => {
+    if (searchResults.length === 0) return;
+    
+    let newIndex = currentSearchIndex;
+    if (direction === 'next') {
+      newIndex = (currentSearchIndex + 1) % searchResults.length;
+    } else {
+      newIndex = (currentSearchIndex - 1 + searchResults.length) % searchResults.length;
+    }
+    
+    highlightSearchResult(newIndex);
+  };
+
   const highlightSearchResult = (index: number) => {
     if (searchResults.length === 0) return;
     
@@ -185,6 +207,16 @@ const ScriptureReader = () => {
     if (chapterIndex !== -1) {
       setCurrentChapterIndex(chapterIndex);
       setCurrentPageIndex(0);
+    }
+    
+    setTimeout(() => {
+      const resultElement = document.getElementById(`search-result-${index}`);
+      if (resultElement) {
+        resultElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  };
+
       
       setTimeout(() => {
         const resultElement = document.getElementById(`search-result-${index}`);
@@ -258,15 +290,131 @@ const ScriptureReader = () => {
     });
   };
 
-  const contentClasses = theme === 'dark' 
-    ? 'bg-gray-900 text-white' 
-    : 'bg-white text-gray-800';
+  const currentChapter = scripture.chapters[currentChapterIndex];
+  const contentClasses = theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-800';
+  const fontFamilyClasses = fontFamily === 'serif' ? 'font-serif' : 'font-sans';
   
-  const fontFamilyClasses = fontFamily === 'serif' 
-    ? 'font-serif' 
-    : 'font-sans';
+  const isFirstPage = currentChapterIndex === 0 && currentPageIndex === 0;
+  const isLastPage = currentChapterIndex === scripture.chapters.length - 1 && currentPageIndex === 4;
 
   return (
+    <div 
+      className={`min-h-screen ${contentClasses} font-['Pretendard']`}
+      onClick={toggleControls}
+    >
+      <ScriptureHeader 
+        scripture={scripture}
+        currentChapterIndex={currentChapterIndex}
+        theme={theme}
+        showChapterDropdown={showChapterDropdown}
+        onSearchToggle={toggleSearch}
+        onChapterDropdownToggle={toggleChapterDropdown}
+        onChapterSelect={selectChapter}
+      />
+      
+      {showSearch && (
+        <ScriptureSearch 
+          theme={theme}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchQueryChange}
+          searchResults={searchResults}
+          currentSearchIndex={currentSearchIndex}
+          onNavigateSearch={navigateSearchResult}
+        />
+      )}
+      
+      <div className="flex px-8 py-4 gap-2">
+        <button
+          className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
+            activeTab === 'original' 
+              ? 'bg-[#21212F] text-white font-bold' 
+              : `${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#EDEDED]'} border ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTabChange('original');
+          }}
+        >
+          원문
+        </button>
+        <button
+          className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
+            activeTab === 'explanation' 
+              ? 'bg-[#21212F] text-white font-bold' 
+              : `${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#EDEDED]'} border ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTabChange('explanation');
+          }}
+        >
+          해석본
+        </button>
+      </div>
+      
+      <div 
+        ref={contentRef}
+        className={`px-10 py-4 overflow-y-auto ${contentClasses} ${fontFamilyClasses}`}
+        style={{ 
+          fontSize: `${fontSize}px`,
+          lineHeight: '1.6',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {currentChapter && (
+          <>
+            <h2 className={`font-bold text-xl mb-3 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+              {currentChapter.title}
+            </h2>
+            <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'} mb-8`}>
+              {activeTab === 'original' ? '원문' : '해설'} - 페이지 {currentPageIndex + 1}
+            </p>
+            <div className="mb-4">
+              {renderContent()}
+            </div>
+          </>
+        )}
+      </div>
+
+      <PageNavigation 
+        theme={theme}
+        showControls={showControls}
+        onPrevPage={handlePrevPage}
+        onNextPage={handleNextPage}
+        isFirstPage={isFirstPage}
+        isLastPage={isLastPage}
+      />
+      
+      <ScriptureNavigation 
+        theme={theme}
+        onSettingsClick={(e) => {
+          e.stopPropagation();
+          setShowSettings(true);
+        }}
+        showControls={showControls}
+      />
+      
+      {showSettings && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/50 flex items-end" 
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowSettings(false);
+          }}
+        >
+          <div 
+            className="w-full p-5 bg-white rounded-t-3xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SettingsPanel 
+              onFontSizeChange={setFontSize}
+              onFontFamilyChange={setFontFamily}
+              onThemeChange={setTheme}
+              initialFontSize={Math.round((fontSize / 16) * 100)}
+              initialFontFamily={fontFamily}
+              initialTheme={theme}
+            />
+          </div>
     <PageLayout title={scripture?.title || "경전 읽기"} showBackButton={true}>
       <div className="w-full max-w-[480px] mx-auto min-h-screen bg-gray-50">
         <div 

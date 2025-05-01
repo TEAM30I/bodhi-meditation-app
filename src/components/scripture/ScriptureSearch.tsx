@@ -3,6 +3,22 @@ import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ScriptureSearchProps {
+  theme: 'light' | 'dark';
+  searchQuery: string;
+  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  searchResults: { index: number; text: string }[];
+  currentSearchIndex: number;
+  onNavigateSearch: (direction: 'next' | 'prev') => void;
+}
+
+const ScriptureSearch: React.FC<ScriptureSearchProps> = ({
+  theme,
+  searchQuery,
+  onSearchChange,
+  searchResults,
+  currentSearchIndex,
+  onNavigateSearch,
+}) => {
   showSearch: boolean;
   searchQuery: string;
   handleSearchQueryChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -33,6 +49,7 @@ const ScriptureSearch = ({
           type="text"
           placeholder="검색어를 입력하세요"
           value={searchQuery}
+          onChange={onSearchChange}
           onChange={handleSearchQueryChange}
           className={`flex-1 p-2 rounded-md ${
             theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-black'
@@ -40,6 +57,7 @@ const ScriptureSearch = ({
           autoFocus
         />
         <button 
+          onClick={() => onNavigateSearch('prev')}
           onClick={() => navigateSearchResult('prev')}
           disabled={searchResults.length === 0}
           className={`p-2 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}
@@ -47,6 +65,7 @@ const ScriptureSearch = ({
           <ChevronLeft size={20} className={theme === 'dark' ? 'text-white' : 'text-black'} />
         </button>
         <button 
+          onClick={() => onNavigateSearch('next')}
           onClick={() => navigateSearchResult('next')}
           disabled={searchResults.length === 0}
           className={`p-2 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}

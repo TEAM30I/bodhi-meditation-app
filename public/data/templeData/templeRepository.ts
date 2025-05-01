@@ -1,240 +1,498 @@
+// Temple Repository with Supabase Integration
+import { supabase } from '../supabase_client';
+import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
 
-// Temple repository data
+// Default location to use for distance calculations (서울특별시 관악구 신림로 72)
+const DEFAULT_LOCATION = {
+  latitude: 37.4812845,
+  longitude: 126.9292231
+};
 
-export interface NewsItem {
-  id: string;
-  temple: string;
-  source: string;
-  title: string;
-  link: string;
-  date: string;
-}
-
+// Interfaces for data types
 export interface Temple {
   id: string;
   name: string;
   location: string;
   imageUrl: string;
   distance?: string;
-  rating?: number;
-  reviews?: number;
   description?: string;
   openingHours?: string;
   tags?: string[];
-  hasParkingLot?: boolean;
-  hasTempleStay?: boolean;
   direction?: string;
   websiteUrl?: string;
   likeCount?: number;
   facilities?: string[];
-  nearbyAttractions?: string[];
   contact?: {
     phone?: string;
   };
-  social?: {
-    instagram?: string;
-    facebook?: string;
-  };
+  latitude?: number;
+  longitude?: number;
 }
 
-export const newsData: NewsItem[] = [
-  {
-    id: "1",
-    temple: "불국사",
-    source: "불교신문",
-    title: "불국사, 봄맞이 템플스테이 재개",
-    link: "#",
-    date: "2025-03-20"
-  },
-  {
-    id: "2",
-    temple: "해인사",
-    source: "연합뉴스",
-    title: "해인사 팔만대장경 전시회 개최",
-    link: "#",
-    date: "2025-03-18"
-  },
-  {
-    id: "3",
-    temple: "통도사",
-    source: "불교방송",
-    title: "통도사 봄 문화제 개최 예정",
-    link: "#",
-    date: "2025-03-15"
-  },
-  {
-    id: "4",
-    temple: "송광사",
-    source: "문화일보",
-    title: "송광사, 전통 산사음악회 5월 개최",
-    link: "#",
-    date: "2025-03-10"
+// Structure for region tags that will be populated from database
+export interface RegionTag {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
+// Export regionTags for UI components that need immediate access
+// This will be populated with data from the database rather than hardcoded
+export const regionTags: RegionTag[] = [];
+
+// Initialize regionTags on module load
+(async () => {
+  try {
+    const tags = await getRegionTags();
+    // Clear the array and add the fetched tags
+    regionTags.length = 0;
+    regionTags.push(...tags);
+  } catch (error) {
+    console.error('Error initializing regionTags array:', error);
   }
-];
+})();
 
-export const temples: Record<string, Temple> = {
-  "bulguksa": {
-    id: "bulguksa",
-    name: "불국사",
-    location: "경주시",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bulguksa",
-    description: "불국사는 경상북도 경주시 불국로에 있는 대한불교 조계종 제11교구 본사 직영 사찰이다.",
-    direction: "경주시 불국로 385",
-    websiteUrl: "https://www.bulguksa.or.kr",
-    tags: ["전통사찰", "유네스코", "경주"],
-    facilities: ["주차장", "화장실", "매점"],
-    openingHours: "07:00 - 17:00",
-    likeCount: 4.8,
-    contact: {
-      phone: "054-746-9913"
-    }
-  },
-  "haeinsa": {
-    id: "haeinsa",
-    name: "해인사",
-    location: "합천군",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Haeinsa",
-    description: "해인사는 경상남도 합천군 가야면 해인사길에 있는 대한불교 조계종 제12교구 본사이다.",
-    direction: "합천군 가야면 해인사길 122",
-    websiteUrl: "https://www.haeinsa.or.kr",
-    tags: ["전통사찰", "유네스코", "팔만대장경"],
-    facilities: ["주차장", "화장실", "식당"],
-    openingHours: "08:00 - 18:00",
-    likeCount: 4.6,
-    contact: {
-      phone: "055-934-3000"
-    }
-  },
-  "tongdosa": {
-    id: "tongdosa",
-    name: "통도사",
-    location: "양산시",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Tongdosa",
-    description: "통도사는 경상남도 양산시 하북면에 있는 대한불교 조계종 제16교구 본사이다.",
-    direction: "양산시 하북면 통도사로 108",
-    websiteUrl: "https://www.tongdosa.or.kr",
-    tags: ["전통사찰", "불보종찰", "양산"],
-    facilities: ["주차장", "화장실", "식당", "기념품점"],
-    openingHours: "08:30 - 18:00",
-    likeCount: 4.7,
-    contact: {
-      phone: "055-382-7182"
-    }
-  },
-  "songgwangsa": {
-    id: "songgwangsa",
-    name: "송광사",
-    location: "순천시",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Songgwangsa",
-    description: "송광사는 전라남도 순천시 송광면에 있는 대한불교 조계종 제21교구 본사이다.",
-    direction: "순천시 송광면 송광사길 100",
-    websiteUrl: "https://www.songgwangsa.org",
-    tags: ["전통사찰", "승보종찰", "순천"],
-    facilities: ["주차장", "화장실", "식당"],
-    openingHours: "08:00 - 18:00",
-    likeCount: 4.5,
-    contact: {
-      phone: "061-755-0107"
-    }
-  },
-  "jogyesa": {
-    id: "jogyesa",
-    name: "조계사",
-    location: "서울시",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Jogyesa",
-    description: "조계사는 서울특별시 종로구 우정국로에 있는 대한불교 조계종 본사이다.",
-    direction: "서울시 종로구 우정국로 55",
-    websiteUrl: "https://www.jogyesa.kr",
-    tags: ["도심사찰", "서울", "종로"],
-    facilities: ["주차장", "화장실", "법당"],
-    openingHours: "24시간",
-    likeCount: 4.3,
-    contact: {
-      phone: "02-768-8600"
-    }
-  },
-  "bongeunsa": {
-    id: "bongeunsa",
-    name: "봉은사",
-    location: "서울시",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bongeunsa",
-    description: "봉은사는 서울특별시 강남구 삼성동에 있는 대한불교 조계종 사찰이다.",
-    direction: "서울시 강남구 봉은사로 531",
-    websiteUrl: "https://www.bongeunsa.org",
-    tags: ["도심사찰", "서울", "강남"],
-    facilities: ["주차장", "화장실", "법당", "템플스테이"],
-    openingHours: "04:00 - 20:00",
-    likeCount: 4.2,
-    contact: {
-      phone: "02-3218-4800"
-    }
+// 정렬 유형
+export type TempleSort = 'popular' | 'recent' | 'distance';
+
+// Get all regions as an array 
+export async function getRegionTags(): Promise<RegionTag[]> {
+  try {
+    const regions = await getTempleRegions();
+    return regions.map((region, index) => ({
+      id: `region-${index}`,
+      name: region,
+      active: index === 0
+    }));
+  } catch (error) {
+    console.error('Error getting region tags:', error);
+    return [];
   }
-};
+}
 
-export const nearbyTemples: Temple[] = [
-  {
-    id: "bulguksa",
-    name: "불국사",
-    location: "경주시",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Bulguksa",
-    distance: "3.5km",
-    likeCount: 4.8
-  },
-  {
-    id: "haeinsa",
-    name: "해인사",
-    location: "합천군",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Haeinsa",
-    distance: "15km",
-    likeCount: 4.6
-  },
-  {
-    id: "tongdosa",
-    name: "통도사",
-    location: "양산시",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Tongdosa",
-    distance: "8.2km",
-    likeCount: 4.7
-  },
-  {
-    id: "jogyesa",
-    name: "조계사",
-    location: "서울시",
-    imageUrl: "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Jogyesa",
-    distance: "1.2km",
-    likeCount: 4.3
+// Supabase 데이터베이스에서 사찰 목록 가져오기
+export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Temple[]> {
+  try {
+    let query = supabase.from('temples').select('*');
+    
+    if (sortBy === 'popular') {
+      query = query.order('follower_count', { ascending: false });
+    } else if (sortBy === 'recent') {
+      query = query.order('created_at', { ascending: false });
+    }
+    
+    const { data, error } = await query;
+      
+    if (error) {
+      console.error('Error fetching temples:', error);
+      return []; 
+    }
+    
+    let temples = data.map(item => ({
+      id: item.id,
+      name: item.name,
+      location: item.region, // Map region to location for interface compliance
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      description: item.description,
+      direction: item.address,
+      likeCount: item.follower_count,
+      contact: {
+        phone: item.contact
+      },
+      latitude: item.latitude,
+      longitude: item.longitude,
+      facilities: item.facilities ? JSON.parse(item.facilities) : [],
+      tags: item.tags ? JSON.parse(item.tags) : [],
+      openingHours: item.opening_hours,
+      websiteUrl: item.website_url
+    }));
+    
+    // Sort by distance if needed (after we have the data with coordinates)
+    if (sortBy === 'distance') {
+      temples = temples
+        .filter(temple => temple.latitude && temple.longitude)
+        .map(temple => {
+          const distance = calculateDistance(
+            DEFAULT_LOCATION.latitude,
+            DEFAULT_LOCATION.longitude,
+            temple.latitude!,
+            temple.longitude!
+          );
+          return { ...temple, distance: formatDistance(distance) };
+        })
+        .sort((a, b) => {
+          const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');
+          const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
+          return distA - distB;
+        });
+    }
+    
+    return temples;
+  } catch (error) {
+    console.error('Error in getTempleList:', error);
+    return []; 
   }
-];
-
-export const regionTags = [
-  { id: "seoul", name: "서울", active: true },
-  { id: "gyeongju", name: "경주", active: false },
-  { id: "busan", name: "부산", active: false },
-  { id: "hapcheon", name: "합천", active: false },
-  { id: "yangsan", name: "양산", active: false },
-  { id: "suncheon", name: "순천", active: false }
-];
-
-export function getTempleList(): Temple[] {
-  return Object.values(temples);
 }
 
-export function getTopLikedTemples(limit = 5): Temple[] {
-  return Object.values(temples)
-    .sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0))
-    .slice(0, limit);
+// Supabase에서 좋아요 기준으로 정렬된 사찰 목록 가져오기
+export async function getTopLikedTemples(limit = 5): Promise<Temple[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*')
+      .order('follower_count', { ascending: false })
+      .limit(limit);
+      
+    if (error) {
+      console.error('Error fetching top liked temples:', error);
+      return [];
+    }
+    
+    return data.map(temple => ({
+      id: temple.id,
+      name: temple.name,
+      location: temple.region, // Map region to location for interface compliance
+      imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      likeCount: temple.follower_count,
+      direction: temple.address,
+      description: temple.description
+    }));
+  } catch (error) {
+    console.error('Error in getTopLikedTemples:', error);
+    return [];
+  }
 }
 
-export function filterTemplesByTag(tag: string): Temple[] {
-  return Object.values(temples).filter(temple => temple.tags?.includes(tag));
+// 사찰 태그 기반 필터링
+export async function filterTemplesByTag(tag: string): Promise<Temple[]> {
+  try {
+    // 태그 필드가 JSON 배열로 저장되어 있을 경우 유의
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*')
+      .ilike('tags', `%${tag}%`);
+      
+    if (error) {
+      console.error('Error filtering temples by tag:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      location: item.region, // Map region to location for interface compliance
+      imageUrl: item.image_url,
+      description: item.description,
+      likeCount: item.follower_count,
+      contact: {
+        phone: item.contact
+      },
+      latitude: item.latitude,
+      longitude: item.longitude
+    }));
+  } catch (error) {
+    console.error('Error in filterTemplesByTag:', error);
+    return [];
+  }
 }
 
-export function searchTemples(query: string): Temple[] {
+// 사찰 검색 기능
+export async function searchTemples(query: string): Promise<Temple[]> {
   if (!query) return [];
-  const lowercaseQuery = query.toLowerCase();
-  return Object.values(temples).filter(temple => 
-    temple.name.toLowerCase().includes(lowercaseQuery) || 
-    temple.location.toLowerCase().includes(lowercaseQuery) ||
-    temple.tags?.some(tag => tag.toLowerCase().includes(lowercaseQuery))
-  );
+  
+  try {
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*')
+      .or(`name.ilike.%${query}%,region.ilike.%${query}%,description.ilike.%${query}%`);
+      
+    if (error) {
+      console.error('Error searching temples:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      location: item.region, // Map region to location for interface compliance
+      imageUrl: item.image_url,
+      description: item.description,
+      likeCount: item.follower_count,
+      contact: {
+        phone: item.contact
+      },
+      latitude: item.latitude,
+      longitude: item.longitude
+    }));
+  } catch (error) {
+    console.error('Error in searchTemples:', error);
+    return [];
+  }
+}
+
+// 사용자 사찰 팔로우 기능
+export async function followTemple(userId: string, templeId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('user_follow_temples')
+      .insert({ user_id: userId, temple_id: templeId });
+      
+    if (error) {
+      console.error('Error following temple:', error);
+      return false;
+    }
+    
+    // 팔로워 카운트 업데이트
+    const { error: updateError } = await supabase
+      .from('temples')
+      .update({ follower_count: supabase.rpc('increment', { row_id: templeId }) })
+      .eq('id', templeId);
+      
+    if (updateError) {
+      console.error('Error updating follower count:', updateError);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in followTemple:', error);
+    return false;
+  }
+}
+
+// 사용자 사찰 언팔로우 기능
+export async function unfollowTemple(userId: string, templeId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('user_follow_temples')
+      .delete()
+      .eq('user_id', userId)
+      .eq('temple_id', templeId);
+      
+    if (error) {
+      console.error('Error unfollowing temple:', error);
+      return false;
+    }
+    
+    // 팔로워 카운트 감소
+    const { error: updateError } = await supabase
+      .from('temples')
+      .update({ follower_count: supabase.rpc('decrement', { row_id: templeId }) })
+      .eq('id', templeId);
+      
+    if (updateError) {
+      console.error('Error updating follower count:', updateError);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in unfollowTemple:', error);
+    return false;
+  }
+}
+
+// 사찰 상세 정보 가져오기
+export async function getTempleDetail(id: string): Promise<Temple | null> {
+  try {
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (error) {
+      console.error('Error fetching temple details:', error);
+      return null;
+    }
+    
+    return {
+      id: data.id,
+      name: data.name,
+      location: data.region, // Map region to location for interface compliance
+      imageUrl: data.image_url,
+      description: data.description,
+      direction: data.address,
+      likeCount: data.follower_count,
+      contact: {
+        phone: data.contact
+      },
+      openingHours: data.opening_hours,
+      tags: data.tags ? JSON.parse(data.tags) : [],
+      facilities: data.facilities ? JSON.parse(data.facilities) : [],
+      websiteUrl: data.website_url,
+      latitude: data.latitude,
+      longitude: data.longitude
+    };
+  } catch (error) {
+    console.error('Error in getTempleDetail:', error);
+    return null;
+  }
+}
+
+// 현재 위치 기반으로 근처 사찰 가져오기
+export async function getNearbyTemples(
+  latitude: number = DEFAULT_LOCATION.latitude, 
+  longitude: number = DEFAULT_LOCATION.longitude, 
+  limit = 4
+): Promise<Temple[]> {
+  try {
+    // 먼저 모든 사찰을 가져옴
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*');
+    
+    if (error) {
+      console.error('Error fetching temples for nearby calculation:', error);
+      return [];
+    }
+    
+    // 위치 정보를 가진 사찰만 필터링
+    const templesWithLocation = data.filter(temple => 
+      temple.latitude && temple.longitude
+    );
+    
+    // 각 사찰까지의 거리 계산
+    const templesWithDistance = templesWithLocation.map(temple => {
+      const distance = calculateDistance(
+        latitude, 
+        longitude, 
+        temple.latitude!, 
+        temple.longitude!
+      );
+      
+      return {
+        id: temple.id,
+        name: temple.name,
+        location: temple.region, // Map region to location for interface compliance
+        imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+        description: temple.description,
+        direction: temple.address,
+        distance: formatDistance(distance),
+        likeCount: temple.follower_count,
+        latitude: temple.latitude,
+        longitude: temple.longitude
+      };
+    });
+    
+    // 거리 기준 정렬
+    return templesWithDistance
+      .sort((a, b) => {
+        const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');
+        const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
+        return distA - distB;
+      })
+      .slice(0, limit);
+  } catch (error) {
+    console.error('Error in getNearbyTemples:', error);
+    return [];
+  }
+}
+
+// Get user followed temples
+export async function getUserFollowedTemples(userId: string): Promise<Temple[]> {
+  try {
+    const { data, error } = await supabase
+      .from('user_follow_temples')
+      .select('temple_id, temples(*)')
+      .eq('user_id', userId);
+      
+    if (error) {
+      console.error('Error fetching user followed temples:', error);
+      return [];
+    }
+    
+    // Check if data exists and is not empty
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Map data to the expected format with proper type checking
+    const temples = data
+      .filter(item => item && item.temples)
+      .map(item => {
+        const temple = item.temples as any;
+        
+        return {
+          id: temple.id,
+          name: temple.name,
+          location: temple.region,
+          imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+          description: temple.description,
+          likeCount: temple.follower_count,
+          direction: temple.address,
+          latitude: temple.latitude,
+          longitude: temple.longitude
+        };
+      });
+      
+    return temples;
+  } catch (error) {
+    console.error('Error in getUserFollowedTemples:', error);
+    return [];
+  }
+}
+
+// Get temple regions from database
+export async function getTempleRegions(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temples')
+      .select('region')
+      .not('region', 'is', null)
+      .order('region', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching temple regions:', error);
+      return [];
+    }
+    
+    // Extract unique regions
+    const regions = [...new Set(data.map(item => item.region).filter(Boolean))];
+    return regions;
+  } catch (error) {
+    console.error('Error in getTempleRegions:', error);
+    return [];
+  }
+}
+
+// Get top regions
+export async function getTopRegions(limit = 8): Promise<{name: string, count: number}[]> {
+  try {
+    const { data: templeData, error: templeError } = await supabase
+      .from('temples')
+      .select('region, follower_count, search_count');
+      
+    if (templeError) {
+      console.error('Error fetching temple regions:', templeError);
+      return [];
+    }
+    
+    // Group by region and sum follower_count and search_count
+    const regionCounts = templeData.reduce((acc, temple) => {
+      if (temple.region) {
+        if (!acc[temple.region]) {
+          acc[temple.region] = {
+            followerCount: 0,
+            searchCount: 0
+          };
+        }
+        acc[temple.region].followerCount += temple.follower_count || 0;
+        acc[temple.region].searchCount += temple.search_count || 0;
+      }
+      return acc;
+    }, {} as Record<string, {followerCount: number, searchCount: number}>);
+    
+    // Transform to array and sort by combined count
+    const result = Object.entries(regionCounts)
+      .map(([name, counts]) => ({
+        name,
+        count: counts.followerCount + counts.searchCount
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
+    
+    return result;
+  } catch (error) {
+    console.error('Error in getTopRegions:', error);
+    return [];
+  }
 }

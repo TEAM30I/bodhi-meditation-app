@@ -18,7 +18,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading, refreshUser } = useAuth();
+  const { user, loading } = useAuth();
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
   const [localLoading, setLocalLoading] = useState(true);
@@ -39,9 +39,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         const userData = await getCurrentUser() as AmplifyUser;
         console.log('ProtectedRoute: 인증된 사용자 확인됨', userData);
         setIsAuth(true);
-        
-        // AuthContext 상태 업데이트
-        await refreshUser();
       } catch (error) {
         console.log('ProtectedRoute: 인증되지 않은 사용자', error);
         setIsAuth(false);
@@ -55,10 +52,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     checkAuth();
 
     return () => clearTimeout(timeout); // 컴포넌트 언마운트시 타임아웃 제거
-  }, [refreshUser]);
+  }, []);
 
   // 컴포넌트 내부 로딩 상태와 Context의 로딩 상태 모두 고려
-  const finalLoading = localLoading || (isLoading && !authChecked);
+  const finalLoading = localLoading || (loading && !authChecked);
 
   // 로딩 중이면서 로딩 시간이 짧을 경우 스피너 표시
   if (finalLoading && authChecked === false) {
@@ -71,7 +68,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // 인증 여부 결정 (직접 체크 결과와 Context 결과 모두 고려)
-  const finalIsAuthenticated = isAuth || isAuthenticated;
+  const finalIsAuthenticated = isAuth || !!user;
 
   // 인증되지 않은 사용자는 로그인 페이지로 리디렉션
   if (!finalIsAuthenticated) {
@@ -85,3 +82,4 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 };
 
 export default ProtectedRoute;
+

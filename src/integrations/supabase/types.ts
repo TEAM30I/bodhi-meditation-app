@@ -239,6 +239,58 @@ export type Database = {
         }
         Relationships: []
       }
+      search_history: {
+        Row: {
+          id: string
+          searched_at: string
+          temple_id: string | null
+        }
+        Insert: {
+          id?: string
+          searched_at?: string
+          temple_id?: string | null
+        }
+        Update: {
+          id?: string
+          searched_at?: string
+          temple_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_history_temple_id_fkey"
+            columns: ["temple_id"]
+            isOneToOne: false
+            referencedRelation: "temples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      search_stay_history: {
+        Row: {
+          id: string
+          searched_at: string
+          temple_stay_id: string | null
+        }
+        Insert: {
+          id?: string
+          searched_at?: string
+          temple_stay_id?: string | null
+        }
+        Update: {
+          id?: string
+          searched_at?: string
+          temple_stay_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_stay_history_temple_stay_id_fkey"
+            columns: ["temple_stay_id"]
+            isOneToOne: false
+            referencedRelation: "temple_stays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       temple_stays: {
         Row: {
           cost_adult: string | null
@@ -252,6 +304,7 @@ export type Database = {
           public_transportation: string | null
           region: string | null
           reservation_link: string | null
+          search_count: number
           start_date: string | null
           temple_id: string | null
           updated_at: string | null
@@ -268,6 +321,7 @@ export type Database = {
           public_transportation?: string | null
           region?: string | null
           reservation_link?: string | null
+          search_count?: number
           start_date?: string | null
           temple_id?: string | null
           updated_at?: string | null
@@ -284,6 +338,7 @@ export type Database = {
           public_transportation?: string | null
           region?: string | null
           reservation_link?: string | null
+          search_count?: number
           start_date?: string | null
           temple_id?: string | null
           updated_at?: string | null
@@ -311,6 +366,7 @@ export type Database = {
           longitude: number | null
           name: string
           region: string | null
+          search_count: number
           updated_at: string | null
         }
         Insert: {
@@ -325,6 +381,7 @@ export type Database = {
           longitude?: number | null
           name: string
           region?: string | null
+          search_count?: number
           updated_at?: string | null
         }
         Update: {
@@ -339,6 +396,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           region?: string | null
+          search_count?: number
           updated_at?: string | null
         }
         Relationships: []
@@ -368,6 +426,7 @@ export type Database = {
           temple_stay_id?: string | null
           time?: string | null
         }
+        Relationships: []
         Relationships: [
           {
             foreignKeyName: "timelines_temple_stay_id_fkey"

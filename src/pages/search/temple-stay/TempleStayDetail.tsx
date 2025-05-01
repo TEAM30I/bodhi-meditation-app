@@ -1,165 +1,137 @@
-
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Clock, Heart, Share, Globe, ChevronRight, Home } from 'lucide-react';
-import { templeStays, TempleStay } from '@/utils/repository';
-import { castRepository } from '@/utils/typeAssertions';
-import { toast } from '@/components/ui/use-toast';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Heart, Share, MapPin, Home } from 'lucide-react';
+import { getTempleStayDetail, TempleStay } from '@/utils/repository';
+import { toast, Toaster } from 'sonner';
+import TempleStayDetailContent from '@/components/search/TempleStayDetailContent';
 
 const TempleStayDetail: React.FC = () => {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [isFavorite, setIsFavorite] = useState(false);
-  
-  const templeStayObj = id ? Object.values(templeStays).find(t => t.id === id) : undefined;
-  const templeStay = castRepository<TempleStay>(templeStayObj);
-  
-  if (!templeStay) {
+  const navigate = useNavigate();
+  const [templeStay, setTempleStay] = useState<TempleStay | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const handleReservation = () => {
+    if (templeStay?.websiteUrl) {
+      window.open(templeStay.websiteUrl, '_blank');
+    } else {
+      toast.error('예약 링크가 없습니다.');
+    }
+  };
+
+  useEffect(() => {
+    const fetchTempleStay = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        const data = await getTempleStayDetail(id);
+        if (data) {
+          setTempleStay(data);
+          console.log('Loaded temple stay:', data);
+        } else {
+          toast.error('템플스테이 정보를 찾을 수 없습니다.');
+          navigate('/search/temple-stay');
+        }
+      } catch (error) {
+        console.error('Error fetching temple stay:', error);
+        toast.error('템플스테이 정보를 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTempleStay();
+  }, [id, navigate]);
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p>템플스테이를 찾을 수 없습니다.</p>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]" />
       </div>
     );
   }
 
-  const handleToggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    if (!isFavorite) {
-      toast({
-        title: "찜 목록에 추가되었습니다.",
-        description: `${templeStay.templeName}이(가) 찜 목록에 추가되었습니다.`,
-      });
-    } else {
-      toast({
-        title: "찜 목록에서 제거되었습니다.",
-        description: `${templeStay.templeName}이(가) 찜 목록에서 제거되었습니다.`,
-      });
-    }
-  };
+  if (!templeStay) {
+    return null;
+  }
 
   return (
-    <div className="bg-[#F8F8F8] min-h-screen pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white w-full h-[56px] flex items-center justify-between border-b border-[#E5E5EC] px-5">
+    <div className="bg-white min-h-screen relative">
+      {/* Sonner Toaster */}
+      <Toaster position="bottom-center" />
+      
+      {/* Header with navigation */}
+      <div className="fixed top-0 left-0 right-0 z-20 bg-transparent flex justify-between items-center p-4 max-w-[480px] mx-auto">
         <button 
-          onClick={() => navigate(-1)}
-          className="flex items-center space-x-1"
+          onClick={() => navigate(-1)} 
+          className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:bg-white/90 transition-colors"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft className="h-5 w-5 text-black" />
         </button>
-        <div className="w-6" />
         <button 
-          onClick={() => navigate('/main')}
-          className="flex items-center space-x-1"
+          onClick={() => navigate('/')} 
+          className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:bg-white/90 transition-colors"
         >
-          <Home size={24} />
+          <Home className="h-5 w-5 text-black" />
         </button>
       </div>
 
-      {/* Temple Stay Image */}
-      <div className="w-full h-[250px] relative">
-        <img 
-          src={templeStay.imageUrl} 
-          alt={templeStay.templeName} 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-4 right-4 flex space-x-2">
-          <button 
-            onClick={handleToggleFavorite}
-            className="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md"
-          >
-            <Heart size={20} className={isFavorite ? "text-red-500 fill-red-500" : "text-gray-600"} />
-          </button>
-          <button 
-            className="bg-white w-10 h-10 rounded-full flex items-center justify-center shadow-md"
-          >
-            <Share size={20} className="text-gray-600" />
-          </button>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent text-white">
-          <h1 className="text-xl font-bold">{templeStay.templeName}</h1>
-          <div className="flex items-center mt-1">
-            <MapPin size={14} className="mr-1" />
-            <span className="text-sm">{templeStay.location}</span>
+      {/* Main Content Container */}
+      <div className="max-w-[480px] mx-auto">
+        {/* Image at the top */}
+        <div className="relative w-full">
+          <img 
+            src={templeStay.imageUrl || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay"} 
+            alt={templeStay.templeName}
+            className="w-full h-[300px] object-cover"
+          />
+          
+          {/* Image indicator */}
+          <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
+            1/4
           </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="p-5">
+          {/* Title and actions */}
+          <div className="flex justify-between items-start mb-4">
+            <h1 className="text-2xl font-bold text-gray-900">{templeStay.templeName}</h1>
+            <div className="flex space-x-2">
+              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <Share className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Location */}
+          <div className="flex items-center text-gray-600 text-sm mb-3">
+            <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="leading-relaxed">{templeStay.location} • {templeStay.direction || '도보 10분'}</span>
+          </div>
+          
+          {/* Website
+          {templeStay.websiteUrl && (
+            <div className="text-gray-500 text-sm mb-4 break-words">
+              {templeStay.websiteUrl}
+            </div>
+          )} */}
+          
+          {/* Divider */}
+          <div className="border-b border-gray-200 my-5"></div>
+          
+          {/* Detail content */}
+          <TempleStayDetailContent 
+            templeStay={templeStay} 
+            onGoToReservation={handleReservation}
+          />
         </div>
       </div>
 
-      {/* Temple Stay Info */}
-      <div className="bg-white px-5 py-4 mb-2">
-        <div className="flex flex-wrap gap-2 mb-3">
-          <Badge variant="outline" className="rounded-full">
-            {templeStay.duration}
-          </Badge>
-          {templeStay.tags?.map((tag, index) => (
-            <Badge key={index} variant="outline" className="rounded-full">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-        
-        {templeStay.description && (
-          <p className="text-gray-700 text-sm mb-4">{templeStay.description}</p>
-        )}
-      </div>
-      
-      {/* Temple Stay Program */}
-      <div className="bg-white px-5 py-4 mb-2">
-        <h2 className="text-base font-bold mb-3">이용안내</h2>
-        
-        <div className="mb-3">
-          <h3 className="text-sm font-medium mb-2">위치</h3>
-          <div className="text-gray-700 text-sm mb-2">
-            {templeStay.direction}
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-sm font-medium mb-2">유의사항</h3>
-          <div className="text-gray-700 text-sm">
-            <p>• 프로그램은 현장 상황에 따라 일부 변경될 수 있습니다.</p>
-            <p>• 사찰 내에서는 정숙하여 주시기 바랍니다.</p>
-            <p>• 자연을 훼손하는 행위는 삼가 주시기 바랍니다.</p>
-          </div>
-        </div>
-      </div>
-      
-      {/* Temple Stay Website */}
-      {templeStay.websiteUrl && (
-        <div className="bg-white px-5 py-4 mb-2">
-          <button 
-            className="flex items-center justify-between w-full" 
-            onClick={() => window.open(templeStay.websiteUrl, '_blank')}
-          >
-            <div className="flex items-center text-gray-700">
-              <Globe className="w-5 h-5 mr-2" />
-              <span>공식 웹사이트</span>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
-      )}
-      
-      {/* Booking Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-1">
-            <span className="text-lg font-bold">{templeStay.price.toLocaleString()}원</span>
-            <span className="text-sm text-gray-500">/ 인</span>
-          </div>
-          <div className="flex items-center">
-            <span className="text-sm text-gray-500 mr-2">찜</span>
-            <div className="flex items-center">
-              <Heart size={16} className="text-red-500 mr-1" />
-              <span className="text-sm font-medium">{templeStay.likeCount}</span>
-            </div>
-          </div>
-        </div>
-        <button className="w-full bg-[#DE7834] text-white py-3 rounded-lg font-medium">
-          예약하기
-        </button>
-      </div>
+      {/* Bottom Padding for Mobile */}
+      <div className="h-24"></div>
     </div>
   );
 };
