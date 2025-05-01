@@ -1,28 +1,29 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signIn } from 'aws-amplify/auth';
 import StatusBar from '@/components/login/StatusBar';
 import BackButton from '@/components/login/BackButton';
 import InputField from '@/components/login/InputField';
 import CheckboxField from '@/components/login/CheckboxField';
 import AuthButton from '@/components/login/AuthButton';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn } = useAuth();
   
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true); 
   const [isLoading, setIsLoading] = useState(false);
   
   const handleLogin = async () => {
-    if (!email || !password) {
+    if (!username || !password) {
       toast({
         title: "로그인 실패",
-        description: "이메일과 비밀번호를 입력해주세요.",
+        description: "아이디와 비밀번호를 입력해주세요.",
         variant: "destructive"
       });
       return;
@@ -31,21 +32,13 @@ const Login: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const { isSignedIn, nextStep } = await signIn({ username: email, password });
+      await signIn(username, password);
       
-      if (isSignedIn) {
-        toast({
-          title: "로그인 성공",
-          description: "환영합니다!",
-        });
-        navigate('/home');
-      } else if (nextStep.signInStep === 'CONFIRM_SIGN_UP') {
-        toast({
-          title: "계정 확인 필요",
-          description: "이메일 인증이 완료되지 않았습니다.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "로그인 성공",
+        description: "환영합니다!",
+      });
+      
     } catch (error: any) {
       console.error('Login error:', error);
       
@@ -54,9 +47,7 @@ const Login: React.FC = () => {
         errorMessage = "존재하지 않는 사용자입니다.";
       } else if (error.name === 'NotAuthorizedException') {
         errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
-      } else if (error.name === 'UserNotConfirmedException') {
-        errorMessage = "이메일 인증이 완료되지 않았습니다.";
-      }
+      } 
       
       toast({
         title: "로그인 실패",
@@ -76,11 +67,11 @@ const Login: React.FC = () => {
       
       <div className="mt-8 animate-slide-up">
         <InputField
-          type="email"
+          type="text"
           label="아이디"
           placeholder="아이디를 입력해 주세요"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           icon="user"
         />
         

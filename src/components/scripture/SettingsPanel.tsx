@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { useSettings } from '@/hooks/useSettings';
 import { toast } from '@/components/ui/use-toast';
 
 interface SettingsPanelProps {
@@ -23,9 +24,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [fontSize, setFontSize] = useState(initialFontSize);
   const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>(initialFontFamily);
   const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
+  const { updateSettings } = useSettings();
 
   useEffect(() => {
-    // Immediately apply initial settings
     if (onFontSizeChange) onFontSizeChange((initialFontSize / 100) * 16);
     if (onFontFamilyChange) onFontFamilyChange(initialFontFamily);
     if (onThemeChange) onThemeChange(initialTheme);
@@ -36,7 +37,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       const newSize = fontSize - 10;
       setFontSize(newSize);
       if (onFontSizeChange) {
-        onFontSizeChange((newSize / 100) * 16);
+        const actualSize = (newSize / 100) * 16;
+        onFontSizeChange(actualSize);
+        updateSettings({ font_size: actualSize });
       }
     }
   };
@@ -46,7 +49,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       const newSize = fontSize + 10;
       setFontSize(newSize);
       if (onFontSizeChange) {
-        onFontSizeChange((newSize / 100) * 16);
+        const actualSize = (newSize / 100) * 16;
+        onFontSizeChange(actualSize);
+        updateSettings({ font_size: actualSize });
       }
     }
   };
@@ -55,6 +60,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setFontFamily(family);
     if (onFontFamilyChange) {
       onFontFamilyChange(family);
+      updateSettings({ font_family: family });
     }
   };
 
@@ -62,6 +68,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setTheme(themeMode);
     if (onThemeChange) {
       onThemeChange(themeMode);
+      updateSettings({ theme: themeMode });
     }
   };
 

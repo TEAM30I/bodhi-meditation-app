@@ -2,6 +2,8 @@
 import React from 'react';
 import { ArrowLeft, Search, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Search, ChevronDown } from 'lucide-react';
 import { Scripture } from '../../../public/data/scriptureData/scriptureRepository';
 
 interface ScriptureHeaderProps {
@@ -23,6 +25,22 @@ const ScriptureHeader: React.FC<ScriptureHeaderProps> = ({
   onChapterDropdownToggle,
   onChapterSelect,
 }) => {
+  showChapterDropdown: boolean;
+  toggleChapterDropdown: (e: React.MouseEvent) => void;
+  selectChapter: (index: number) => void;
+  toggleSearch: (e: React.MouseEvent) => void;
+  theme: 'light' | 'dark';
+}
+
+const ScriptureHeader = ({
+  scripture,
+  currentChapterIndex,
+  showChapterDropdown,
+  toggleChapterDropdown,
+  selectChapter,
+  toggleSearch,
+  theme,
+}: ScriptureHeaderProps) => {
   const navigate = useNavigate();
 
   const handleBackClick = () => {
@@ -39,6 +57,7 @@ const ScriptureHeader: React.FC<ScriptureHeaderProps> = ({
           <div 
             className="flex items-center cursor-pointer"
             onClick={onChapterDropdownToggle}
+            onClick={toggleChapterDropdown}
           >
             <span className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
               {scripture.title}
@@ -49,6 +68,7 @@ const ScriptureHeader: React.FC<ScriptureHeaderProps> = ({
         
         <div className="flex items-center gap-4">
           <button onClick={onSearchToggle}>
+          <button onClick={toggleSearch}>
             <Search size={24} className={theme === 'dark' ? 'text-white' : 'text-black'} />
           </button>
         </div>
@@ -71,6 +91,7 @@ const ScriptureHeader: React.FC<ScriptureHeaderProps> = ({
                     : 'text-gray-700 hover:bg-gray-100'
                 } ${currentChapterIndex === index ? 'font-bold' : ''}`}
                 onClick={() => onChapterSelect(index)}
+                onClick={() => selectChapter(index)}
               >
                 {chapter.title}
               </button>

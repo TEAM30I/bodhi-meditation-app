@@ -19,6 +19,26 @@ const ScriptureSearch: React.FC<ScriptureSearchProps> = ({
   currentSearchIndex,
   onNavigateSearch,
 }) => {
+  showSearch: boolean;
+  searchQuery: string;
+  handleSearchQueryChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  navigateSearchResult: (direction: 'next' | 'prev') => void;
+  searchResults: Array<{ index: number; text: string }>;
+  currentSearchIndex: number;
+  theme: 'light' | 'dark';
+}
+
+const ScriptureSearch = ({
+  showSearch,
+  searchQuery,
+  handleSearchQueryChange,
+  navigateSearchResult,
+  searchResults,
+  currentSearchIndex,
+  theme
+}: ScriptureSearchProps) => {
+  if (!showSearch) return null;
+
   return (
     <div 
       className={`p-3 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}
@@ -30,6 +50,7 @@ const ScriptureSearch: React.FC<ScriptureSearchProps> = ({
           placeholder="검색어를 입력하세요"
           value={searchQuery}
           onChange={onSearchChange}
+          onChange={handleSearchQueryChange}
           className={`flex-1 p-2 rounded-md ${
             theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-black'
           }`}
@@ -37,6 +58,7 @@ const ScriptureSearch: React.FC<ScriptureSearchProps> = ({
         />
         <button 
           onClick={() => onNavigateSearch('prev')}
+          onClick={() => navigateSearchResult('prev')}
           disabled={searchResults.length === 0}
           className={`p-2 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}
         >
@@ -44,6 +66,7 @@ const ScriptureSearch: React.FC<ScriptureSearchProps> = ({
         </button>
         <button 
           onClick={() => onNavigateSearch('next')}
+          onClick={() => navigateSearchResult('next')}
           disabled={searchResults.length === 0}
           className={`p-2 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}
         >
