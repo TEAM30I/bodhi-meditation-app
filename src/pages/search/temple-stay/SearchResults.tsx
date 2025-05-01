@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search, X, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, Search, X, Calendar, Users, Home } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -138,12 +139,12 @@ const SearchResults: React.FC = () => {
     <div className="bg-white min-h-screen pb-24">
       {/* ── 헤더 ── */}
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
-        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center gap-4">
-          <button onClick={() => navigate('/search')}>
+        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center justify-between">
+          <button onClick={() => navigate('/search')} className="p-1">
             <ArrowLeft className="h-6 w-6" />
           </button>
-
-          <form onSubmit={handleSearchSubmit} className="flex-1 relative">
+          
+          <form onSubmit={handleSearchSubmit} className="flex-1 mx-3 relative">
             <Input
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
@@ -161,6 +162,10 @@ const SearchResults: React.FC = () => {
               </button>
             )}
           </form>
+          
+          <button onClick={() => navigate('/')} className="p-1">
+            <Home className="h-6 w-6" />
+          </button>
         </div>
       </div>
 
@@ -171,7 +176,7 @@ const SearchResults: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 flex items-center gap-1 rounded-lg bg-white"
+            className="flex-1 flex items-center justify-center gap-1 rounded-full bg-white"
             onClick={() => {
               setShowDatePicker((p) => !p);
               setShowGuestSelector(false);
@@ -186,7 +191,7 @@ const SearchResults: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 flex items-center gap-1 rounded-lg bg-white"
+            className="flex-1 flex items-center justify-center gap-1 rounded-full bg-white"
             onClick={() => {
               setShowGuestSelector((p) => !p);
               setShowDatePicker(false);
@@ -209,20 +214,12 @@ const SearchResults: React.FC = () => {
           </div>
         )}
 
-        {/* 검색하기 */}
-        <Button
-          className="w-full h-11 mb-4 bg-[#DE7834] hover:bg-[#c96b2e]"
-          onClick={handleSearchSubmit}
-        >
-          검색하기
-        </Button>
-
-        {/* 정렬 */}
-        <div className="flex gap-2 mb-4">
+        {/* 정렬 필터 */}
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-1 px-1">
           <Button
             variant={activeFilter === 'popular' ? 'default' : 'outline'}
             size="sm"
-            className={activeFilter === 'popular' ? 'bg-[#DE7834]' : 'bg-white'}
+            className={`rounded-full px-4 ${activeFilter === 'popular' ? 'bg-[#1A1A1A] text-white' : 'bg-transparent text-gray-700'}`}
             onClick={() => setActiveFilter('popular')}
           >
             인기순
@@ -230,7 +227,7 @@ const SearchResults: React.FC = () => {
           <Button
             variant={activeFilter === 'recent' ? 'default' : 'outline'}
             size="sm"
-            className={activeFilter === 'recent' ? 'bg-[#DE7834]' : 'bg-white'}
+            className={`rounded-full px-4 ${activeFilter === 'recent' ? 'bg-[#1A1A1A] text-white' : 'bg-transparent text-gray-700'}`}
             onClick={() => setActiveFilter('recent')}
           >
             최신순
@@ -238,12 +235,28 @@ const SearchResults: React.FC = () => {
           <Button
             variant={activeFilter === 'distance' ? 'default' : 'outline'}
             size="sm"
-            className={activeFilter === 'distance' ? 'bg-[#DE7834]' : 'bg-white'}
+            className={`rounded-full px-4 ${activeFilter === 'distance' ? 'bg-[#1A1A1A] text-white' : 'bg-transparent text-gray-700'}`}
             onClick={() => setActiveFilter('distance')}
           >
             거리순
           </Button>
+          <Button
+            variant={activeFilter === 'price-asc' ? 'default' : 'outline'}
+            size="sm"
+            className={`rounded-full px-4 ${activeFilter === 'price-asc' ? 'bg-[#1A1A1A] text-white' : 'bg-transparent text-gray-700'}`}
+            onClick={() => setActiveFilter('price-asc')}
+          >
+            가격낮은순
+          </Button>
         </div>
+
+        {/* 검색하기 버튼 */}
+        <Button
+          className="w-full h-11 mb-4 bg-[#1A1A1A] hover:bg-[#333333]"
+          onClick={handleSearchSubmit}
+        >
+          검색하기
+        </Button>
 
         {/* 결과 리스트 */}
         {loading ? (
@@ -251,7 +264,7 @@ const SearchResults: React.FC = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]" />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div>
             {templeStays.length ? (
               templeStays.map((ts) => (
                 <TempleStayItem
