@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
@@ -8,7 +7,7 @@ import TempleItem from '@/components/search/TempleItem';
 import { Temple, getTempleList, searchTemples, getNearbyTemples } from '@/utils/repository';
 import { getCurrentLocation } from '@/utils/locationUtils';
 
-const SearchResults = () => {
+const SearchResults: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -87,7 +86,9 @@ const SearchResults = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/search/temple/results?query=${searchValue}`);
+    if (searchValue.trim()) {
+      navigate(`/search/temple/results?query=${encodeURIComponent(searchValue.trim())}`);
+    }
   };
 
   const handleTempleClick = (id: string) => {
@@ -100,29 +101,18 @@ const SearchResults = () => {
     <div className="bg-white min-h-screen pb-16">
       <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
         <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
-          
-          <button onClick={() => navigate('/search')}>
+          <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft className="h-6 w-6" />
           </button>
           
           <form onSubmit={handleSearchSubmit} className="flex-1 relative">
             <Input
               value={searchValue}
-              onChange={handleSearchInputChange}
+              onChange={(e) => setSearchValue(e.target.value)}
               placeholder="사찰 검색"
-              className="w-full pl-9 pr-8 py-2 rounded-full bg-[#F5F5F5] border-none"
+              className="w-full pl-9 pr-4 py-2 rounded-full bg-[#F5F5F5] border-none"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-
-            {searchValue && (
-              <button 
-                type="button"
-                onClick={handleClearSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              >
-                <X className="h-4 w-4 text-gray-400" />
-              </button>
-            )}
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           </form>
         </div>
         {/* ✅ 검색하기 버튼 */}
@@ -161,46 +151,27 @@ const SearchResults = () => {
             거리순
           </Button>
         </div>
-import React from 'react';
-import { useTempleSearch } from '@/hooks/useTempleSearch';
-import SearchResultsHeader from '@/components/search/temple/SearchResultsHeader';
-import SearchResultsFilters from '@/components/search/temple/SearchResultsFilters';
-import SearchResultsList from '@/components/search/temple/SearchResultsList';
-
-const SearchResults = () => {
-  const {
-    searchValue,
-    setSearchValue,
-    temples,
-    activeFilter,
-    setActiveFilter,
-    loading,
-    handleSearchSubmit,
-    handleSearch,
-    handleTempleClick
-  } = useTempleSearch();
-
-  return (
-    <div className="bg-[#F8F8F8] min-h-screen pb-16">
-      <SearchResultsHeader
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
-        onSearchSubmit={handleSearchSubmit}
-        onClearSearch={() => setSearchValue('')}
-        onSearch={handleSearch}
-      />
-      
-      <div className="max-w-[480px] mx-auto px-5 py-3">
-        <SearchResultsFilters
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-        />
         
-        <SearchResultsList
-          loading={loading}
-          temples={temples}
-          onTempleClick={handleTempleClick}
-        />
+        {/* 사찰 목록 */}
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]" />
+          </div>
+        ) : temples.length > 0 ? (
+          <div className="space-y-4">
+            {temples.map((temple) => (
+              <TempleItem 
+                key={temple.id}
+                temple={temple}
+                onClick={() => handleTempleClick(temple.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">검색 결과가 없습니다.</p>
+          </div>
+        )}
       </div>
     </div>
   );
