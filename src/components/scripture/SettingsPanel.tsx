@@ -1,175 +1,125 @@
-
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { useSettings } from '@/hooks/useSettings';
-import { toast } from '@/components/ui/use-toast';
+import React from 'react';
+import { X } from 'lucide-react';
 
 interface SettingsPanelProps {
-  onFontSizeChange?: (size: number) => void;
-  onFontFamilyChange?: (family: 'gothic' | 'serif') => void;
-  onThemeChange?: (theme: 'light' | 'dark') => void;
-  initialFontSize?: number;
-  initialFontFamily?: 'gothic' | 'serif';
-  initialTheme?: 'light' | 'dark';
+  fontSize: number;
+  onFontSizeChange: (size: number) => void;
+  fontFamily: 'gothic' | 'serif';
+  onFontFamilyChange: (family: 'gothic' | 'serif') => void;
+  theme: 'light' | 'dark';
+  onThemeChange: (theme: 'light' | 'dark') => void;
+  onClose: () => void;
 }
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
-  onFontSizeChange, 
+const SettingsPanel: React.FC<SettingsPanelProps> = ({
+  fontSize,
+  onFontSizeChange,
+  fontFamily,
   onFontFamilyChange,
+  theme,
   onThemeChange,
-  initialFontSize = 90,
-  initialFontFamily = 'gothic',
-  initialTheme = 'light'
+  onClose
 }) => {
-  const [fontSize, setFontSize] = useState(initialFontSize);
-  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>(initialFontFamily);
-  const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
-  const { updateSettings } = useSettings();
-
-  useEffect(() => {
-    if (onFontSizeChange) onFontSizeChange((initialFontSize / 100) * 16);
-    if (onFontFamilyChange) onFontFamilyChange(initialFontFamily);
-    if (onThemeChange) onThemeChange(initialTheme);
-  }, []);
-
-  const decreaseFontSize = () => {
-    if (fontSize > 50) {
-      const newSize = fontSize - 10;
-      setFontSize(newSize);
-      if (onFontSizeChange) {
-        const actualSize = (newSize / 100) * 16;
-        onFontSizeChange(actualSize);
-        updateSettings({ font_size: actualSize });
-      }
-    }
-  };
-
-  const increaseFontSize = () => {
-    if (fontSize < 150) {
-      const newSize = fontSize + 10;
-      setFontSize(newSize);
-      if (onFontSizeChange) {
-        const actualSize = (newSize / 100) * 16;
-        onFontSizeChange(actualSize);
-        updateSettings({ font_size: actualSize });
-      }
-    }
-  };
-
-  const handleFontFamilyChange = (family: 'gothic' | 'serif') => {
-    setFontFamily(family);
-    if (onFontFamilyChange) {
-      onFontFamilyChange(family);
-      updateSettings({ font_family: family });
-    }
-  };
-
-  const handleThemeChange = (themeMode: 'light' | 'dark') => {
-    setTheme(themeMode);
-    if (onThemeChange) {
-      onThemeChange(themeMode);
-      updateSettings({ theme: themeMode });
-    }
-  };
-
-  const handleSave = () => {
-    toast({
-      title: "설정 저장",
-      description: "설정이 저장되었습니다",
-    });
-  };
-
   return (
-    <div className="w-full font-['Pretendard']">
-      <div className="flex justify-center">
-        <div className="w-12 h-1 bg-[#E5E6EB] rounded-full mb-3"></div>
-      </div>
-      <div className="bg-white rounded-3xl">
-        <h2 className="text-xl font-bold text-[#111]">환경 설정</h2>
-        <p className="text-xs text-[#767676] mt-1">나에게 맞는 설정으로 경전 읽기를 시작해보세요</p>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
+      <div 
+        className="w-full bg-white rounded-t-lg p-5 max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold">설정</h2>
+          <button onClick={onClose} className="p-1">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
         
-        <div className="mt-6 space-y-8">
-          {/* 글자 크기 설정 */}
-          <div className="flex justify-between items-center">
-            <span className="text-base text-[#111]">글자 크기</span>
-            <div className="flex items-center gap-7">
-              <button 
-                onClick={decreaseFontSize}
-                className="text-base text-[#111] font-medium"
-              >
-                -
-              </button>
-              <span className="text-sm text-[#111]">{fontSize}%</span>
-              <button 
-                onClick={increaseFontSize}
-                className="text-base text-[#111] font-medium"
-              >
-                +
-              </button>
-            </div>
+        {/* 글꼴 크기 설정 */}
+        <div className="mb-6">
+          <h3 className="font-medium mb-3">글꼴 크기</h3>
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => onFontSizeChange(Math.max(12, fontSize - 2))}
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300"
+            >
+              A<sub>-</sub>
+            </button>
+            <span className="text-gray-700">{fontSize}px</span>
+            <button 
+              onClick={() => onFontSizeChange(Math.min(24, fontSize + 2))}
+              className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300"
+            >
+              A<sup>+</sup>
+            </button>
           </div>
-          
-          {/* 글꼴 설정 */}
-          <div className="flex justify-between items-center">
-            <span className="text-base text-[#111]">글꼴</span>
-            <div className="inline-flex p-[2px] bg-[#F1F1F5] rounded-2xl">
-              <button 
-                onClick={() => handleFontFamilyChange('gothic')}
-                className={`w-20 py-2 text-center rounded-xl ${
-                  fontFamily === 'gothic' 
-                    ? 'bg-white font-bold text-black shadow-sm' 
-                    : 'text-[#767676]'
-                }`}
-              >
-                고딕체
-              </button>
-              <button 
-                onClick={() => handleFontFamilyChange('serif')}
-                className={`w-20 py-2.5 text-center ${
-                  fontFamily === 'serif' 
-                    ? 'bg-white font-bold text-black shadow-sm rounded-xl' 
-                    : 'text-[#767676]'
-                }`}
-              >
-                명조체
-              </button>
-            </div>
+          <input 
+            type="range" 
+            min="12" 
+            max="24" 
+            step="1" 
+            value={fontSize}
+            onChange={e => onFontSizeChange(parseInt(e.target.value))}
+            className="w-full mt-3"
+          />
+        </div>
+        
+        {/* 글꼴 설정 */}
+        <div className="mb-6">
+          <h3 className="font-medium mb-3">글꼴</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={() => onFontFamilyChange('gothic')}
+              className={`py-2 px-4 rounded-md border ${
+                fontFamily === 'gothic' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-300'
+              }`}
+            >
+              <span className="font-sans">고딕체</span>
+            </button>
+            <button 
+              onClick={() => onFontFamilyChange('serif')}
+              className={`py-2 px-4 rounded-md border ${
+                fontFamily === 'serif' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-300'
+              }`}
+            >
+              <span className="font-serif">명조체</span>
+            </button>
           </div>
-          
-          {/* 테마 설정 */}
-          <div className="flex justify-between items-center">
-            <span className="text-base text-[#111]">테마</span>
-            <div className="inline-flex p-[2px] bg-[#F1F1F5] rounded-2xl">
-              <button 
-                onClick={() => handleThemeChange('light')}
-                className={`w-20 py-2 text-center rounded-xl ${
-                  theme === 'light' 
-                    ? 'bg-white font-bold text-black shadow-sm' 
-                    : 'text-[#767676]'
-                }`}
-              >
-                라이트
-              </button>
-              <button 
-                onClick={() => handleThemeChange('dark')}
-                className={`w-20 py-2.5 text-center ${
-                  theme === 'dark' 
-                    ? 'bg-white font-bold text-black shadow-sm rounded-xl' 
-                    : 'text-[#767676]'
-                }`}
-              >
-                다크
-              </button>
-            </div>
+        </div>
+        
+        {/* 테마 설정 */}
+        <div className="mb-6">
+          <h3 className="font-medium mb-3">테마</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={() => onThemeChange('light')}
+              className={`py-2 px-4 rounded-md border ${
+                theme === 'light' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-300'
+              }`}
+            >
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 bg-white border border-gray-300 rounded-full mr-2"></div>
+                <span>라이트</span>
+              </div>
+            </button>
+            <button 
+              onClick={() => onThemeChange('dark')}
+              className={`py-2 px-4 rounded-md border ${
+                theme === 'dark' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-300'
+              }`}
+            >
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 bg-gray-900 border border-gray-700 rounded-full mr-2"></div>
+                <span>다크</span>
+              </div>
+            </button>
           </div>
-          
-          {/* 적용하기 버튼 */}
-          <Button
-            onClick={handleSave}
-            className="w-full h-14 bg-[#DE7834] hover:bg-[#C56628] text-white font-bold text-lg rounded-xl mt-8"
-          >
-            적용하기
-          </Button>
         </div>
       </div>
     </div>
