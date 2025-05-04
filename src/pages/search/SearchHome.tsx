@@ -323,7 +323,7 @@ const SearchHome = () => {
           </div>
         )}
 
-        <BottomNav />
+        {/* <BottomNav /> */}
       </div>
     </PageLayout>
   );
