@@ -97,7 +97,7 @@ const Wishlist = () => {
           </TabsContent>
         </Tabs>
       </div>
-      <BottomNav />
+      {/* <BottomNav /> */}
     </PageLayout>
   );
 };
