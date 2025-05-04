@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Share2, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import { getScriptureById, Scripture } from '../../../public/data/scriptureData/scriptureRepository';
-import SettingsPanel from '@/components/scripture/SettingsPanel';
+import { getScriptureById, Scripture } from '@/utils/repository';
+import { useScriptureProgress } from '@/hooks/useScriptureProgress';
+import { useSettings } from '@/hooks/useSettings';
 import ScriptureHeader from '@/components/scripture/ScriptureHeader';
 import ScriptureSearch from '@/components/scripture/ScriptureSearch';
+import SettingsPanel from '@/components/scripture/SettingsPanel';
 import ScriptureNavigation from '@/components/scripture/ScriptureNavigation';
 import PageNavigation from '@/components/scripture/PageNavigation';
+import PageLayout from '@/components/PageLayout';
 
 const ScriptureReader = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'original' | 'explanation'>('explanation');
-  const [fontSize, setFontSize] = useState(16);
-  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>('gothic');
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [showSettings, setShowSettings] = useState(false);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
@@ -27,34 +29,37 @@ const ScriptureReader = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const typedGetScriptureById = typedData<typeof getScriptureById>(getScriptureById);
   const scripture: Scripture | undefined = id ? typedGetScriptureById(id) : undefined;
+  const { settings } = useSettings();
+  
+  const [fontSize, setFontSize] = useState(settings?.font_size ?? 16);
+  const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>(settings?.font_family as 'gothic' | 'serif' ?? 'gothic');
+  const [theme, setTheme] = useState<'light' | 'dark'>(settings?.theme as 'light' | 'dark' ?? 'light');
+  
+  const { progress, updateProgress } = useScriptureProgress(scripture?.id);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    if (scripture && scripture.hasStarted) {
-      const lastChapterIndex = scripture.chapters.findIndex(ch => ch.id === scripture.lastReadChapter);
-      if (lastChapterIndex !== -1) {
-        setCurrentChapterIndex(lastChapterIndex);
-        setCurrentPageIndex(scripture.lastPageIndex || 0);
-      }
+    if (scripture && progress) {
+      setCurrentChapterIndex(scripture.chapters.findIndex(ch => ch.id === progress.last_chapter_id));
+      setCurrentPageIndex(progress.last_page || 0);
     }
-  }, [scripture]);
+  }, [scripture, progress]);
 
   useEffect(() => {
     if (scripture) {
       const progress = ((currentChapterIndex * 100) / scripture.chapters.length) + 
                       ((currentPageIndex * 100) / 10) / scripture.chapters.length;
       
-      if (scripture.updateReadingProgress) {
-        scripture.updateReadingProgress(
-          scripture.id, 
-          Math.min(100, progress), 
-          scripture.chapters[currentChapterIndex].id,
-          currentPageIndex
-        );
-      }
+      const currentChapter = scripture.chapters[currentChapterIndex];
+      updateProgress({
+        progress: Math.floor(progress),
+        last_chapter_id: currentChapter.id,
+        last_chapter_title: currentChapter.title,
+        last_page: currentPageIndex
+      });
     }
-  }, [currentChapterIndex, currentPageIndex, scripture]);
+  }, [currentChapterIndex, currentPageIndex, scripture, updateProgress]);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -143,7 +148,7 @@ const ScriptureReader = () => {
   const handleTabChange = (tab: 'original' | 'explanation') => {
     setActiveTab(tab);
   };
-
+  
   const toggleChapterDropdown = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowChapterDropdown(!showChapterDropdown);
@@ -187,190 +192,139 @@ const ScriptureReader = () => {
     
     setCurrentSearchIndex(index);
     
-    const resultText = searchResults[index].text;
-    const chapterIndex = scripture.chapters.findIndex(chapter => 
-      chapter.original?.includes(resultText) || chapter.explanation?.includes(resultText)
-    );
-    
-    if (chapterIndex !== -1) {
-      setCurrentChapterIndex(chapterIndex);
-      setCurrentPageIndex(0);
+    const resultItem = searchResults[index];
+    if (resultItem) {
+      setTimeout(() => {
+        const elements = document.querySelectorAll('.search-highlight');
+        if (elements.length > index) {
+          elements[index].scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }
+      }, 100);
     }
-    
-    setTimeout(() => {
-      const resultElement = document.getElementById(`search-result-${index}`);
-      if (resultElement) {
-        resultElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 100);
+  };
+
+  const handleNavigateToCalendar = () => {
+    navigate('/calendar');
+  };
+
+  const handleNavigateToBookmark = () => {
+    navigate('/bookmarks');
   };
 
   const renderContent = () => {
-    if (!scripture.content) return null;
-    
-    const contentArray = activeTab === 'original' 
-      ? scripture.content.original 
-      : scripture.content.explanation;
-    
-    if (!contentArray || contentArray.length === 0) {
-      return <p className="mb-6 text-gray-600 leading-relaxed">내용이 없습니다.</p>;
-    }
-    
-    const itemsPerPage = 1;
-    const startIdx = currentPageIndex * itemsPerPage;
-    const endIdx = Math.min(startIdx + itemsPerPage, contentArray.length);
-    
-    return contentArray.slice(startIdx, endIdx).map((paragraph, idx) => {
-      if (searchQuery && searchResults.length > 0) {
-        const parts = paragraph.split(new RegExp(`(${searchQuery})`, 'gi'));
-        return (
-          <p 
-            key={idx} 
-            className="mb-6 leading-relaxed"
-            id={searchResults.some(r => r.text === paragraph) ? 
-              `search-result-${searchResults.findIndex(r => r.text === paragraph)}` : undefined}
-          >
-            {parts.map((part, i) => 
-              part.toLowerCase() === searchQuery.toLowerCase() ? 
-              <mark key={i} className="bg-yellow-300 text-black px-1 rounded">{part}</mark> : 
-              part
-            )}
-          </p>
-        );
-      }
-      
-      return (
-        <p key={idx} className="mb-6 leading-relaxed">
-          {paragraph}
-        </p>
-      );
-    });
+    return (
+      <div className="p-4">
+        <h2 className="text-xl font-bold mb-4">{scripture.chapters[currentChapterIndex].title}</h2>
+        <div className="space-y-4">
+          {activeTab === 'original' ? (
+            <div>
+              {/* 원문 내용 */}
+              <p>원문 내용이 여기에 표시됩니다.</p>
+            </div>
+          ) : (
+            <div>
+              {/* 해설 내용 */}
+              <p>해설 내용이 여기에 표시됩니다.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
-  const currentChapter = scripture.chapters[currentChapterIndex];
-  const contentClasses = theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-800';
-  const fontFamilyClasses = fontFamily === 'serif' ? 'font-serif' : 'font-sans';
-  
-  const isFirstPage = currentChapterIndex === 0 && currentPageIndex === 0;
-  const isLastPage = currentChapterIndex === scripture.chapters.length - 1 && currentPageIndex === 4;
-
   return (
-    <div 
-      className={`min-h-screen ${contentClasses} font-['Pretendard']`}
-      onClick={toggleControls}
-    >
-      <ScriptureHeader 
-        scripture={scripture}
-        currentChapterIndex={currentChapterIndex}
-        theme={theme}
-        showChapterDropdown={showChapterDropdown}
-        onSearchToggle={toggleSearch}
-        onChapterDropdownToggle={toggleChapterDropdown}
-        onChapterSelect={selectChapter}
-      />
-      
-      {showSearch && (
-        <ScriptureSearch 
-          theme={theme}
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchQueryChange}
-          searchResults={searchResults}
-          currentSearchIndex={currentSearchIndex}
-          onNavigateSearch={navigateSearchResult}
+    <div className="relative min-h-screen" onClick={toggleControls}>
+      {showControls && (
+        <ScriptureHeader
+          title={scripture.title}
+          onBack={() => navigate(-1)}
+          onShare={() => {}}
+          onCalendar={handleNavigateToCalendar}
+          onSettings={() => setShowSettings(!showSettings)}
+          onSearch={toggleSearch}
         />
       )}
-      
-      <div className="flex px-8 py-4 gap-2">
-        <button
-          className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
-            activeTab === 'original' 
-              ? 'bg-[#21212F] text-white font-bold' 
-              : `${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#EDEDED]'} border ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`
-          }`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleTabChange('original');
-          }}
-        >
-          원문
-        </button>
-        <button
-          className={`flex-1 h-11 flex items-center justify-center rounded-3xl text-sm ${
-            activeTab === 'explanation' 
-              ? 'bg-[#21212F] text-white font-bold' 
-              : `${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#EDEDED]'} border ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`
-          }`}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleTabChange('explanation');
-          }}
-        >
-          해석본
-        </button>
-      </div>
-      
+
+      {showSearch && (
+        <ScriptureSearch
+          query={searchQuery}
+          onQueryChange={handleSearchQueryChange}
+          results={searchResults}
+          currentIndex={currentSearchIndex}
+          onNavigate={navigateSearchResult}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
+
+      {showSettings && (
+        <SettingsPanel
+          fontSize={fontSize}
+          onFontSizeChange={setFontSize}
+          fontFamily={fontFamily}
+          onFontFamilyChange={setFontFamily}
+          theme={theme}
+          onThemeChange={setTheme}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+
       <div 
         ref={contentRef}
-        className={`px-10 py-4 overflow-y-auto ${contentClasses} ${fontFamilyClasses}`}
-        style={{ 
-          fontSize: `${fontSize}px`,
-          lineHeight: '1.6',
-        }}
-        onClick={(e) => e.stopPropagation()}
+        className={`min-h-screen pt-16 pb-24 transition-all duration-300 ease-in-out bg-white text-gray-800`}
+        style={{ fontSize: `${fontSize}px` }}
       >
-        {currentChapter && (
-          <>
-            <h2 className={`font-bold text-xl mb-3 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-              {currentChapter.title}
-            </h2>
-            <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'} mb-8`}>
-              {activeTab === 'original' ? '원문' : '해설'} - 페이지 {currentPageIndex + 1}
-            </p>
-            <div className="mb-4">
-              {renderContent()}
-            </div>
-          </>
-        )}
+        {renderContent()}
       </div>
 
-      <PageNavigation 
-        theme={theme}
-        showControls={showControls}
-        onPrevPage={handlePrevPage}
-        onNextPage={handleNextPage}
-        isFirstPage={isFirstPage}
-        isLastPage={isLastPage}
-      />
-      
-      <ScriptureNavigation 
-        theme={theme}
-        onSettingsClick={(e) => {
-          e.stopPropagation();
-          setShowSettings(true);
-        }}
-        showControls={showControls}
-      />
-      
-      {showSettings && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/50 flex items-end" 
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowSettings(false);
-          }}
-        >
-          <div 
-            className="w-full p-5 bg-white rounded-t-3xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SettingsPanel 
-              onFontSizeChange={setFontSize}
-              onFontFamilyChange={setFontFamily}
-              onThemeChange={setTheme}
-              initialFontSize={Math.round((fontSize / 16) * 100)}
-              initialFontFamily={fontFamily}
-              initialTheme={theme}
-            />
+      {showControls && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+          <div className="flex justify-between items-center">
+            <button
+              onClick={handlePrevPage}
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            
+            <div className="flex-1 text-center">
+              <button
+                onClick={toggleChapterDropdown}
+                className="px-4 py-2 rounded-full bg-gray-100 inline-flex items-center"
+              >
+                <span className="mr-2">
+                  {currentChapterIndex + 1}/{scripture.chapters.length} 장
+                </span>
+              </button>
+              
+              {showChapterDropdown && (
+                <div className="absolute bottom-24 left-0 right-0 bg-white border border-gray-200 rounded-t-xl p-4 max-h-80 overflow-y-auto">
+                  <h3 className="font-bold mb-2">장 선택</h3>
+                  <div className="space-y-2">
+                    {scripture.chapters.map((chapter, index) => (
+                      <button
+                        key={chapter.id}
+                        onClick={() => selectChapter(index)}
+                        className={`w-full text-left p-2 rounded ${
+                          index === currentChapterIndex ? 'bg-gray-100 font-bold' : ''
+                        }`}
+                      >
+                        {index + 1}. {chapter.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <button
+              onClick={handleNextPage}
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
           </div>
         </div>
       )}

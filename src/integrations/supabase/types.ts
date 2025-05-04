@@ -427,6 +427,15 @@ export type Database = {
           time?: string | null
         }
         Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "timelines_temple_stay_id_fkey"
+            columns: ["temple_stay_id"]
+            isOneToOne: false
+            referencedRelation: "temple_stays"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_bookmarks: {
         Row: {

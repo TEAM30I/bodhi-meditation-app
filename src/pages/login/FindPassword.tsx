@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { resetPassword, confirmResetPassword } from 'aws-amplify/auth';
 import StatusBar from '@/components/login/StatusBar';
 import BackButton from '@/components/login/BackButton';
 import InputField from '@/components/login/InputField';
 import AuthButton from '@/components/login/AuthButton';
 import { useToast } from '@/hooks/use-toast';
+import { sendVerificationCode, verifyCode, getVerificationTimeRemaining, clearVerificationData } from '@/services/smsService';
+import { supabase } from '@/lib/supabase'; // Assuming you have supabase configured
 
 const FindPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +22,7 @@ const FindPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
+  // Timer for verification code
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
@@ -34,13 +35,26 @@ const FindPassword: React.FC = () => {
     };
   }, [timeLeft]);
   
+  // Check remaining time on component mount
+  useEffect(() => {
+    const checkRemainingTime = async () => {
+      const remaining = await getVerificationTimeRemaining();
+      if (remaining > 0) {
+        setTimeLeft(remaining);
+        setShowVerification(true);
+      }
+    };
+    
+    checkRemainingTime();
+  }, []);
+  
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' + secs : secs}`;
   };
   
-  const sendVerificationCode = async () => {
+  const sendVerificationSMS = async () => {
     if (!username || !phone) {
       toast({
         title: "오류",
@@ -50,25 +64,47 @@ const FindPassword: React.FC = () => {
       return;
     }
     
-    // Start countdown timer for 3 minutes (180 seconds)
-    setTimeLeft(180);
-    
     try {
-      // In a real app we would call Amplify's resetPassword
-      await resetPassword({ username });
+      setIsLoading(true);
+      
+      // Check if the username exists and matches the phone number
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', username)
+        .eq('phone', phone.replace(/[^\d]/g, ''))
+        .single();
+      
+      if (error || !data) {
+        toast({
+          title: "오류",
+          description: "아이디와 전화번호가 일치하지 않습니다.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Send verification code
+      await sendVerificationCode(phone);
+      
+      // Set timeout for 3 minutes
+      setTimeLeft(180);
+      setShowVerification(true);
       
       toast({
         title: "인증번호 발송",
         description: "인증번호가 발송되었습니다. 3분 안에 입력해주세요.",
       });
-      
-      setShowVerification(true);
     } catch (error: any) {
+      console.error('Error sending verification code:', error);
       toast({
-        title: "오류",
-        description: "인증코드 발송 중 문제가 발생했습니다.",
+        title: "인증번호 발송 실패",
+        description: error.message || "인증번호 발송 중 오류가 발생했습니다.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -103,11 +139,22 @@ const FindPassword: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // In a real app, verify the code against Cognito or your SMS provider
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Verify the code
+      const isVerified = await verifyCode(verificationCode);
+      
+      if (!isVerified) {
+        toast({
+          title: "인증 실패",
+          description: "유효하지 않은 인증번호입니다.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
       
       setShowResetForm(true);
     } catch (error: any) {
+      console.error('Error verifying code:', error);
       toast({
         title: "오류",
         description: "인증 중 문제가 발생했습니다.",
@@ -149,12 +196,17 @@ const FindPassword: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // In a real app we would call Amplify's confirmResetPassword
-      await confirmResetPassword({ 
-        username, 
-        confirmationCode: verificationCode, 
-        newPassword
+      // Update the user's password in Supabase
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
       });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Clear verification data
+      await clearVerificationData();
       
       toast({
         title: "성공",
@@ -163,6 +215,7 @@ const FindPassword: React.FC = () => {
       
       navigate('/login');
     } catch (error: any) {
+      console.error('Error resetting password:', error);
       toast({
         title: "오류",
         description: "비밀번호 변경 중 문제가 발생했습니다.",
@@ -176,9 +229,10 @@ const FindPassword: React.FC = () => {
   // Send code button component for phone verification
   const SendCodeButton = () => (
     <button
-      onClick={sendVerificationCode}
+      onClick={sendVerificationSMS}
       className="text-white text-sm bg-app-orange px-4 py-1 rounded-md"
-      disabled={timeLeft > 0}
+      disabled={isLoading || timeLeft > 0}
+      type="button"
     >
       {timeLeft > 0 ? "재발송" : "인증코드 발송"}
     </button>
