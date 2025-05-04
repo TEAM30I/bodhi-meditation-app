@@ -91,7 +91,7 @@ const Main = () => {
         </div>
       </div>
 
-      <div className="w-full max-w-[480px] mx-auto pb-20 px-5">
+      <div className="w-full max-w-[480px] mx-auto pb-20 py-4 px-5">
         <div
           className="mb-3 cursor-pointer"
           onClick={handleNavigateToCalendar}
