@@ -7,23 +7,34 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from "@/context/AuthContext";
 import { useAuth } from "@/context/AuthContext";
 
-// Protected Route Component
+// Protected Route Component - 로딩 상태 처리 추가
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   
+  // 로딩 중일 때는 로딩 표시
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+  
+  // 로딩이 완료되었는데 사용자가 없으면 로그인 페이지로 리디렉션
   if (!user) {
-    // 로그인하지 않은 경우 로그인 페이지로 리디렉션
+    console.log("User not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
   
+  // 인증된 사용자면 보호된 컨텐츠 표시
   return <>{children}</>;
 };
 
-// Pages
+// Pages (기존 import 유지)
 import Index from "@/pages/Index";
 import Main from "@/pages/Main";
 import Fortune from "@/pages/Fortune";
@@ -70,6 +81,17 @@ import TermsAgreement from "./pages/login/TermsAgreement";
 import ScriptureCalendarPage from "@/pages/scripture/ScriptureCalendarPage";
 import ScriptureBookmarkPage from "@/pages/scripture/ScriptureBookmarkPage";
 
+// AuthStateDebugger 컴포넌트 추가 (디버깅용, 프로덕션에서는 제거 가능)
+const AuthStateDebugger: React.FC = () => {
+  const { user, loading } = useAuth();
+  
+  React.useEffect(() => {
+    console.log("Auth State:", { user, loading, isAuthenticated: !!user });
+  }, [user, loading]);
+  
+  return null; // UI에 아무것도 렌더링하지 않음
+};
+
 // Create a new QueryClient instance inside the component
 const App: React.FC = () => {
   // Initialize QueryClient inside the component
@@ -79,6 +101,9 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
+          {/* 디버깅용 컴포넌트 (필요 시 활성화) */}
+          <AuthStateDebugger />
+          
           <Routes>
             <Route path="/" element={<Onboarding1 />} />
             <Route path="/index" element={<Index />} />
