@@ -34,6 +34,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   return <>{children}</>;
 };
 
+// 루트 경로를 처리하는 컴포넌트 추가
+const RootRedirect: React.FC = () => {
+  const { user, loading } = useAuth();
+  
+  // 로딩 중일 때는 로딩 표시
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+  
+  // 로그인 상태면 /main으로, 아니면 Onboarding1으로 리다이렉트
+  if (user) {
+    return <Navigate to="/main" replace />;
+  } else {
+    return <Onboarding1 />;
+  }
+};
+
 // Pages (기존 import 유지)
 import Index from "@/pages/Index";
 import Main from "@/pages/Main";
@@ -81,7 +102,7 @@ import TermsAgreement from "./pages/login/TermsAgreement";
 import ScriptureCalendarPage from "@/pages/scripture/ScriptureCalendarPage";
 import ScriptureBookmarkPage from "@/pages/scripture/ScriptureBookmarkPage";
 
-// AuthStateDebugger 컴포넌트 추가 (디버깅용, 프로덕션에서는 제거 가능)
+// AuthStateDebugger 컴포넌트 (디버깅용, 프로덕션에서는 제거 가능)
 const AuthStateDebugger: React.FC = () => {
   const { user, loading } = useAuth();
   
@@ -105,7 +126,8 @@ const App: React.FC = () => {
           <AuthStateDebugger />
           
           <Routes>
-            <Route path="/" element={<Onboarding1 />} />
+            {/* 루트 경로를 RootRedirect 컴포넌트로 처리 */}
+            <Route path="/" element={<RootRedirect />} />
             <Route path="/index" element={<Index />} />
             
             {/* 보호된 라우트 시작 */}
