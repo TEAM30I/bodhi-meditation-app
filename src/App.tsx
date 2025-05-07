@@ -5,6 +5,23 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Import AuthProvider after Router setup
 import { AuthProvider } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
+
+// Protected Route Component
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    // 로그인하지 않은 경우 로그인 페이지로 리디렉션
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 // Pages
 import Index from "@/pages/Index";
@@ -65,36 +82,107 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Onboarding1 />} />
             <Route path="/index" element={<Index />} />
-            <Route path="/main" element={<Main />} />
+            
+            {/* 보호된 라우트 시작 */}
+            <Route path="/main" element={
+              <ProtectedRoute>
+                <Main />
+              </ProtectedRoute>
+            } />
             
             {/* Scripture routes */}
-            <Route path="/scripture" element={<Scripture />} />
-            <Route path="/scripture/:id" element={<ScriptureReader />} />
-            <Route path="/scripture/calendar" element={<ScriptureCalendarPage />} />
-            <Route path="/scripture/bookmarks" element={<ScriptureBookmarkPage />} />
+            <Route path="/scripture" element={
+              <ProtectedRoute>
+                <Scripture />
+              </ProtectedRoute>
+            } />
+            <Route path="/scripture/:id" element={
+              <ProtectedRoute>
+                <ScriptureReader />
+              </ProtectedRoute>
+            } />
+            <Route path="/scripture/calendar" element={
+              <ProtectedRoute>
+                <ScriptureCalendarPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/scripture/bookmarks" element={
+              <ProtectedRoute>
+                <ScriptureBookmarkPage />
+              </ProtectedRoute>
+            } />
             
             {/* Wishlist routes */}
-            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/wishlist" element={
+              <ProtectedRoute>
+                <Wishlist />
+              </ProtectedRoute>
+            } />
             
             {/* Profile routes */}
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/manage" element={<ProfileManage />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile/manage" element={
+              <ProtectedRoute>
+                <ProfileManage />
+              </ProtectedRoute>
+            } />
             
-            <Route path="/fortune" element={<Fortune />} />
-            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/fortune" element={
+              <ProtectedRoute>
+                <Fortune />
+              </ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            } />
             
             {/* Search Module Routes */}
-            <Route path="/search" element={<SearchHome />} />
+            <Route path="/search" element={
+              <ProtectedRoute>
+                <SearchHome />
+              </ProtectedRoute>
+            } />
             
             {/* Temple Search Routes */}
-            <Route path="/search/temple/results" element={<TempleSearchResults />} />
-            <Route path="/search/temple/detail/:id" element={<TempleDetail />} />
-            <Route path="/search/temple" element={<FindTemple />} />
+            <Route path="/search/temple/results" element={
+              <ProtectedRoute>
+                <TempleSearchResults />
+              </ProtectedRoute>
+            } />
+            <Route path="/search/temple/detail/:id" element={
+              <ProtectedRoute>
+                <TempleDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/search/temple" element={
+              <ProtectedRoute>
+                <FindTemple />
+              </ProtectedRoute>
+            } />
             
             {/* Temple Stay Search Routes */}
-            <Route path="/search/temple-stay/results" element={<TempleStaySearchResults />} />
-            <Route path="/search/temple-stay/detail/:id" element={<TempleStayDetail />} />
-            <Route path="/search/temple-stay" element={<FindTempleStay />} />
+            <Route path="/search/temple-stay/results" element={
+              <ProtectedRoute>
+                <TempleStaySearchResults />
+              </ProtectedRoute>
+            } />
+            <Route path="/search/temple-stay/detail/:id" element={
+              <ProtectedRoute>
+                <TempleStayDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/search/temple-stay" element={
+              <ProtectedRoute>
+                <FindTempleStay />
+              </ProtectedRoute>
+            } />
+            {/* 보호된 라우트 끝 */}
             
             {/* Legacy routes with redirects */}
             <Route path="/search-results" element={<Navigate to="/search/temple/results" />} />
@@ -103,7 +191,7 @@ const App: React.FC = () => {
             <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
             <Route path="/temple-stay/:id" element={<Navigate to="/search/temple-stay/detail/:id" replace />} />
 
-            {/* Signup and Login */}
+            {/* Signup and Login - 로그인 관련 페이지는 보호하지 않음 */}
             <Route path="/onboarding2" element={<Onboarding2 />} />
             <Route path="/auth-choice" element={<AuthChoice />} />
             <Route path="/login" element={<Login />} />
