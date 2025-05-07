@@ -180,7 +180,12 @@ const handleNavigateToCalendar = () => navigate('/scripture/calendar');
           </div>
         </div>
           
-        <div className="mb-8">
+        <div className="mb-8 relative">
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px] z-10 flex items-center justify-center">
+            <div className="bg-white/90 px-6 py-4 rounded-lg shadow-sm">
+              <p className="text-gray-700 font-medium text-center">곧 새로운 내용으로<br />업데이트될 예정입니다.</p>
+            </div>
+          </div>
           <div 
             className="flex items-center justify-between mb-4 cursor-pointer"
             onClick={() => navigate('/scripture')}

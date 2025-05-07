@@ -4,7 +4,7 @@ import StatusBar from '@/components/login/StatusBar';
 import BackButton from '@/components/login/BackButton';
 import InputField from '@/components/login/InputField';
 import CheckboxField from '@/components/login/CheckboxField';
-import AuthButton from '@/components/login/AuthButton';
+import CommonButton from '@/components/login/CommonButton';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 
@@ -60,7 +60,7 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-app-dark flex flex-col p-5">
       <StatusBar />
       <BackButton label="로그인" />
-      <div className="mt-8 animate-slide-up">
+      <div className="mt-8 animate-slide-up max-w-[480px] mx-auto w-full">
         <InputField
           type="text"
           label="아이디"
@@ -68,6 +68,7 @@ const Login: React.FC = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           icon="user"
+          className="mb-4"
         />
         <InputField
           type="password"
@@ -77,8 +78,9 @@ const Login: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
           icon="lock"
           highlightFocus={true}
+          className="mb-4"
         />
-        <div className="flex justify-between mb-10 mt-2">
+        <div className="flex justify-between mb-8 mt-2">
           <CheckboxField
             label="아이디 저장"
             checked={rememberMe}
@@ -91,11 +93,11 @@ const Login: React.FC = () => {
             아이디/비밀번호 찾기
           </button>
         </div>
-        <AuthButton
+        <CommonButton
           label={isLoading ? "로그인 중..." : "로그인"}
           onClick={handleLogin}
           disabled={isLoading}
-          className="mb-10"
+          className="mb-8 w-full max-w-[320px] mx-auto"
         />
         <div className="mt-auto text-center">
           <p className="text-app-gray-text text-sm">

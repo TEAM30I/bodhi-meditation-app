@@ -4,7 +4,7 @@ import StatusBar from '@/components/login/StatusBar';
 import BackButton from '@/components/login/BackButton';
 import InputField from '@/components/login/InputField';
 import CheckboxField from '@/components/login/CheckboxField';
-import AuthButton from '@/components/login/AuthButton';
+import CommonButton from '@/components/login/CommonButton';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { sendVerificationCode, getVerificationTimeRemaining } from '@/services/smsService';
@@ -215,7 +215,7 @@ const SignUp: React.FC = () => {
       
       <BackButton label="가입하기" />
       
-      <div className="mt-8 animate-slide-up">
+      <div className="mt-8 animate-slide-up max-w-[480px] mx-auto w-full">
         <InputField
           type="text"
           label="아이디"
@@ -224,6 +224,7 @@ const SignUp: React.FC = () => {
           onChange={(e) => setUsername(e.target.value)}
           icon="user"
           state={isVerified ? 'success' : 'default'}
+          className="mb-4"
         />
         
         <InputField
@@ -234,6 +235,7 @@ const SignUp: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
           icon="lock"
           highlightFocus={true}
+          className="mb-4"
         />
         
         <InputField
@@ -241,15 +243,16 @@ const SignUp: React.FC = () => {
           label="전화번호"
           placeholder="전화번호를 입력해 주세요"
           value={phone}
-          onChange={handlePhoneChange} // 디버깅용 핸들러 사용
+          onChange={handlePhoneChange}
           icon="phone"
           rightElement={<SendCodeButton />}
           state={isVerified ? 'success' : 'default'}
           disabled={isVerified}
+          className="mb-4"
         />
         
         {showVerification && (
-          <div>
+          <div className="mb-4">
             <InputField
               type="text"
               label="인증코드"
@@ -263,14 +266,14 @@ const SignUp: React.FC = () => {
             />
             
             {timeLeft > 0 && !isVerified && (
-              <div className="text-right text-app-orange text-sm mb-4">
+              <div className="text-right text-app-orange text-sm mt-2">
                 남은 시간: {formatTime(timeLeft)}
               </div>
             )}
           </div>
         )}
         
-        <div className="mb-10 mt-4">
+        <div className="mb-8 mt-4">
           <CheckboxField
             label="약관 동의"
             checked={verification}
@@ -278,13 +281,14 @@ const SignUp: React.FC = () => {
           />
         </div>
         
-        <AuthButton 
+        <CommonButton 
           label={isLoading ? "가입 중..." : "회원가입"}
           onClick={handleSignUp}
           disabled={isLoading || !isVerified}
+          className="mb-8"
         />
         
-        <div className="mt-10 text-center">
+        <div className="mt-8 text-center">
           <p className="text-app-gray-text text-sm">
             이미 계정이 있으신가요? <button className="text-app-orange" onClick={() => navigate('/login')}>로그인</button>
           </p>
