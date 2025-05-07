@@ -1,7 +1,6 @@
+// 모든 타입 재내보내기
+export * from './temple';
+export * from './templeStay';
+export * from './scripture';
 
-// Re-export all types from the repositories
-export * from '../../public/data/dataRepository';
-export * from '../../public/data/templeData/templeRepository';
-export * from '../../public/data/templeStayData/templeStayRepository';
-export * from '../../public/data/scriptureData/scriptureRepository';
-export * from '../../public/data/searchRankingRepository';
+// 추가 타입이 필요하면 여기에 정의

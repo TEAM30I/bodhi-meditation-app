@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share, MapPin, Home } from 'lucide-react';
-import { getTempleStayDetail, TempleStay } from '@/utils/repository';
+import { getTempleStayDetail } from '@/lib/repository';
+import { TempleStay } from '@/types';
 import { toast, Toaster } from 'sonner';
 import TempleStayDetailContent from '@/components/search/TempleStayDetailContent';
 

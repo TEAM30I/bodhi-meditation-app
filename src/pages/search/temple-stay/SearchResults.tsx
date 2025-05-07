@@ -10,9 +10,8 @@ import {
   searchTempleStays,
   getTempleStayList,
   getTempleStaysByRegion,
-  TempleStay,
-  TempleStaySort
-} from '@/utils/repository';
+} from '@/lib/repository';
+import { TempleStay, TempleStaySort } from '@/types';
 import { typedData } from '@/utils/typeUtils';
 import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker';
 import { tomorrow, dayAfterTomorrow, fmt } from '@/utils/dateUtils';

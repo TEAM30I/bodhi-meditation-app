@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { typedData } from '@/utils/typeUtils';
-import { calendarData, readingSchedule, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
-import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import PageLayout from '@/components/PageLayout';
+import { typedData } from '../../utils/typeUtils';
+import { getCalendarData, getReadingSchedule } from '../../lib/repository';
+import { useAuth } from '../../hooks/useAuth';
+import { supabase } from '../../integrations/supabase/client';
+import PageLayout from '../../components/PageLayout';
+import { ReadingScheduleItem, CalendarItem } from '../../types';
 
 const ScriptureCalendarPage: React.FC = () => {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { user } = useAuth();
   const [journeyData, setJourneyData] = useState<any[]>([]);
-  const [calendarData, setCalendarData] = useState<any[]>([]);
+  const [calendarData, setCalendarData] = useState<CalendarItem[]>([]);
+  const [readingSchedule, setReadingSchedule] = useState<ReadingScheduleItem[]>([]);
   
-  const typedCalendarData = typedData<typeof calendarData>(calendarData);
-  const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
-  const typedScriptures = typedData<typeof scriptures>(scriptures);
+  // 타입 안전성 확보
+  const typedCalendarData = calendarData;
+  const typedReadingSchedule = readingSchedule;
   
   const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
@@ -77,16 +79,13 @@ const ScriptureCalendarPage: React.FC = () => {
   };
   
   const readingItems = typedReadingSchedule.slice(0, 2).map(schedule => {
-    const matchingScripture = Object.values(typedScriptures).find(s => s.id === schedule.scriptureId);
-    if (!matchingScripture) return null;
-    
     return {
       id: schedule.id,
-      title: matchingScripture.title,
-      color: matchingScripture.id === 'heart-sutra' ? '#EF4223' :
-             matchingScripture.id === 'diamond-sutra' ? '#21212F' :
-             matchingScripture.id === 'lotus-sutra' ? '#0080FF' : '#DE7834',
-      progress: matchingScripture.progress || 0
+      title: schedule.title,
+      color: schedule.scriptureId === 'heart-sutra' ? '#EF4223' :
+             schedule.scriptureId === 'diamond-sutra' ? '#21212F' :
+             schedule.scriptureId === 'lotus-sutra' ? '#0080FF' : '#DE7834',
+      progress: schedule.progress || 0
     };
   }).filter(Boolean);
   
@@ -107,6 +106,31 @@ const ScriptureCalendarPage: React.FC = () => {
   };
 
   useEffect(() => {
+    const fetchData = async () => {
+      if (user) {
+        try {
+          // getCalendarData 함수는 userId만 받도록 수정됨
+          const calData = await getCalendarData(user.id);
+          const scheduleData = await getReadingSchedule(user.id);
+          
+          // 타입 안전성 확보
+          setCalendarData(calData.map(item => ({
+            date: new Date(item.date),
+            scriptureId: item.scriptureId,
+            progress: item.progress,
+            completed: item.completed
+          })));
+          setReadingSchedule(scheduleData);
+        } catch (error) {
+          console.error('Error fetching calendar data:', error);
+        }
+      }
+    };
+    
+    fetchData();
+  }, [user, year, month]);
+
+  useEffect(() => {
     const fetchJourneyData = async () => {
       if (!user) return;
 
@@ -120,14 +144,6 @@ const ScriptureCalendarPage: React.FC = () => {
 
         if (journeyError) throw journeyError;
         setJourneyData(journeyResults || []);
-
-        const { data: progressData, error: progressError } = await supabase
-          .from('reading_progress')
-          .select('*')
-          .eq('user_id', user.id);
-
-        if (progressError) throw progressError;
-        setCalendarData(progressData || []);
       } catch (error) {
         console.error('Error fetching journey data:', error);
       }

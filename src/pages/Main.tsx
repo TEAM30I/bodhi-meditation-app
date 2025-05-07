@@ -4,17 +4,17 @@ import BottomNav from '@/components/BottomNav';
 import { Search, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/context/AuthContext';
-import { typedData } from '@/utils/typeUtils';
 import { ScriptureCalendarPrev } from '@/components/scripture/ScriptureCalendar_prev';
 import ScriptureProgressList from '@/components/scripture/ScriptureProgressList';
+import { typedData } from '@/utils/typeUtils'; 
 import { 
   getTempleList, 
   getTempleStayList, 
-  readingSchedule, 
-  scriptures,
-  Temple,
-  TempleStay
-} from '@/utils/repository';
+  getReadingSchedule,
+  getScriptureList
+} from '@/lib/repository';
+import { TempleStay, Temple, Scripture } from '@/types';
+
 
 const Main = () => {
   const navigate = useNavigate();
@@ -24,17 +24,20 @@ const Main = () => {
   const [loading, setLoading] = useState(true);
   const [temples, setTemples] = useState<Temple[]>([]);
   const [templeStays, setTempleStays] = useState<TempleStay[]>([]);
+  const [scriptures, setScriptures] = useState<Scripture[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [templesData, templeStaysData] = await Promise.all([
+        const [templesData, templeStaysData, scripturesData] = await Promise.all([
           getTempleList(),
-          getTempleStayList()
+          getTempleStayList(),
+          getScriptureList()
         ]);
         
         setTemples(templesData);
         setTempleStays(templeStaysData);
+        setScriptures(scripturesData);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -63,9 +66,9 @@ const Main = () => {
   const recommendedTemples = temples.slice(0, 4);
   const recommendedTempleStays = templeStays.slice(0, 4);
 
-  const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
-  const typedScriptures = typedData<typeof scriptures>(scriptures);
-  const handleNavigateToCalendar = () => navigate('/scripture/calendar');
+const typedReadingSchedule = typedData<typeof getReadingSchedule>(getReadingSchedule);
+const typedScriptures = typedData<typeof scriptures>(scriptures);
+const handleNavigateToCalendar = () => navigate('/scripture/calendar');
 
   return (
     <div className="w-full min-h-screen bg-[#F8F8F8] font-['Pretendard']">

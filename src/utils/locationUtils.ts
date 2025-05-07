@@ -1,11 +1,6 @@
 
 // Utility functions for location-based features
-
-// Default location (서울특별시 관악구 신림로 72)
-export const DEFAULT_LOCATION = {
-  latitude: 37.4812845,
-  longitude: 126.9292231
-};
+import { DEFAULT_LOCATION } from '@/constants';
 
 // Calculate distance between two points using Haversine formula
 export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {

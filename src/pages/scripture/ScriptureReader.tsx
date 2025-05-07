@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Share2, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { typedData } from '@/utils/typeUtils';
-import { getScriptureById, Scripture } from '@/utils/repository';
+import { fetchScripture } from '@/lib/repository';
+import {Scripture} from '@/types';
 import { useScriptureProgress } from '@/hooks/useScriptureProgress';
 import { useSettings } from '@/hooks/useSettings';
 import ScriptureHeader from '@/components/scripture/ScriptureHeader';
@@ -27,15 +27,34 @@ const ScriptureReader = () => {
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   
   const contentRef = useRef<HTMLDivElement>(null);
-  const typedGetScriptureById = typedData<typeof getScriptureById>(getScriptureById);
-  const scripture: Scripture | undefined = id ? typedGetScriptureById(id) : undefined;
   const { settings } = useSettings();
   
   const [fontSize, setFontSize] = useState(settings?.font_size ?? 16);
   const [fontFamily, setFontFamily] = useState<'gothic' | 'serif'>(settings?.font_family as 'gothic' | 'serif' ?? 'gothic');
   const [theme, setTheme] = useState<'light' | 'dark'>(settings?.theme as 'light' | 'dark' ?? 'light');
   
+  const [scripture, setScripture] = useState<Scripture | null>(null);
+  const [loading, setLoading] = useState(true);
+  
   const { progress, updateProgress } = useScriptureProgress(scripture?.id);
+
+  useEffect(() => {
+    const loadScripture = async () => {
+      if (id) {
+        try {
+          setLoading(true);
+          const data = await fetchScripture(id);
+          setScripture(data);
+        } catch (error) {
+          console.error('Error loading scripture:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadScripture();
+  }, [id]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -110,6 +129,14 @@ const ScriptureReader = () => {
       setSearchResults([]);
     }
   }, [searchQuery, scripture]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>경전을 불러오는 중...</p>
+      </div>
+    );
+  }
 
   if (!scripture) {
     return (

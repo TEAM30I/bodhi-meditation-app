@@ -8,7 +8,7 @@ import { DateRangePicker, DateRange } from '@/components/search/DateRangePicker'
 import { GuestSelector } from '@/components/search/GuestSelector';
 import { 
   getTopLikedTemples, getTopLikedTempleStays, getTopRegions 
-} from '@/utils/repository';
+} from '@/lib/repository';
 import { formatDateSafe } from '@/utils/dateUtils';
 import { ko } from 'date-fns/locale';
 import PageLayout from '@/components/PageLayout';

@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Temple } from '@/types/temple';
 import { TempleStay } from '@/types/templeStay';
-import { getUserFollowedTemples, getUserFollowedTempleStays } from '@/utils/repository';
+import { getUserFollowedTemples, getUserFollowedTempleStays } from '@/lib/repository';
 
 const Wishlist = () => {
   const { user } = useAuth();

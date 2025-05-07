@@ -1,40 +1,10 @@
-// Temple Repository with Supabase Integration
-import { supabase } from '../supabase_client';
-import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
+// src/lib/repository/templeRepository.ts
+import { supabase } from '@/lib/supabase';
+import { calculateDistance, formatDistance } from '@/utils/locationUtils';
+import { Temple, TempleSort, RegionTag } from '@/types';
+import { DEFAULT_LOCATION } from '@/constants';
+import { DEFAULT_IMAGES } from '@/constants';
 
-// Default location to use for distance calculations (서울특별시 관악구 신림로 72)
-const DEFAULT_LOCATION = {
-  latitude: 37.4812845,
-  longitude: 126.9292231
-};
-
-// Interfaces for data types
-export interface Temple {
-  id: string;
-  name: string;
-  location: string;
-  imageUrl: string;
-  distance?: string;
-  description?: string;
-  openingHours?: string;
-  tags?: string[];
-  direction?: string;
-  websiteUrl?: string;
-  likeCount?: number;
-  facilities?: string[];
-  contact?: {
-    phone?: string;
-  };
-  latitude?: number;
-  longitude?: number;
-}
-
-// Structure for region tags that will be populated from database
-export interface RegionTag {
-  id: string;
-  name: string;
-  active: boolean;
-}
 
 // Export regionTags for UI components that need immediate access
 // This will be populated with data from the database rather than hardcoded
@@ -52,8 +22,6 @@ export const regionTags: RegionTag[] = [];
   }
 })();
 
-// 정렬 유형
-export type TempleSort = 'popular' | 'recent' | 'distance';
 
 // Get all regions as an array 
 export async function getRegionTags(): Promise<RegionTag[]> {
@@ -91,8 +59,8 @@ export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Tem
     let temples = data.map(item => ({
       id: item.id,
       name: item.name,
-      location: item.region, // Map region to location for interface compliance
-      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      location: item.region,
+      imageUrl: item.image_url || DEFAULT_IMAGES.TEMPLE,
       description: item.description,
       direction: item.address,
       likeCount: item.follower_count,
@@ -107,7 +75,7 @@ export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Tem
       websiteUrl: item.website_url
     }));
     
-    // Sort by distance if needed (after we have the data with coordinates)
+    // 거리 정렬은 프론트엔드에서 처리
     if (sortBy === 'distance') {
       temples = temples
         .filter(temple => temple.latitude && temple.longitude)
@@ -133,7 +101,6 @@ export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Tem
     return []; 
   }
 }
-
 // Supabase에서 좋아요 기준으로 정렬된 사찰 목록 가져오기
 export async function getTopLikedTemples(limit = 5): Promise<Temple[]> {
   try {
@@ -388,45 +355,48 @@ export async function getNearbyTemples(
 }
 
 // Get user followed temples
+// 사용자가 좋아요한 사찰 목록 조회
 export async function getUserFollowedTemples(userId: string): Promise<Temple[]> {
   try {
-    const { data, error } = await supabase
+    // user_follow_temples 테이블에서 사용자가 팔로우한 사찰 ID 목록 가져오기
+    const { data: followData, error: followError } = await supabase
       .from('user_follow_temples')
-      .select('temple_id, temples(*)')
+      .select('temple_id')
       .eq('user_id', userId);
-      
-    if (error) {
-      console.error('Error fetching user followed temples:', error);
+    
+    if (followError) throw followError;
+    
+    if (!followData || followData.length === 0) {
       return [];
     }
     
-    // Check if data exists and is not empty
-    if (!data || data.length === 0) {
-      return [];
-    }
-
-    // Map data to the expected format with proper type checking
-    const temples = data
-      .filter(item => item && item.temples)
-      .map(item => {
-        const temple = item.temples as any;
-        
-        return {
-          id: temple.id,
-          name: temple.name,
-          location: temple.region,
-          imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
-          description: temple.description,
-          likeCount: temple.follower_count,
-          direction: temple.address,
-          latitude: temple.latitude,
-          longitude: temple.longitude
-        };
-      });
-      
-    return temples;
+    // 팔로우한 사찰 ID 목록 추출
+    const templeIds = followData.map(item => item.temple_id);
+    
+    // temples 테이블에서 해당 ID의 사찰 정보 가져오기
+    const { data: templesData, error: templesError } = await supabase
+      .from('temples')
+      .select('*')
+      .in('id', templeIds);
+    
+    if (templesError) throw templesError;
+    
+    // 사찰 데이터를 Temple 인터페이스에 맞게 변환
+    return (templesData || []).map(item => ({
+      id: item.id,
+      name: item.name,
+      location: item.region,
+      imageUrl: item.image_url,
+      description: item.description,
+      likeCount: item.follower_count,
+      contact: {
+        phone: item.contact
+      },
+      latitude: item.latitude,
+      longitude: item.longitude
+    }));
   } catch (error) {
-    console.error('Error in getUserFollowedTemples:', error);
+    console.error('Error fetching user followed temples:', error);
     return [];
   }
 }
