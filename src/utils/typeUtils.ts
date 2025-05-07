@@ -3,6 +3,6 @@
  * @param data 변환할 데이터
  * @returns 타입이 지정된 데이터
  */
-export function typedData<T>(data: any): T {
-    return data as T;
+export function typedData<T>(data: T): T {
+    return data;
   }

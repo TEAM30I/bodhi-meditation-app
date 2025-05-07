@@ -1,5 +1,5 @@
-// Re-export Temple type from repository
-export * from '../../public/data/templeData/templeRepository';
+// 잘못된 임포트 제거
+// export * from '../../public/data/templeData/templeRepository';
 
 export interface Temple {
   id: string;

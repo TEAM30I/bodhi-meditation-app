@@ -1,53 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
-import PageLayout from '@/components/PageLayout';
-import { Badge } from '@/components/ui/badge';
-import { bookmarks, scriptures } from '@/utils/repository';
-import { typedData } from '@/utils/typeUtils';
+import PageLayout from '../../components/PageLayout';
+import { Badge } from '../../components/ui/badge';
+import { getBookmarks, getScriptureList } from '../../lib/repository';
+import { typedData } from '../../utils/typeUtils';
+import { Bookmark, Scripture } from '../../types';
 
 const ScriptureBookmarkPage = () => {
   const navigate = useNavigate();
   const [activeScripture, setActiveScripture] = useState<string | null>(null);
-  const [filteredBookmarks, setFilteredBookmarks] = useState<typeof bookmarks>([]);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [scriptures, setScriptures] = useState<Scripture[]>([]);
+  const [filteredBookmarks, setFilteredBookmarks] = useState<Bookmark[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  const typedBookmarks = typedData<typeof bookmarks>(bookmarks);
-  const typedScriptures = typedData<typeof scriptures>(scriptures);
-  const scriptureCategories = Object.keys(typedScriptures).map(id => ({
-    id,
-    name: typedScriptures[id].title,
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const userId = 'current-user-id';
+        const bookmarksData = await getBookmarks(userId);
+        const scripturesData = await getScriptureList();
+        
+        setBookmarks(bookmarksData);
+        setScriptures(scripturesData);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+  
+  const scriptureCategories = scriptures.map(scripture => ({
+    id: scripture.id,
+    name: scripture.title,
     active: false
   })).slice(0, 5);
-
+  
   useEffect(() => {
     if (scriptureCategories.length > 0 && !activeScripture) {
       setActiveScripture(scriptureCategories[0].id);
     }
     
     if (activeScripture) {
-      setFilteredBookmarks(typedBookmarks.filter(bookmark => 
+      setFilteredBookmarks(bookmarks.filter(bookmark => 
         bookmark.scriptureId === activeScripture
       ));
     } else {
-      setFilteredBookmarks(typedBookmarks);
+      setFilteredBookmarks(bookmarks);
     }
-  }, [activeScripture, typedBookmarks, scriptureCategories]);
+  }, [activeScripture, bookmarks, scriptureCategories]);
   
   const handleScriptureClick = (id: string) => {
     setActiveScripture(id);
   };
   
   const handleBookmarkClick = (bookmarkId: string) => {
-    const bookmark = typedBookmarks.find(b => b.id === bookmarkId);
+    const bookmark = bookmarks.find(b => b.id === bookmarkId);
     if (bookmark) {
       navigate(`/scripture/${bookmark.scriptureId}?chapter=${bookmark.chapterId}&page=${bookmark.pageIndex}`);
     }
   };
   
+  if (loading) {
+    return (
+      <PageLayout title="북마크" showBackButton={true}>
+        <div className="flex items-center justify-center h-64">
+          <p>북마크를 불러오는 중...</p>
+        </div>
+      </PageLayout>
+    );
+  }
+  
   return (
     <PageLayout title="북마크" showBackButton={true}>
       <div className="w-full max-w-[480px] mx-auto">
-        {/* Scripture filters */}
         <div className="flex gap-2 px-4 py-3 overflow-x-auto">
           {scriptureCategories.map((scripture) => (
             <div 
@@ -60,13 +91,12 @@ const ScriptureBookmarkPage = () => {
               onClick={() => handleScriptureClick(scripture.id)}
             >
               <span className="text-sm font-medium">
-                {typedScriptures[scripture.id]?.title || scripture.name}
+                {scriptures.find(s => s.id === scripture.id)?.title || scripture.name}
               </span>
             </div>
           ))}
         </div>
         
-        {/* Bookmark list */}
         <div className="px-4 py-2">
           <h2 className="text-lg font-bold text-gray-900 mb-3">
             {filteredBookmarks.length}개의 북마크
@@ -74,7 +104,7 @@ const ScriptureBookmarkPage = () => {
           
           <div className="space-y-2">
             {filteredBookmarks.map((bookmark) => {
-              const scripture = typedScriptures[bookmark.scriptureId];
+              const scripture = scriptures.find(s => s.id === bookmark.scriptureId);
               const colorScheme = scripture?.colorScheme || { bg: '#EF4223', text: '#ffffff' };
               
               return (

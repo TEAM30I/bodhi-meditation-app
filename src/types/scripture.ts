@@ -1,6 +1,4 @@
-// Re-export Scripture types from repository
-export * from '../../public/data/scriptureData/scriptureRepository';
-
+// 경전 관련 타입 정의
 export interface ScriptureColorScheme {
   bg: string;
   text: string;
@@ -50,4 +48,23 @@ export interface Scripture {
   hasStarted?: boolean;
   lastReadChapter?: string;
   lastPageIndex?: number;
+}
+
+// 추가 타입 정의
+export interface ScriptureProgress {
+  id: string;
+  user_id: string;
+  scripture_id: string;
+  last_page: number;
+  last_chapter_id: string;
+  last_chapter_title?: string;
+  progress: number;
+  last_read_at: string;
+  updated_at: string;
+}
+export interface CalendarItem {
+  date: Date;
+  scriptureId: string;
+  progress: number;
+  completed: boolean;
 }

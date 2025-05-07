@@ -32,10 +32,11 @@ export {
   
   // 경전 관련 함수
   export {
-    getScriptureById,
+    fetchScripture,
     updateReadingProgress,
     addBookmark,
-    scriptures,
-    
-    // 기타 필요한 함수들...
+    getBookmarks,
+    getScriptureList,
+    getCalendarData,
+    getReadingSchedule
   } from './scriptureRepository';
