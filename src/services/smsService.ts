@@ -164,11 +164,6 @@ export const sendVerificationCode = async (phoneNumber: string): Promise<string>
     // If we're in development mode, use the verification code from localStorage for testing
     if (process.env.NODE_ENV === 'development') {
       console.log('🔑 DEV MODE: Verification code is:', verificationCode);
-      toast({
-        title: "인증번호 (개발 모드)",
-        description: `인증번호: ${verificationCode}`,
-        duration: 10000
-      });
     }
 
     return verificationCode;

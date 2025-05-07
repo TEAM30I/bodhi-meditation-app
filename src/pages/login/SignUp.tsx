@@ -143,7 +143,6 @@ const SignUp: React.FC = () => {
       });
       return;
     }
-    
     if (!isVerified) {
       toast({
         title: "회원가입 실패",
@@ -152,7 +151,6 @@ const SignUp: React.FC = () => {
       });
       return;
     }
-    
     if (!verification) {
       toast({
         title: "회원가입 실패",
@@ -161,14 +159,18 @@ const SignUp: React.FC = () => {
       });
       return;
     }
-    
     setIsLoading(true);
-    
     try {
       // 전화번호에서 하이픈을 제거
       const cleanedPhoneNumber = phone.replace(/-/g, '');
       
-      await signUp(username, password, cleanedPhoneNumber);
+      // signUp 함수 호출
+      const result = await signUp(username, password, cleanedPhoneNumber);
+      
+      // 성공적으로 가입된 경우 /main 페이지로 리디렉션
+      if (result && result.success) {
+        navigate('/main');
+      }
     } catch (error: any) {
       console.error('SignUp error:', error);
       // Error toast is already shown in AuthContext
