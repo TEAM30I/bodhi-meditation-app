@@ -4,7 +4,8 @@ import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TempleItem from '@/components/search/TempleItem';
-import { Temple, getTempleList, searchTemples, getNearbyTemples } from '@/utils/repository';
+import { getTepleList, searchTemples, getNearbyTemples } from '@/lib/repository';
+import { Temple } from '@/types';
 import { getCurrentLocation } from '@/utils/locationUtils';
 
 const SearchResults: React.FC = () => {

@@ -1,0 +1,41 @@
+// src/lib/repository/index.ts
+// 사찰 관련 함수
+export {
+    getTempleList,
+    getTempleDetail,
+    searchTemples,
+    filterTemplesByTag,
+    followTemple,
+    unfollowTemple,
+    getTopLikedTemples,
+    getNearbyTemples,
+    getUserFollowedTemples,
+    getTopRegions,
+    getTempleRegions,
+    getRegionTags
+  } from './templeRepository';
+  
+  // 템플스테이 관련 함수
+  export {
+    getTempleStayList,
+    getTempleStayDetail,
+    searchTempleStays,
+    filterTempleStaysByTag,
+    followTempleStay,
+    unfollowTempleStay,
+    getUserFollowedTempleStays,
+    getTempleStaysByRegion,
+    getTopLikedTempleStays,
+    getTempleStayRegions,
+    getTempleStayLocations
+  } from './templeStayRepository';
+  
+  // 경전 관련 함수
+  export {
+    getScriptureById,
+    updateReadingProgress,
+    addBookmark,
+    scriptures,
+    
+    // 기타 필요한 함수들...
+  } from './scriptureRepository';

@@ -4,9 +4,9 @@ import BottomNav from '@/components/BottomNav';
 import { Search, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/context/AuthContext';
-import { typedData } from '@/utils/typeUtils';
 import { ScriptureCalendarPrev } from '@/components/scripture/ScriptureCalendar_prev';
 import ScriptureProgressList from '@/components/scripture/ScriptureProgressList';
+import { typedData } from '@/utils/typeUtils'; 
 import { 
   getTempleList, 
   getTempleStayList, 
@@ -14,7 +14,8 @@ import {
   scriptures,
   Temple,
   TempleStay
-} from '@/utils/repository';
+} from '@/lib/repository';
+
 
 const Main = () => {
   const navigate = useNavigate();

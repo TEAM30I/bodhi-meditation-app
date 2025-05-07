@@ -1,4 +1,3 @@
-
 export interface TempleStay {
   id: string;
   templeName: string;
@@ -25,3 +24,5 @@ export interface TempleStay {
     email?: string;
   };
 }
+
+export type TempleStaySort = 'popular' | 'recent' | 'distance' | 'price';

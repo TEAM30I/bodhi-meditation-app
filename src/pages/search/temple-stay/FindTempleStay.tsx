@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowRight } from 'lucide-react';
-import { getTempleStayLocations, getTopLikedTempleStays } from '@/utils/repository';
+import { getTempleStayLocations, getTopLikedTempleStays } from '@/lib/repository';
 import { TempleStay } from '@/types/templeStay';
 import PageLayout from '@/components/PageLayout';
 import BottomNav from '@/components/BottomNav';

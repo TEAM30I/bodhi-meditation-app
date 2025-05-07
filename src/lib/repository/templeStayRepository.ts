@@ -1,43 +1,8 @@
 // TempleStay Repository with Supabase Integration
-import { supabase } from '../supabase_client';
-import { calculateDistance, formatDistance } from '../../../src/utils/locationUtils';
-
-// Default location to use for distance calculations (서울특별시 관악구 신림로 72)
-const DEFAULT_LOCATION = {
-  latitude: 37.4812845,
-  longitude: 126.9292231
-};
-
-// Interface for TempleStay data type
-export interface TempleStay {
-  id: string;
-  templeName: string;
-  location: string;
-  imageUrl: string;
-  price: number;
-  description?: string;
-  schedule?: Array<{
-    time: string;
-    activity: string;
-    day?: number;
-  }>;
-  direction?: string;
-  facilities?: string[];
-  likeCount?: number;
-  distance?: string;
-  longitude?: number;
-  latitude?: number;
-  tags?: string[];
-  duration?: string;
-  websiteUrl?: string;
-  contact?: {
-    phone?: string;
-    email?: string;
-  };
-}
-
-// Sort types
-export type TempleStaySort = 'popular' | 'recent' | 'price-asc' | 'price-desc' | 'distance';
+import { supabase } from '@/lib/supabase';
+import { calculateDistance, formatDistance } from '@/utils/locationUtils';
+import { TempleStay, TempleStaySort } from '@/types';
+import { DEFAULT_LOCATION, DEFAULT_IMAGES } from '@/constants';
 
 // Get all available regions for UI location selection
 export async function getTempleStayLocations(): Promise<string[]> {
@@ -59,10 +24,8 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
       query = query.order('follower_count', { ascending: false });
     } else if (sortBy === 'recent') {
       query = query.order('created_at', { ascending: false });
-    } else if (sortBy === 'price-asc') {
-      query = query.order('cost_adult', { ascending: true });
-    } else if (sortBy === 'price-desc') {
-      query = query.order('cost_adult', { ascending: false });
+    } else if (sortBy === 'price') {
+      query = query.order('price', { ascending: true });
     }
     
     const { data, error } = await query;
@@ -72,35 +35,40 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
       return [];
     }
     
-    // Map database results to TempleStay type
-    let templeStays = data.map(item => {
-      return {
-        id: item.id,
-        templeName: item.name,
-        location: item.region, // Map region to location for interface compliance
-        imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-        price: parseInt(item.cost_adult) || 50000,
-        description: item.description,
-        likeCount: item.follower_count,
-        direction: item.public_transportation,
-        longitude: item.longitude,
-        latitude: item.latitude,
-        websiteUrl: item.reservation_link
-      };
-    });
+    let templeStays = data.map(item => ({
+      id: item.id,
+      templeName: item.temple_name,
+      location: item.region,
+      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
+      price: item.price,
+      description: item.description,
+      schedule: item.schedule,
+      direction: item.address,
+      facilities: item.facilities ? JSON.parse(item.facilities) : [],
+      likeCount: item.follower_count,
+      tags: item.tags ? JSON.parse(item.tags) : [],
+      duration: item.duration,
+      websiteUrl: item.website_url,
+      contact: {
+        phone: item.contact_phone,
+        email: item.contact_email
+      },
+      latitude: item.latitude,
+      longitude: item.longitude
+    }));
     
     // If sort by distance, calculate distances and sort
     if (sortBy === 'distance') {
       templeStays = templeStays
-        .filter(stay => stay.latitude && stay.longitude)
-        .map(stay => {
+        .filter(templeStay => templeStay.latitude && templeStay.longitude)
+        .map(templeStay => {
           const distance = calculateDistance(
             DEFAULT_LOCATION.latitude,
             DEFAULT_LOCATION.longitude,
-            stay.latitude!,
-            stay.longitude!
+            templeStay.latitude!,
+            templeStay.longitude!
           );
-          return { ...stay, distance: formatDistance(distance) };
+          return { ...templeStay, distance: formatDistance(distance) };
         })
         .sort((a, b) => {
           const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');

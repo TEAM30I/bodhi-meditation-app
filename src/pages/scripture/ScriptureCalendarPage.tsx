@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { typedData } from '@/utils/typeUtils';
-import { calendarData, readingSchedule, scriptures } from '../../../public/data/scriptureData/scriptureRepository';
-import { useAuth } from '@/context/AuthContext';
+import { getCalendarData, getReadingSchedule } from '@/lib/repository';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import PageLayout from '@/components/PageLayout';
 
@@ -13,10 +13,10 @@ const ScriptureCalendarPage: React.FC = () => {
   const { user } = useAuth();
   const [journeyData, setJourneyData] = useState<any[]>([]);
   const [calendarData, setCalendarData] = useState<any[]>([]);
+  const [readingSchedule, setReadingSchedule] = useState<any[]>([]);
   
   const typedCalendarData = typedData<typeof calendarData>(calendarData);
   const typedReadingSchedule = typedData<typeof readingSchedule>(readingSchedule);
-  const typedScriptures = typedData<typeof scriptures>(scriptures);
   
   const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
@@ -77,7 +77,7 @@ const ScriptureCalendarPage: React.FC = () => {
   };
   
   const readingItems = typedReadingSchedule.slice(0, 2).map(schedule => {
-    const matchingScripture = Object.values(typedScriptures).find(s => s.id === schedule.scriptureId);
+    const matchingScripture = Object.values(typedReadingSchedule).find(s => s.id === schedule.scriptureId);
     if (!matchingScripture) return null;
     
     return {
@@ -107,6 +107,24 @@ const ScriptureCalendarPage: React.FC = () => {
   };
 
   useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      
+      try {
+        const calendar = await getCalendarData(user.id);
+        setCalendarData(calendar);
+        
+        const schedule = await getReadingSchedule(user.id);
+        setReadingSchedule(schedule);
+      } catch (error) {
+        console.error('Error fetching scripture data:', error);
+      }
+    };
+    
+    fetchData();
+  }, [user]);
+
+  useEffect(() => {
     const fetchJourneyData = async () => {
       if (!user) return;
 
@@ -120,14 +138,6 @@ const ScriptureCalendarPage: React.FC = () => {
 
         if (journeyError) throw journeyError;
         setJourneyData(journeyResults || []);
-
-        const { data: progressData, error: progressError } = await supabase
-          .from('reading_progress')
-          .select('*')
-          .eq('user_id', user.id);
-
-        if (progressError) throw progressError;
-        setCalendarData(progressData || []);
       } catch (error) {
         console.error('Error fetching journey data:', error);
       }
