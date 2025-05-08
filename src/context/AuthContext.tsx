@@ -103,18 +103,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // signUp 함수 수정
   const signUp = async (username: string, password: string, phoneNumber: string, email?: string) => {
     try {
-      setLoading(true);
       // 실제 이메일이 제공되지 않은 경우 기본 이메일 생성
       const userEmail = email || `${username}@example.com`;
       
+      // Supabase signUp에 data 옵션을 추가하여 추가 정보 저장
       const { data, error } = await supabase.auth.signUp({
         email: userEmail,
         password,
         options: {
           data: {
-            username,
+            username: username, // 초기 닉네임은 아이디와 동일하게 설정
             phone_number: phoneNumber,
             original_password: password
           }
@@ -123,22 +124,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       if (error) throw error;
       
-      toast({
-        title: "회원가입 성공",
-        description: "환영합니다!",
-      });
+      // 사용자 세팅 추가
+      if (data?.user) {
+        // user_settings 테이블에 기본 설정 추가
+        const { error: settingsError } = await supabase.from('user_settings').upsert({
+          user_id: data.user.id,
+          nickname: username, // 초기 닉네임은 아이디와 동일하게 설정
+          id: username,
+          phone_number: phoneNumber,
+          font_size: 14,
+          font_family: 'default',
+          theme: 'light',
+          updated_at: new Date().toISOString()
+        });
+      }
       
       return { success: true, data };
-    } catch (error: any) {
-      console.error('Signup error:', error);
+    } catch (error) {
       toast({
         title: "회원가입 실패",
-        description: error.message || "다시 시도해주세요.",
+        description: "다시 시도해주세요.",
         variant: "destructive",
       });
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 

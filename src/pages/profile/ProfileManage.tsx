@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Pencil, AlertCircle } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -12,7 +11,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,15 +24,13 @@ export default function ProfileManage() {
   const [profileData, setProfileData] = useState({
     name: "로딩 중...",
     id: "",
-    phone: "",
-    profileImage: ""
+    phone: ""
   });
   
   const [loading, setLoading] = useState(true);
   const [isEditNameDialogOpen, setIsEditNameDialogOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -46,11 +42,11 @@ export default function ProfileManage() {
     try {
       setLoading(true);
       
-      // 유저 프로필 정보 가져오기
+      // user_settings 테이블에서 사용자 정보 가져오기
       const { data, error } = await supabase
-        .from('profiles')
-        .select('username, avatar_url, phone_number')
-        .eq('id', user.id)
+        .from('user_settings')
+        .select('nickname, id, phone_number')
+        .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
@@ -59,13 +55,12 @@ export default function ProfileManage() {
       const { data: { user: userData } } = await supabase.auth.getUser();
       
       setProfileData({
-        name: data.username || '사용자',
-        id: userData.email ? maskEmail(userData.email) : '로그인 ID',
-        phone: data.phone_number ? maskPhoneNumber(data.phone_number) : '휴대폰 정보 없음',
-        profileImage: data.avatar_url || ""
+        name: data.nickname || '사용자',
+        id: data.id || (userData.email ? maskEmail(userData.email) : '로그인 ID'),
+        phone: data.phone_number ? maskPhoneNumber(data.phone_number) : '휴대폰 정보 없음'
       });
       
-      setNewName(data.username || '');
+      setNewName(data.nickname || '');
     } catch (error) {
       console.error('Error fetching user profile:', error);
       toast({
@@ -103,12 +98,20 @@ export default function ProfileManage() {
         return;
       }
       
+      // user_settings 테이블 업데이트
       const { error } = await supabase
-        .from('profiles')
-        .update({ username: newName })
-        .eq('id', user.id);
+        .from('user_settings')
+        .update({ nickname: newName })
+        .eq('user_id', user.id);
 
       if (error) throw error;
+
+      // 메타데이터 업데이트 (auth.users 테이블)
+      const { data: userData, error: userError } = await supabase.auth.updateUser({
+        data: { username: newName }
+      });
+
+      if (userError) throw userError;
 
       setProfileData({ ...profileData, name: newName });
       setIsEditNameDialogOpen(false);
@@ -124,56 +127,6 @@ export default function ProfileManage() {
         description: "이름을 변경하는 데 문제가 발생했습니다. 다시 시도해주세요.",
         variant: "destructive",
       });
-    }
-  };
-
-  const handleProfileImageChange = async (event) => {
-    try {
-      const file = event.target.files[0];
-      if (!file) return;
-      
-      setUploadingImage(true);
-      
-      // 이미지 파일 확장자 확인
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-      
-      // 파일 업로드
-      const { error: uploadError } = await supabase.storage
-        .from('user-avatars')
-        .upload(filePath, file);
-        
-      if (uploadError) throw uploadError;
-      
-      // 업로드된 이미지 URL 가져오기
-      const { data: { publicUrl } } = supabase.storage
-        .from('user-avatars')
-        .getPublicUrl(filePath);
-      
-      // 프로필 업데이트
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
-        
-      if (updateError) throw updateError;
-      
-      setProfileData({ ...profileData, profileImage: publicUrl });
-      
-      toast({
-        title: "프로필 이미지 변경 성공",
-        description: "프로필 이미지가 변경되었습니다.",
-      });
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "이미지 업로드 실패",
-        description: "이미지를 변경하는 데 문제가 발생했습니다. 다시 시도해주세요.",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingImage(false);
     }
   };
 
@@ -195,11 +148,11 @@ export default function ProfileManage() {
         .delete()
         .eq('user_id', user.id);
       
-      // 프로필 정보 삭제
+      // user_settings 테이블 데이터 삭제
       await supabase
-        .from('profiles')
+        .from('user_settings')
         .delete()
-        .eq('id', user.id);
+        .eq('user_id', user.id);
       
       // Supabase Auth 계정 삭제 (admin API 필요)
       // 실제 계정 삭제는 대개 서버 측에서 처리해야 함
@@ -240,25 +193,8 @@ export default function ProfileManage() {
         </div>
       ) : (
         <>
-          {/* Profile Section */}
+          {/* Profile Section - 이미지 관련 코드 제거 */}
           <div className="px-6 py-8 flex flex-col items-center border-b border-gray-100">
-            <div className="relative">
-              <Avatar className="w-24 h-24">
-                <AvatarImage src={profileData.profileImage} />
-                <AvatarFallback>{profileData.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <label htmlFor="profile-image-upload" className="absolute bottom-0 right-0 p-1 bg-white rounded-full border border-gray-200 cursor-pointer">
-                <Pencil className="w-4 h-4 text-gray-600" />
-                <input 
-                  type="file" 
-                  id="profile-image-upload" 
-                  className="hidden" 
-                  accept="image/*"
-                  onChange={handleProfileImageChange}
-                  disabled={uploadingImage}
-                />
-              </label>
-            </div>
             <div className="mt-4 flex items-center">
               <span className="text-xl font-bold">{profileData.name}</span>
               <button 

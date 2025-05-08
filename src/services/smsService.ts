@@ -160,11 +160,6 @@ export const sendVerificationCode = async (phoneNumber: string): Promise<string>
 
     // For testing purposes - this will be visible in browser console
     console.log('✅ Successfully saved verification data');
-    
-    // If we're in development mode, use the verification code from localStorage for testing
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔑 DEV MODE: Verification code is:', verificationCode);
-    }
 
     return verificationCode;
   } catch (error) {
