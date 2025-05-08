@@ -169,16 +169,13 @@ const TempleDetail: React.FC = () => {
 
       {/* Bottom fixed buttons */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
-        <div className="max-w-[480px] mx-auto flex items-center gap-3">
+        <div className="max-w-[480px] mx-auto flex items-center justify-center">
           <Button
             onClick={handleToggleFavorite}
-            variant="outline"
-            className="w-12 h-12 rounded-full flex items-center justify-center p-0"
+            className="w-full h-12 rounded-xl flex items-center justify-center gap-2 bg-[#1A1A1A] hover:bg-[#333333] text-white"
           >
-            <Heart className={`h-6 w-6 ${isFavorite ? 'fill-[#DE7834] stroke-[#DE7834]' : 'stroke-gray-600'}`} />
-          </Button>
-          <Button className="flex-1 h-12 bg-[#1A1A1A] hover:bg-[#333333] text-white rounded-xl">
-            예약하기
+            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-[#DE7834] stroke-[#DE7834]' : 'stroke-white'}`} />
+            <span>{isFavorite ? '찜 해제하기' : '찜하기'}</span>
           </Button>
         </div>
       </div>

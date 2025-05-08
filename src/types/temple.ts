@@ -10,8 +10,8 @@ export interface Temple {
   description?: string;
   image_url?: string;
   imageUrl?: string;
-  latitude?: number;
-  longitude?: number;
+  latitude?: number;  // 추가
+  longitude?: number; // 추가
   created_at?: string;
   updated_at?: string;
   follower_count?: number;

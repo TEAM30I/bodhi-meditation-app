@@ -200,10 +200,10 @@ const Main = () => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-start justify-end p-2">
-                  <p className="text-xs text-white font-medium line-clamp-2">{templeStay.templeName}</p>
                   {templeStay.temple && (
                     <p className="text-xs text-gray-200 line-clamp-1">{templeStay.temple.name}</p>
                   )}
+                  <p className="text-xs text-white font-medium line-clamp-1">{templeStay.templeName}</p>
                 </div>
               </div>
             ))}

@@ -23,6 +23,13 @@ export interface TempleStay {
     phone?: string;
     email?: string;
   };
+  temple?: {
+    id: string;
+    name: string;
+    region: string;
+    address?: string;
+    imageUrl?: string;
+  };
 }
 
 export type TempleStaySort = 'popular' | 'recent' | 'distance' | 'price';

@@ -28,56 +28,62 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
           name,
           region,
           address,
-          image_url
+          image_url,
+          latitude,
+          longitude
         )
       `);
     
-    if (sortBy === 'popular') {
-      query = query.order('follower_count', { ascending: false });
-    } else if (sortBy === 'recent') {
-      query = query.order('created_at', { ascending: false });
-    } else if (sortBy === 'price') {
-      query = query.order('price', { ascending: true });
+    // 정렬 적용
+    switch (sortBy) {
+      case 'recent':
+        query = query.order('created_at', { ascending: false });
+        break;
+      case 'price':
+        query = query.order('price', { ascending: true });
+        break;
+      case 'popular':
+      default:
+        query = query.order('follower_count', { ascending: false });
+        break;
     }
     
     const { data, error } = await query;
     
-    if (error) {
-      console.error('Error fetching temple stays:', error);
-      return [];
-    }
+    if (error) throw error;
+    if (!data) return [];
     
-    let templeStays = data.map(item => ({
+    // 데이터 매핑
+    const templeStays = data.map(item => ({
       id: item.id,
       templeName: item.temple_name,
-      location: item.region,
-      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: parseInt(item.cost_adult) || 50000,
-      description: item.description,
-      likeCount: item.follower_count,
-      direction: item.public_transportation,
+      location: item.location || '',
+      imageUrl: item.image_url,
+      price: item.price || 0,
+      description: item.description || '',
+      likeCount: item.like_count || 0,
+      // ... 기타 필드 매핑 ...
       temple: item.temples ? {
         id: item.temples.id,
         name: item.temples.name,
         region: item.temples.region,
         address: item.temples.address,
-        imageUrl: item.temples.image_url
-      } : null,
-      // 기존 필드들 유지
-      longitude: item.longitude,
-      latitude: item.latitude
+        imageUrl: item.temples.image_url,
+        latitude: item.temples.latitude,
+        longitude: item.temples.longitude
+      } : null
     }));
     
-    // If sort by distance, calculate distances and sort
+    // 거리순 정렬 로직은 그대로 유지
     if (sortBy === 'distance') {
-      templeStays = templeStays
-        .filter(templeStay => templeStay.latitude && templeStay.longitude)
+      const filteredTempleStays = templeStays
+        .filter(templeStay => templeStay.temple?.latitude && templeStay.temple?.longitude)
         .map(templeStay => {
           const distance = calculateDistance(
             DEFAULT_LOCATION.latitude,
             DEFAULT_LOCATION.longitude,
-            templeStay.latitude!,
-            templeStay.longitude!
+            templeStay.temple?.latitude!,
+            templeStay.temple?.longitude!
           );
           return { ...templeStay, distance: formatDistance(distance) };
         })
@@ -86,6 +92,8 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
           const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
           return distA - distB;
         });
+        
+      return filteredTempleStays;
     }
     
     return templeStays;
@@ -132,7 +140,7 @@ export async function getTempleStayDetail(id: string): Promise<TempleStay | null
       templeName: data.name,
       location: data.region,
       imageUrl: data.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: parseInt(data.cost_adult) || 50000,
+      price: parseInt(data.cost_adult?.replace(/,/g, '')) || 50000,
       description: data.description,
       likeCount: data.follower_count,
       direction: data.public_transportation,
@@ -168,44 +176,118 @@ export async function searchTempleStays(query: string): Promise<TempleStay[]> {
           id,
           name,
           region,
-          address,
-          image_url
+          address
         )
-      `)
-      .or(`
-        name.ilike.%${query}%,
-        region.ilike.%${query}%,
-        description.ilike.%${query}%,
-        temples.name.ilike.%${query}%,
-        temples.region.ilike.%${query}%,
-        temples.address.ilike.%${query}%
       `);
     
-    if (error) {
-      console.error('Error searching temple stays:', error);
-      return [];
-    }
+    if (error) throw error;
     
-    return data.map(item => ({
+    if (!data || data.length === 0) return [];
+    
+    // 검색어를 소문자로 변환
+    const normalizedQuery = query.toLowerCase();
+    
+    // 템플스테이 이름, 사찰 이름, 지역명으로 필터링
+    const filteredData = data.filter(item => {
+      // 템플스테이 자체 이름 검색
+      if (item.temple_name && item.temple_name.toLowerCase().includes(normalizedQuery)) {
+        return true;
+      }
+      
+      // 연관된 사찰 정보로 검색
+      if (item.temples) {
+        // 사찰 이름으로 검색
+        if (item.temples.name && item.temples.name.toLowerCase().includes(normalizedQuery)) {
+          return true;
+        }
+        
+        // 사찰 지역으로 검색 (전체 지역명 또는 약식 지역명)
+        if (item.temples.region) {
+          const region = item.temples.region.toLowerCase();
+          
+          // 지역명 정규화 (예: '경상북도 경주시' -> '경북', '경주')
+          const normalizedRegion = normalizeRegion(region);
+          
+          if (region.includes(normalizedQuery) || 
+              normalizedRegion.some(r => r.includes(normalizedQuery))) {
+            return true;
+          }
+        }
+        
+        // 사찰 주소로 검색
+        if (item.temples.address && item.temples.address.toLowerCase().includes(normalizedQuery)) {
+          return true;
+        }
+      }
+      
+      return false;
+    });
+    
+    // 결과 매핑 및 반환
+    return filteredData.map(item => ({
       id: item.id,
-      templeName: item.name,
-      location: item.region,
-      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: parseInt(item.cost_adult) || 50000,
-      likeCount: item.follower_count,
-      direction: item.public_transportation,
+      templeName: item.temple_name,
+      location: item.location || '',
+      imageUrl: item.image_url,
+      price: item.price || 0,
+      description: item.description || '',
+      likeCount: item.like_count || 0,
+      // ... 기타 필드 매핑 ...
       temple: item.temples ? {
         id: item.temples.id,
         name: item.temples.name,
         region: item.temples.region,
-        address: item.temples.address,
-        imageUrl: item.temples.image_url
+        address: item.temples.address
       } : null
     }));
   } catch (error) {
     console.error('Error in searchTempleStays:', error);
     return [];
   }
+}
+
+// 지역명 정규화 함수
+function normalizeRegion(region: string): string[] {
+  const result: string[] = [];
+  
+  // 도/시 약칭 매핑
+  const regionMappings: Record<string, string[]> = {
+    '경상북도': ['경북'],
+    '경상남도': ['경남'],
+    '전라북도': ['전북'],
+    '전라남도': ['전남'],
+    '충청북도': ['충북'],
+    '충청남도': ['충남'],
+    '강원도': ['강원'],
+    '경기도': ['경기'],
+    '제주특별자치도': ['제주'],
+    '서울특별시': ['서울'],
+    '부산광역시': ['부산'],
+    '대구광역시': ['대구'],
+    '인천광역시': ['인천'],
+    '광주광역시': ['광주'],
+    '대전광역시': ['대전'],
+    '울산광역시': ['울산'],
+    '세종특별자치시': ['세종']
+  };
+  
+  // 전체 지역명에서 도/시 부분 추출
+  for (const [fullName, shortNames] of Object.entries(regionMappings)) {
+    if (region.includes(fullName)) {
+      result.push(...shortNames);
+      
+      // 시/군/구 추출 (예: '경상북도 경주시' -> '경주')
+      const cityMatch = region.match(new RegExp(`${fullName}\\s+([^\\s]+)`));
+      if (cityMatch && cityMatch[1]) {
+        const city = cityMatch[1].replace(/(시|군|구)$/, '');
+        result.push(city);
+      }
+      
+      break;
+    }
+  }
+  
+  return result;
 }
 
 // Filter temple stays by tag
@@ -226,7 +308,7 @@ export async function filterTempleStaysByTag(tag: string): Promise<TempleStay[]>
       templeName: item.name,
       location: item.region,
       imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: parseInt(item.cost_adult) || 50000,
+      price: parseInt(item.cost_adult?.replace(/,/g, '')) || 50000,
       likeCount: item.follower_count,
       direction: item.public_transportation
     }));
@@ -254,7 +336,7 @@ export async function getTempleStaysByRegion(region: string): Promise<TempleStay
       templeName: item.name,
       location: item.region,
       imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: parseInt(item.cost_adult) || 50000,
+      price: parseInt(item.cost_adult?.replace(/,/g, '')) || 50000,
       likeCount: item.follower_count,
       direction: item.public_transportation
     }));
@@ -353,7 +435,7 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
           templeName: templeStay.name,
           location: templeStay.region,
           imageUrl: templeStay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-          price: parseInt(templeStay.cost_adult) || 50000,
+          price: parseInt(templeStay.cost_adult?.replace(/,/g, '')) || 50000,
           likeCount: templeStay.follower_count,
           direction: templeStay.public_transportation
         };
@@ -385,7 +467,7 @@ export async function getTopLikedTempleStays(limit = 5): Promise<TempleStay[]> {
       templeName: item.name,
       location: item.region,
       imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: parseInt(item.cost_adult) || 50000,
+      price: parseInt(item.cost_adult?.replace(/,/g, '')) || 50000,
       likeCount: item.follower_count,
       direction: item.public_transportation
     }));
