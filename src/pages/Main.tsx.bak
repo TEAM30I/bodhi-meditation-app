@@ -67,51 +67,86 @@ const Main = () => {
    * 카카오맵 초기화 (kakao.js 는 load() 내부에서 자동 로드됨)
    * ------------------------------------------------------------------ */
   useEffect(() => {
+    // 지도를 표시할 div 요소가 없으면 초기화하지 않음
     if (!mapRef.current) return;
 
-    const initializeMap = () => {
-      console.log('kakao.js loaded ✔');
-      
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current = null;
+    // 카카오맵이 이미 로드되었는지 확인하고 초기화하는 함수
+    const initKakaoMap = () => {
+      try {
+        console.log('카카오맵 초기화 시작');
+        
+        // 지도 생성
+        const options = {
+          center: new window.kakao.maps.LatLng(37.566826, 126.9786567), // 서울시청
+          level: 7 // 지도 확대 레벨
+        };
+        
+        const map = new window.kakao.maps.Map(mapRef.current, options);
+        
+        // 마커 생성
+        const markerPosition = new window.kakao.maps.LatLng(37.566826, 126.9786567);
+        const marker = new window.kakao.maps.Marker({
+          position: markerPosition
+        });
+        marker.setMap(map);
+        
+        // 인포윈도우 생성
+        const iwContent = '<div style="padding:5px;font-size:12px;">서울시청</div>';
+        const infowindow = new window.kakao.maps.InfoWindow({
+          content: iwContent
+        });
+        infowindow.open(map, marker);
+        
+        // 지도 컨트롤러 추가
+        const zoomControl = new window.kakao.maps.ZoomControl();
+        map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
+        
+        
+        // 지도가 완전히 로드된 후 레이아웃 재조정 (Flex/Grid 컨테이너 내부에서 정확히 표시되게 함)
+        setTimeout(() => { 
+          console.log('지도 레이아웃 재조정');
+          map.relayout();
+        }, 300);
+        
+        console.log('카카오맵 초기화 완료');
+      } catch (error) {
+        console.error('카카오맵 초기화 오류:', error);
       }
-      
-      const map = new window.kakao.maps.Map(mapRef.current as HTMLElement, {
-        center: new window.kakao.maps.LatLng(37.566826, 126.9786567), // 서울시청 좌표
-        level: 8, // 지도의 확대 레벨
-      });
-
-      mapInstanceRef.current = map;
-
-      const marker = new window.kakao.maps.Marker({
-        position: map.getCenter()
-      });
-      marker.setMap(map);
-
-      const infowindow = new window.kakao.maps.InfoWindow({
-        content: '<div style="padding:5px;font-size:12px;">서울시청</div>'
-      });
-      infowindow.open(map, marker);
-
-      const zoomControl = new window.kakao.maps.ZoomControl();
-      map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
-
-      const mapTypeControl = new window.kakao.maps.MapTypeControl();
-      map.addControl(mapTypeControl, window.kakao.maps.ControlPosition.TOPRIGHT);
-
-      setTimeout(() => map.relayout(), 0);
     };
 
-    if (window.kakao && window.kakao.maps) {
-      initializeMap();
-    } else {
-      window.kakao.maps.load(initializeMap);
-    }
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current = null;
+    // 카카오맵 로드 함수
+    const loadKakaoMap = () => {
+      // 카카오맵 SDK가 로드되었는지 확인
+      if (typeof window.kakao === 'undefined' || typeof window.kakao.maps === 'undefined') {
+        console.log('카카오맵 SDK가 로드되지 않음, 로딩 대기 중...');
+        
+        // 500ms마다 카카오맵 SDK 로드 여부 확인
+        const interval = setInterval(() => {
+          if (typeof window.kakao !== 'undefined' && typeof window.kakao.maps !== 'undefined') {
+            console.log('카카오맵 SDK 로드됨, load 함수 호출');
+            clearInterval(interval);
+            window.kakao.maps.load(initKakaoMap);
+          }
+        }, 500);
+        
+        // 10초 후에도 로드되지 않으면 타임아웃
+        setTimeout(() => {
+          clearInterval(interval);
+          console.error('카카오맵 SDK 로드 타임아웃');
+        }, 10000);
+      } else {
+        console.log('카카오맵 SDK 이미 로드됨, load 함수 호출');
+        window.kakao.maps.load(initKakaoMap);
       }
+    };
+
+    // 카카오맵 로드 시작
+    loadKakaoMap();
+
+    // 컴포넌트 언마운트 시 정리
+    return () => {
+      console.log('카카오맵 컴포넌트 언마운트');
+      // 필요한 정리 작업이 있다면 여기에 추가
     };
   }, []);
 

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>보디</title>
+    <!-- 올바른 URL (Google Fonts 공식) -->
+    <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700&display=swap">
+
+    <!-- 카카오맵 API 스크립트 - 간단한 설정 -->
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=03d6d5879a4ccf404846b3db22c8e0ea&libraries=services"></script>
+    
+    <!-- 개발 환경용 넓은 CSP 설정 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="https://cdn.gpteng.co/gptengineer.js"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
