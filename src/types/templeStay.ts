@@ -1,9 +1,11 @@
 export interface TempleStay {
   id: string;
   templeName: string;
+  name?: string;
+  temple_name?: string;
   location: string;
   imageUrl: string;
-  price: number;
+  price: number | string;
   description?: string;
   schedule?: Array<{
     time: string;

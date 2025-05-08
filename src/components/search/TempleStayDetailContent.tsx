@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Heart, Share, CalendarClock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TempleStay } from '@/utils/repository';
+import { TempleStay } from '@/types';
 import { toast } from 'sonner';
 
 interface TempleStayDetailContentProps {
@@ -78,22 +78,6 @@ const TempleStayDetailContent: React.FC<TempleStayDetailContentProps> = ({
           )
         ) : (
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-gray-100 rounded-full py-2 px-4 text-center text-sm">
-                10:00
-              </div>
-              <div className="bg-gray-100 rounded-full py-2 px-4 text-center text-sm">
-                13:30-15:40
-              </div>
-              <div className="bg-gray-100 rounded-full py-2 px-4 text-center text-sm">
-                17:50-19:00
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-gray-200 h-8 rounded-lg"></div>
-              <div className="bg-gray-200 h-8 rounded-lg"></div>
-              <div className="bg-gray-200 h-8 rounded-lg"></div>
-            </div>
             <p className="text-gray-500 text-sm text-center italic">일정 정보가 준비 중입니다.</p>
           </div>
         )}
@@ -112,7 +96,9 @@ const TempleStayDetailContent: React.FC<TempleStayDetailContentProps> = ({
         <h2 className="text-xl font-bold mb-3">이용요금</h2>
         <div className="bg-gray-50 rounded-xl p-4">
           <p className="text-lg font-medium text-gray-900">
-            성인 1인 {templeStay.price.toLocaleString()}원
+            성인 1인 {typeof templeStay.price === 'number' 
+              ? templeStay.price.toLocaleString() 
+              : parseInt(String(templeStay.price).replace(/[^\d]/g, '') || '0').toLocaleString()}원
           </p>
         </div>
       </section>

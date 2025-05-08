@@ -18,6 +18,7 @@ import { tomorrow, dayAfterTomorrow, fmt } from '@/utils/dateUtils';
 import { toast } from 'sonner';
 import { getCurrentLocation } from '@/utils/locationUtils';
 
+
 const SearchResults: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -132,6 +133,11 @@ const SearchResults: React.FC = () => {
     setShowGuestSelector(false);
   };
 
+  // 정렬 필터 변경 처리
+  const handleFilterChange = (filter: TempleStaySort) => {
+    setActiveFilter(filter);
+  };
+
   /* ───────────── 렌더 ───────────── */
   return (
     <div className="bg-white min-h-screen pb-24">
@@ -218,7 +224,7 @@ const SearchResults: React.FC = () => {
             variant={activeFilter === 'popular' ? 'default' : 'outline'}
             size="sm"
             className={`rounded-full px-4 ${activeFilter === 'popular' ? 'bg-[#1A1A1A] text-white' : 'bg-transparent text-gray-700'}`}
-            onClick={() => setActiveFilter('popular')}
+            onClick={() => handleFilterChange('popular')}
           >
             인기순
           </Button>
@@ -226,7 +232,7 @@ const SearchResults: React.FC = () => {
             variant={activeFilter === 'recent' ? 'default' : 'outline'}
             size="sm"
             className={`rounded-full px-4 ${activeFilter === 'recent' ? 'bg-[#1A1A1A] text-white' : 'bg-transparent text-gray-700'}`}
-            onClick={() => setActiveFilter('recent')}
+            onClick={() => handleFilterChange('recent')}
           >
             최신순
           </Button>
@@ -234,15 +240,15 @@ const SearchResults: React.FC = () => {
             variant={activeFilter === 'distance' ? 'default' : 'outline'}
             size="sm"
             className={`rounded-full px-4 ${activeFilter === 'distance' ? 'bg-[#1A1A1A] text-white' : 'bg-transparent text-gray-700'}`}
-            onClick={() => setActiveFilter('distance')}
+            onClick={() => handleFilterChange('distance')}
           >
             거리순
           </Button>
           <Button
-            variant={activeFilter === 'price-asc' ? 'default' : 'outline'}
+            variant={activeFilter === 'price' ? 'default' : 'outline'}
             size="sm"
-            className={`rounded-full px-4 ${activeFilter === 'price-asc' ? 'bg-[#1A1A1A] text-white' : 'bg-transparent text-gray-700'}`}
-            onClick={() => setActiveFilter('price-asc')}
+            className={`rounded-full px-4 ${activeFilter === 'price' ? 'bg-[#1A1A1A] text-white' : 'bg-transparent text-gray-700'}`}
+            onClick={() => handleFilterChange('price')}
           >
             가격낮은순
           </Button>
@@ -267,7 +273,14 @@ const SearchResults: React.FC = () => {
               templeStays.map((ts) => (
                 <TempleStayItem
                   key={ts.id}
-                  templeStay={ts}
+                  templeStay={{
+                    ...ts,
+                    // 템플스테이 정보가 완전하게 표시되도록 보장
+                    templeName: (ts as any).temple_name || (ts as any).name || ts.templeName,
+                    location: ts.temple?.address || ts.location || '주소 정보 없음',
+                    price: typeof ts.price === 'number' ? ts.price : 
+                           (typeof ts.price === 'string' ? parseInt((ts.price as string).replace(/[^\d]/g, '') || '0') : 0)
+                  }}
                   onClick={() => navigate(`/search/temple-stay/detail/${ts.id}`)}
                 />
               ))

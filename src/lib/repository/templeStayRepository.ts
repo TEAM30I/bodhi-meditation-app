@@ -59,7 +59,7 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
       templeName: item.temple_name,
       location: item.location || '',
       imageUrl: item.image_url,
-      price: item.price || 0,
+      price: item.cost_adult ? parseInt(item.cost_adult.replace(/,/g, '')) : (item.price || 0),
       description: item.description || '',
       likeCount: item.like_count || 0,
       // ... 기타 필드 매핑 ...
@@ -229,7 +229,7 @@ export async function searchTempleStays(query: string): Promise<TempleStay[]> {
       templeName: item.temple_name,
       location: item.location || '',
       imageUrl: item.image_url,
-      price: item.price || 0,
+      price: item.cost_adult ? parseInt(item.cost_adult.replace(/,/g, '')) : (item.price || 0),
       description: item.description || '',
       likeCount: item.like_count || 0,
       // ... 기타 필드 매핑 ...

@@ -15,7 +15,6 @@ import {
 } from '@/lib/repository';
 import { TempleStay, Temple, Scripture } from '@/types';
 import Footer from '@/components/Footer';
-<<<<<<< HEAD
 /**
  * 전역 kakao 객체 타입 선언 (index.html 에 sdk.js?autoload=false 가 로드돼 있어야 함)
  */
@@ -24,8 +23,6 @@ declare global {
     kakao: any;
   }
 }
-=======
->>>>>>> 70aca861417b02a94c5370ce01973fe167b3d4f4
 
 const Main = () => {
   const navigate = useNavigate();
