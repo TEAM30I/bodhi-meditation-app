@@ -4,21 +4,26 @@
 export interface Temple {
   id: string;
   name: string;
-  location: string;
-  imageUrl: string;
-  distance?: string;
+  address: string;
+  region: string;
+  contact: string;
   description?: string;
+  image_url?: string;
+  imageUrl?: string;
+  latitude?: number;
+  longitude?: number;
+  created_at?: string;
+  updated_at?: string;
+  follower_count?: number;
+  search_count?: number;
+  
+  distance?: string;
   openingHours?: string;
   tags?: string[];
   direction?: string;
   websiteUrl?: string;
   likeCount?: number;
   facilities?: string[];
-  contact?: {
-    phone?: string;
-  };
-  latitude?: number;
-  longitude?: number;
 }
 
 export type TempleSort = 'popular' | 'recent' | 'distance';

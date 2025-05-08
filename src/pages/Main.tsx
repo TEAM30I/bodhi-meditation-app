@@ -14,7 +14,7 @@ import {
   getScriptureList,
 } from '@/lib/repository';
 import { TempleStay, Temple, Scripture } from '@/types';
-
+import Footer from '@/components/Footer';
 /**
  * 전역 kakao 객체 타입 선언 (index.html 에 sdk.js?autoload=false 가 로드돼 있어야 함)
  */
@@ -162,11 +162,16 @@ const Main = () => {
             {recommendedTemples.map((temple) => (
               <div
                 key={temple.id}
-                className="min-w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer"
+                className="min-w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer relative"
                 onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
               >
-                <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-600">
-                  <p className="text-xs">{temple.name}</p>
+                <img 
+                  src={temple.imageUrl || temple.image_url || '/placeholder-temple.jpg'} 
+                  alt={temple.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-end p-2">
+                  <p className="text-xs text-white font-medium line-clamp-2">{temple.name}</p>
                 </div>
               </div>
             ))}
@@ -186,11 +191,19 @@ const Main = () => {
             {recommendedTempleStays.map((templeStay) => (
               <div
                 key={templeStay.id}
-                className="min-w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer"
+                className="min-w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer relative"
                 onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
               >
-                <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-600">
-                  <p className="text-xs">{templeStay.templeName}</p>
+                <img 
+                  src={templeStay.imageUrl || '/placeholder-temple-stay.jpg'} 
+                  alt={templeStay.templeName}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col items-start justify-end p-2">
+                  <p className="text-xs text-white font-medium line-clamp-2">{templeStay.templeName}</p>
+                  {templeStay.temple && (
+                    <p className="text-xs text-gray-200 line-clamp-1">{templeStay.temple.name}</p>
+                  )}
                 </div>
               </div>
             ))}
@@ -222,7 +235,7 @@ const Main = () => {
           />
         </div>
       </div>
-
+      <Footer />
       <BottomNav />
     </div>
   );

@@ -224,16 +224,25 @@ const SearchHome = () => {
                   {topTemples.map((temple, index) => (
                     <div 
                       key={temple.id} 
-                      className="cursor-pointer"
+                      className="cursor-pointer flex items-center gap-2"
                       onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
                     >
-                      <div className="flex items-center mb-1">
-                        <span className="text-[#DE7834] font-bold mr-2">{index + 1}</span>
-                        <span className="line-clamp-1">{temple.name}</span>
+                      <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+                        <img 
+                          src={temple.imageUrl || temple.image_url || '/placeholder-temple.jpg'} 
+                          alt={temple.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      {temple.location && (
-                        <div className="text-xs text-gray-500">{temple.location}</div>
-                      )}
+                      <div className="flex-1">
+                        <div className="flex items-center mb-1">
+                          <span className="text-[#DE7834] font-bold mr-2">{index + 1}</span>
+                          <span className="line-clamp-1">{temple.name}</span>
+                        </div>
+                        {temple.address && (
+                          <div className="text-xs text-gray-500">{temple.address}</div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

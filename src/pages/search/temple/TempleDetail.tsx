@@ -3,15 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share, MapPin, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
+import { getTempleDetail, isTempleFollowed, toggleTempleFollow } from '@/lib/repository';
+import { Temple } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
 
 const TempleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [temple, setTemple] = useState<any | null>(null);
+  const [temple, setTemple] = useState<Temple | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   // 사찰 상세 정보 로드
   useEffect(() => {
@@ -24,31 +28,56 @@ const TempleDetail: React.FC = () => {
       
       try {
         setLoading(true);
-        // 임시 데이터
-        setTemple({
-          id,
-          name: '조계사',
-          location: '서울특별시 종로구 지하문로 55',
-          description: '대한불교조계종의 본사로, 서울특별시 종로구 견지동에 위치한 사찰입니다. 조선시대 태조 이성계가 창건하였으며, 한국의 대표적인 도심 사찰 중 하나입니다.',
-          imageUrl: 'https://via.placeholder.com/800x400?text=Temple+Image',
-          facilities: ['템플스테이', '주차장', '법당', '불교문화체험'],
-          contactInfo: '02-123-4567'
-        });
-        setLoading(false);
+        console.log('Loading temple detail for ID:', id); // 디버깅용 로그 추가
+        const data = await getTempleDetail(id);
+        console.log('Temple detail data:', data); // 디버깅용 로그 추가
+        
+        if (data) {
+          // DB 필드명과 프론트엔드 필드명 매핑
+          if (data.image_url && !data.imageUrl) {
+            data.imageUrl = data.image_url;
+          }
+          setTemple(data);
+          
+          // 사용자가 로그인한 경우 찜 상태 확인
+          if (user) {
+            console.log('Checking if temple is followed by user:', user.id); // 디버깅용 로그 추가
+            const followed = await isTempleFollowed(user.id, id);
+            console.log('Temple followed status:', followed); // 디버깅용 로그 추가
+            setIsFavorite(followed);
+          }
+        } else {
+          setError('사찰 정보를 찾을 수 없습니다.');
+        }
       } catch (err) {
         console.error('Error loading temple detail:', err);
         setError('사찰 정보를 불러오는 중 오류가 발생했습니다.');
+      } finally {
         setLoading(false);
       }
     };
     
     loadTempleDetail();
-  }, [id]);
+  }, [id, user]);
 
   // 찜하기/찜 해제 토글
-  const handleToggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    alert(`${temple?.name}을(를) ${!isFavorite ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      toast.error('로그인이 필요한 기능입니다.');
+      navigate('/login', { state: { from: `/search/temple/${id}` } });
+      return;
+    }
+    
+    if (!temple || !id) return;
+    
+    try {
+      const result = await toggleTempleFollow(user.id, id);
+      setIsFavorite(result);
+      toast.success(`${temple.name}을(를) ${result ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast.error('찜하기 처리 중 오류가 발생했습니다.');
+    }
   };
 
   // 로딩 상태 표시
@@ -93,7 +122,7 @@ const TempleDetail: React.FC = () => {
       {/* Temple images */}
       <div className="h-72 bg-gray-200">
         <img 
-          src={temple.imageUrl || '/placeholder-temple.jpg'} 
+          src={temple.imageUrl || temple.image_url || '/placeholder-temple.jpg'} 
           alt={temple.name}
           className="w-full h-full object-cover"
         />
@@ -104,7 +133,7 @@ const TempleDetail: React.FC = () => {
         <h1 className="text-2xl font-bold">{temple.name}</h1>
         <div className="flex items-center mt-2 text-gray-600">
           <MapPin className="h-4 w-4 mr-1" />
-          <span className="text-sm">{temple.location}</span>
+          <span className="text-sm">{temple.address}</span>
         </div>
         
         <div className="mt-6 space-y-6">
@@ -116,25 +145,23 @@ const TempleDetail: React.FC = () => {
             </div>
           )}
           
-          {/* Features/Facilities */}
-          {temple.facilities && temple.facilities.length > 0 && (
+          {/* Region */}
+          {temple.region && (
             <div>
-              <h2 className="text-lg font-bold mb-2">시설</h2>
+              <h2 className="text-lg font-bold mb-2">지역</h2>
               <div className="flex flex-wrap gap-2">
-                {temple.facilities.map((facility: string, index: number) => (
-                  <Badge key={index} variant="outline" className="rounded-full">
-                    {facility}
-                  </Badge>
-                ))}
+                <Badge variant="outline" className="rounded-full">
+                  {temple.region}
+                </Badge>
               </div>
             </div>
           )}
           
           {/* Contact Info */}
-          {temple.contactInfo && (
+          {temple.contact && (
             <div>
               <h2 className="text-lg font-bold mb-2">연락처</h2>
-              <p className="text-gray-700">{temple.contactInfo}</p>
+              <p className="text-gray-700">{temple.contact}</p>
             </div>
           )}
         </div>

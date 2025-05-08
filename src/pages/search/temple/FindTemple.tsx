@@ -1,362 +1,200 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, ChevronLeft, Heart } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-// 함수만 가져오기
-import { 
-  getRegionTags,
-  getTempleList, 
-  getTopLikedTemples, 
-  getNearbyTemples,
-  filterTemplesByTag
-} from '@/lib/repository';
-// 타입은 types에서 가져오기
-import { Temple, RegionTag } from '@/types';
-// 상수 가져오기
-import { DEFAULT_LOCATION } from '@/constants';
-import PageLayout from '@/components/PageLayout';
-import BottomNav from '@/components/BottomNav';
-import { toast } from 'sonner';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Heart, Share, MapPin, Home, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Toaster, toast } from 'sonner';
+import { getTempleDetail } from '@/lib/repository';
+import { Temple } from '@/types';
 
-const FindTemple = () => {
+const TempleDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchValue, setSearchValue] = useState('');
-  const [activeRegion, setActiveRegion] = useState('서울');
-  const [regionTagsList, setRegionTagsList] = useState<RegionTag[]>([]);
-  
-  // 데이터 상태
-  const [temples, setTemples] = useState<Temple[]>([]);
-  const [nearbyTemples, setNearbyTemples] = useState<Temple[]>([]);
-  const [popularTemples, setPopularTemples] = useState<Temple[]>([]);
-  const [filteredTemples, setFilteredTemples] = useState<Temple[]>([]);
-  const [loading, setLoading] = useState({
-    temples: true,
-    nearby: true,
-    popular: true,
-    regions: true
-  });
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [temple, setTemple] = useState<Temple | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Load region tags from database
+  // 사찰 상세 정보 로드
   useEffect(() => {
-    const fetchRegionTags = async () => {
-      try {
-        setLoading(prev => ({...prev, regions: true}));
-        const tags = await getRegionTags();
-        setRegionTagsList(tags);
-        if (tags.length > 0) {
-          setActiveRegion(tags[0].name);
-        }
-      } catch (error) {
-        console.error("Failed to load region tags:", error);
-        toast.error("지역 정보를 불러오는데 실패했습니다.");
-      } finally {
-        setLoading(prev => ({...prev, regions: false}));
-      }
-    };
-    
-    fetchRegionTags();
-  }, []);
-
-  // 사용자 위치 가져오기
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation({ lat: latitude, lng: longitude });
-        },
-        (error) => {
-          console.error('Error getting user location:', error);
-          toast.error('위치 정보를 가져올 수 없습니다.');
-          // 기본 위치 설정 (서울) - 상수에서 가져오기
-          setUserLocation({ 
-            lat: DEFAULT_LOCATION.latitude, 
-            lng: DEFAULT_LOCATION.longitude 
-          });
-        }
-      );
-    } else {
-      toast.error('이 브라우저는 위치 정보를 지원하지 않습니다.');
-      // 기본 위치 설정 (서울) - 상수에서 가져오기
-      setUserLocation({ 
-        lat: DEFAULT_LOCATION.latitude, 
-        lng: DEFAULT_LOCATION.longitude 
-      });
-    }
-  }, []);
-
-  // 모든 사찰 데이터 로드
-  useEffect(() => {
-    const loadTemples = async () => {
-      try {
-        const templeList = await getTempleList();
-        setTemples(templeList);
-        setFilteredTemples(templeList);
-        setLoading(prev => ({...prev, temples: false}));
-      } catch (error) {
-        console.error("Failed to load temples:", error);
-        toast.error("사찰 목록을 불러오는데 실패했습니다.");
-        setLoading(prev => ({...prev, temples: false}));
-      }
-    };
-
-    loadTemples();
-  }, []);
-
-  // 가까운 사찰 로드 (위치 정보 사용)
-  useEffect(() => {
-    const loadNearbyTemples = async () => {
-      if (!userLocation) return;
+    const fetchTemple = async () => {
+      if (!id) return;
       
       try {
-        const nearby = await getNearbyTemples(userLocation.lat, userLocation.lng, 5);
-        setNearbyTemples(nearby);
-        setLoading(prev => ({...prev, nearby: false}));
-      } catch (error) {
-        console.error("Failed to load nearby temples:", error);
-        toast.error("가까운 사찰을 불러오는데 실패했습니다.");
-        setLoading(prev => ({...prev, nearby: false}));
-      }
-    };
-
-    if (userLocation) {
-      loadNearbyTemples();
-    }
-  }, [userLocation]);
-
-  // 인기 사찰 로드
-  useEffect(() => {
-    const loadPopularTemples = async () => {
-      try {
-        const popular = await getTopLikedTemples(5);
-        setPopularTemples(popular);
-        setLoading(prev => ({...prev, popular: false}));
-      } catch (error) {
-        console.error("Failed to load popular temples:", error);
-        toast.error("인기 사찰을 불러오는데 실패했습니다.");
-        setLoading(prev => ({...prev, popular: false}));
-      }
-    };
-
-    loadPopularTemples();
-  }, []);
-  
-  // 지역 필터링 함수
-  const handleRegionClick = async (region: string) => {
-    setActiveRegion(region);
-    
-    try {
-      // 지역으로 사찰 필터링
-      const filtered = temples.filter(temple => 
-        temple.location.includes(region)
-      );
-      setFilteredTemples(filtered.length ? filtered : temples);
-
-      // 만약 필터링 결과가 없다면 태그 기반으로 검색 시도
-      if (filtered.length === 0) {
-        const tagFiltered = await filterTemplesByTag(region);
-        if (tagFiltered.length > 0) {
-          setFilteredTemples(tagFiltered);
+        setLoading(true);
+        const data = await getTempleDetail(id);
+        if (data) {
+          setTemple(data);
+          console.log('Loaded temple:', data);
+        } else {
+          toast.error('사찰 정보를 찾을 수 없습니다.');
+          navigate('/search/temple');
         }
+      } catch (error) {
+        console.error('Error fetching temple:', error);
+        toast.error('사찰 정보를 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error filtering by region:", error);
-      toast.error("지역 필터링에 실패했습니다.");
-    }
-  };
-
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
-  };
-
-  const handleSearchSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    };
     
-    if (!searchValue.trim()) return;
-    navigate(`/search/temple/results?query=${searchValue}`);
+    fetchTemple();
+  }, [id, navigate]);
+
+  // 찜하기/찜 해제 토글
+  const handleToggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    toast.success(`${temple?.name}을(를) ${!isFavorite ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
   };
 
-  const handleTempleClick = (id: string) => {
-    navigate(`/search/temple/detail/${id}`);
-  };
+  // 로딩 상태 표시
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]" />
+      </div>
+    );
+  }
+
+  // 에러 상태 표시
+  if (!temple) {
+    return null;
+  }
 
   return (
-    <PageLayout title="사찰 찾기">
-      <div className="p-4">
-        {/* 검색 폼 */}
-        <form onSubmit={handleSearchSubmit} className="relative mb-6">
-          <Input
-            type="text"
-            value={searchValue}
-            onChange={handleSearchInputChange}
-            placeholder="사찰명 또는 지역으로 검색"
-            className="w-full p-4 pl-10 bg-white border border-gray-200 rounded-lg"
+    <div className="bg-white min-h-screen relative">
+      {/* Sonner Toaster */}
+      <Toaster position="bottom-center" />
+      
+      {/* Header with navigation */}
+      <div className="fixed top-0 left-0 right-0 z-20 bg-transparent flex justify-between items-center p-4 max-w-[480px] mx-auto">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:bg-white/90 transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5 text-black" />
+        </button>
+        <button 
+          onClick={() => navigate('/')} 
+          className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:bg-white/90 transition-colors"
+        >
+          <Home className="h-5 w-5 text-black" />
+        </button>
+      </div>
+
+      {/* Main Content Container */}
+      <div className="max-w-[480px] mx-auto">
+        {/* Image at the top */}
+        <div className="relative w-full">
+          <img 
+            src={temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple"} 
+            alt={temple.name}
+            className="w-full h-[300px] object-cover"
           />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-        </form>
-
-        {/* 지역 태그 */}
-        <div className="mb-8">
-          <h3 className="font-semibold text-lg mb-4">지역별 사찰</h3>
-          {loading.regions ? (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DE7834]"></div>
-            </div>
-          ) : (
-            <div className="flex overflow-x-auto space-x-2 pb-2">
-              {regionTagsList.map((tag) => (
-                <button
-                  key={tag.id}
-                  onClick={() => handleRegionClick(tag.name)}
-                  className={`py-2 px-4 rounded-full whitespace-nowrap ${
-                    activeRegion === tag.name
-                      ? 'bg-[#DE7834] text-white'
-                      : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  {tag.name}
-                </button>
-              ))}
-            </div>
-          )}
+          
+          {/* Image indicator */}
+          <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
+            1/1
+          </div>
         </div>
 
-        {/* 인기 사찰 */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-lg">인기 사찰</h3>
-            <button 
-              onClick={() => navigate('/search/temple/results?sort=popular')}
-              className="text-[#DE7834] flex items-center text-sm"
+        {/* Content Section */}
+        <div className="p-5">
+          {/* Title and actions */}
+          <div className="flex justify-between items-start mb-4">
+            <h1 className="text-2xl font-bold text-gray-900">{temple.name}</h1>
+            <div className="flex space-x-2">
+              <button 
+                onClick={handleToggleFavorite}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-[#DE7834] stroke-[#DE7834]' : 'text-gray-600'}`} />
+              </button>
+              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <Share className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Location */}
+          <div className="flex items-center text-gray-600 text-sm mb-5">
+            <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="leading-relaxed">{temple.address}</span>
+          </div>
+          
+          {/* Divider */}
+          <div className="border-b border-gray-200 my-5"></div>
+          
+          {/* Description */}
+          <div className="mb-6">
+            <h2 className="text-lg font-bold mb-3">소개</h2>
+            <p className="text-gray-700 leading-relaxed">{temple.description}</p>
+          </div>
+          
+          {/* Region */}
+          <div className="mb-6">
+            <h2 className="text-lg font-bold mb-3">지역</h2>
+            <Badge variant="outline" className="rounded-full px-3 py-1">
+              {temple.region}
+            </Badge>
+          </div>
+          
+          {/* Contact */}
+          {temple.contact && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold mb-3">연락처</h2>
+              <p className="text-gray-700">{temple.contact}</p>
+            </div>
+          )}
+          
+          {/* Map */}
+          {(temple.latitude && temple.longitude) && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold mb-3">위치</h2>
+              <div className="bg-gray-100 rounded-lg h-[200px] flex items-center justify-center" id="kakao-map">
+                <div className="text-gray-500">지도 로딩 중...</div>
+              </div>
+            </div>
+          )}
+          
+          {/* Temple Stay Link (if available) */}
+          <div className="mb-6">
+            <div 
+              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer"
+              onClick={() => navigate('/search/temple-stay')}
             >
-              더보기 <ChevronRight className="w-4 h-4" />
-            </button>
+              <div>
+                <h3 className="font-medium">이 사찰의 템플스테이 보기</h3>
+                <p className="text-sm text-gray-500">템플스테이 프로그램을 확인해보세요</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </div>
           </div>
-          
-          {loading.popular ? (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DE7834]"></div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {popularTemples.map((temple) => (
-                <div 
-                  key={temple.id}
-                  className="bg-white rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                  onClick={() => handleTempleClick(temple.id)}
-                >
-                  <div className="h-32 bg-gray-200">
-                    <img 
-                      src={temple.imageUrl} 
-                      alt={temple.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-3">
-                    <h4 className="font-medium text-sm mb-1">{temple.name}</h4>
-                    <p className="text-gray-500 text-xs">{temple.location}</p>
-                    {temple.likeCount !== undefined && (
-                      <div className="flex items-center mt-1 text-xs text-gray-500">
-                        <Heart className="w-3 h-3 mr-1" />
-                        <span>{temple.likeCount}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 내 주변 사찰 */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-lg">내 주변 사찰</h3>
-            <button 
-              onClick={() => navigate('/search/temple/results?nearby=true')}
-              className="text-[#DE7834] flex items-center text-sm"
-            >
-              더보기 <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-          
-          {loading.nearby ? (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DE7834]"></div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {nearbyTemples.map((temple) => (
-                <div 
-                  key={temple.id}
-                  className="bg-white rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                  onClick={() => handleTempleClick(temple.id)}
-                >
-                  <div className="h-32 bg-gray-200">
-                    <img 
-                      src={temple.imageUrl} 
-                      alt={temple.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-3">
-                    <h4 className="font-medium text-sm mb-1">{temple.name}</h4>
-                    <p className="text-gray-500 text-xs">{temple.location}</p>
-                    {temple.distance && (
-                      <p className="text-[#DE7834] text-xs mt-1">{temple.distance} 거리</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 지역별 필터링된 사찰 */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-lg">{activeRegion} 사찰</h3>
-          </div>
-          
-          {loading.temples ? (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#DE7834]"></div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredTemples.map((temple) => (
-                <div 
-                  key={temple.id}
-                  className="bg-white rounded-lg overflow-hidden shadow-sm flex cursor-pointer"
-                  onClick={() => handleTempleClick(temple.id)}
-                >
-                  <div className="w-24 h-24 bg-gray-200">
-                    <img 
-                      src={temple.imageUrl} 
-                      alt={temple.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-3 flex-1">
-                    <h4 className="font-medium mb-1">{temple.name}</h4>
-                    <p className="text-gray-500 text-xs">{temple.location}</p>
-                    {temple.likeCount !== undefined && (
-                      <div className="flex items-center mt-1 text-xs text-gray-500">
-                        <Heart className="w-3 h-3 mr-1" />
-                        <span>{temple.likeCount}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
-      <BottomNav />
-    </PageLayout>
+
+      {/* Bottom fixed buttons */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+        <div className="max-w-[480px] mx-auto flex items-center gap-3">
+          <Button
+            onClick={handleToggleFavorite}
+            variant="outline"
+            className="w-12 h-12 rounded-full flex items-center justify-center p-0"
+          >
+            <Heart className={`h-6 w-6 ${isFavorite ? 'fill-[#DE7834] stroke-[#DE7834]' : 'stroke-gray-600'}`} />
+          </Button>
+          <Button 
+            className="flex-1 h-12 bg-[#1A1A1A] hover:bg-[#333333] text-white rounded-xl"
+            onClick={() => navigate(`/search/temple-stay?temple=${temple.id}`)}
+          >
+            템플스테이 보기
+          </Button>
+        </div>
+      </div>
+      
+      {/* Bottom Padding for Mobile */}
+      <div className="h-24"></div>
+    </div>
   );
 };
 
-export default FindTemple;
+export default TempleDetail;

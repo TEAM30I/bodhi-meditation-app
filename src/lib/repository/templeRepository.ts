@@ -59,14 +59,13 @@ export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Tem
     let temples = data.map(item => ({
       id: item.id,
       name: item.name,
-      location: item.region,
-      imageUrl: item.image_url || DEFAULT_IMAGES.TEMPLE,
+      address: item.address || item.region || '',
+      region: item.region || '',
+      contact: item.contact || '',
       description: item.description,
-      direction: item.address,
+      imageUrl: item.image_url || DEFAULT_IMAGES.TEMPLE,
+      image_url: item.image_url || DEFAULT_IMAGES.TEMPLE,
       likeCount: item.follower_count,
-      contact: {
-        phone: item.contact
-      },
       latitude: item.latitude,
       longitude: item.longitude,
       facilities: item.facilities ? JSON.parse(item.facilities) : [],
@@ -118,11 +117,15 @@ export async function getTopLikedTemples(limit = 5): Promise<Temple[]> {
     return data.map(temple => ({
       id: temple.id,
       name: temple.name,
-      location: temple.region, // Map region to location for interface compliance
+      address: temple.address || temple.region || '',
+      region: temple.region || '',
+      contact: temple.contact || '',
       imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+      image_url: temple.image_url,
       likeCount: temple.follower_count,
-      direction: temple.address,
-      description: temple.description
+      description: temple.description,
+      latitude: temple.latitude,
+      longitude: temple.longitude
     }));
   } catch (error) {
     console.error('Error in getTopLikedTemples:', error);
@@ -147,13 +150,13 @@ export async function filterTemplesByTag(tag: string): Promise<Temple[]> {
     return data.map(item => ({
       id: item.id,
       name: item.name,
-      location: item.region, // Map region to location for interface compliance
+      address: item.address || item.region || '',
+      region: item.region || '',
+      contact: item.contact || '',
       imageUrl: item.image_url,
+      image_url: item.image_url,
       description: item.description,
       likeCount: item.follower_count,
-      contact: {
-        phone: item.contact
-      },
       latitude: item.latitude,
       longitude: item.longitude
     }));
@@ -168,10 +171,63 @@ export async function searchTemples(query: string): Promise<Temple[]> {
   if (!query) return [];
   
   try {
+    // 지역명 검색을 위한 정규화된 쿼리 생성
+    // 예: '경상북도' 검색 시 '경북'도 포함, '경주시' 검색 시 '경주'도 포함
+    const normalizedQuery = query.trim();
+    
+    // 지역명 약어 매핑 (예: 경상북도 -> 경북)
+    const regionMappings: Record<string, string[]> = {
+      '경상북도': ['경북'],
+      '경상남도': ['경남'],
+      '전라북도': ['전북'],
+      '전라남도': ['전남'],
+      '충청북도': ['충북'],
+      '충청남도': ['충남'],
+      '경기도': ['경기'],
+      '강원도': ['강원']
+    };
+    
+    // 시/군/구 매핑 (예: 경주시 -> 경주)
+    const cityMappings: string[] = ['시', '군', '구'];
+    
+    // 검색어 확장
+    let expandedQueries = [normalizedQuery];
+    
+    // 지역명 약어 확장
+    for (const [fullName, shortNames] of Object.entries(regionMappings)) {
+      if (normalizedQuery.includes(fullName)) {
+        shortNames.forEach(short => expandedQueries.push(normalizedQuery.replace(fullName, short)));
+      } else {
+        shortNames.forEach(short => {
+          if (normalizedQuery.includes(short)) {
+            expandedQueries.push(normalizedQuery.replace(short, fullName));
+          }
+        });
+      }
+    }
+    
+    // 시/군/구 확장
+    cityMappings.forEach(suffix => {
+      if (normalizedQuery.endsWith(suffix)) {
+        expandedQueries.push(normalizedQuery.slice(0, -1));
+      } else if (!normalizedQuery.endsWith(suffix)) {
+        expandedQueries.push(`${normalizedQuery}${suffix}`);
+      }
+    });
+    
+    // 중복 제거
+    expandedQueries = [...new Set(expandedQueries)];
+    
+    // OR 조건으로 검색 쿼리 구성
+    let orConditions = expandedQueries.map(q => `name.ilike.%${q}%`).join(',');
+    orConditions += ',' + expandedQueries.map(q => `region.ilike.%${q}%`).join(',');
+    orConditions += ',' + expandedQueries.map(q => `address.ilike.%${q}%`).join(',');
+    orConditions += ',' + expandedQueries.map(q => `description.ilike.%${q}%`).join(',');
+    
     const { data, error } = await supabase
       .from('temples')
       .select('*')
-      .or(`name.ilike.%${query}%,region.ilike.%${query}%,description.ilike.%${query}%`);
+      .or(orConditions);
       
     if (error) {
       console.error('Error searching temples:', error);
@@ -181,13 +237,13 @@ export async function searchTemples(query: string): Promise<Temple[]> {
     return data.map(item => ({
       id: item.id,
       name: item.name,
-      location: item.region, // Map region to location for interface compliance
+      address: item.address || item.region || '',
+      region: item.region || '',
+      contact: item.contact || '',
       imageUrl: item.image_url,
+      image_url: item.image_url,
       description: item.description,
       likeCount: item.follower_count,
-      contact: {
-        phone: item.contact
-      },
       latitude: item.latitude,
       longitude: item.longitude
     }));
@@ -260,6 +316,7 @@ export async function unfollowTemple(userId: string, templeId: string): Promise<
 // 사찰 상세 정보 가져오기
 export async function getTempleDetail(id: string): Promise<Temple | null> {
   try {
+    console.log('Fetching temple detail for ID:', id); // 디버깅용 로그 추가
     const { data, error } = await supabase
       .from('temples')
       .select('*')
@@ -271,23 +328,22 @@ export async function getTempleDetail(id: string): Promise<Temple | null> {
       return null;
     }
     
+    console.log('Raw temple data from DB:', data); // 디버깅용 로그 추가
+    
+    // Temple 인터페이스에 맞게 데이터 변환
     return {
       id: data.id,
       name: data.name,
-      location: data.region, // Map region to location for interface compliance
-      imageUrl: data.image_url,
+      address: data.address,
+      region: data.region,
+      contact: data.contact, // 문자열로 반환
       description: data.description,
-      direction: data.address,
+      image_url: data.image_url,
+      imageUrl: data.image_url,
       likeCount: data.follower_count,
-      contact: {
-        phone: data.contact
-      },
-      openingHours: data.opening_hours,
-      tags: data.tags ? JSON.parse(data.tags) : [],
-      facilities: data.facilities ? JSON.parse(data.facilities) : [],
-      websiteUrl: data.website_url,
       latitude: data.latitude,
-      longitude: data.longitude
+      longitude: data.longitude,
+      // 기타 필요한 필드들...
     };
   } catch (error) {
     console.error('Error in getTempleDetail:', error);
@@ -329,10 +385,12 @@ export async function getNearbyTemples(
       return {
         id: temple.id,
         name: temple.name,
-        location: temple.region, // Map region to location for interface compliance
+        address: temple.address || temple.region || '',
+        region: temple.region || '',
+        contact: temple.contact || '',
         imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
+        image_url: temple.image_url,
         description: temple.description,
-        direction: temple.address,
         distance: formatDistance(distance),
         likeCount: temple.follower_count,
         latitude: temple.latitude,
@@ -385,15 +443,20 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
     return (templesData || []).map(item => ({
       id: item.id,
       name: item.name,
-      location: item.region,
-      imageUrl: item.image_url,
+      address: item.address || item.region || '',
+      region: item.region || '',
+      contact: item.contact || '',
       description: item.description,
+      imageUrl: item.image_url,
+      image_url: item.image_url,
       likeCount: item.follower_count,
-      contact: {
-        phone: item.contact
-      },
       latitude: item.latitude,
-      longitude: item.longitude
+      longitude: item.longitude,
+      // 선택적 필드들
+      facilities: item.facilities ? JSON.parse(item.facilities) : [],
+      tags: item.tags ? JSON.parse(item.tags) : [],
+      websiteUrl: item.website_url,
+      openingHours: item.opening_hours
     }));
   } catch (error) {
     console.error('Error fetching user followed temples:', error);
@@ -464,5 +527,48 @@ export async function getTopRegions(limit = 8): Promise<{name: string, count: nu
   } catch (error) {
     console.error('Error in getTopRegions:', error);
     return [];
+  }
+}
+
+// 사찰 찜 상태 확인
+export async function isTempleFollowed(userId: string, templeId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('user_follow_temples')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('temple_id', templeId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116: 결과가 없음
+      console.error('Error checking temple follow status:', error);
+      return false;
+    }
+    
+    return !!data; // data가 있으면 true, 없으면 false
+  } catch (error) {
+    console.error('Error in isTempleFollowed:', error);
+    return false;
+  }
+}
+
+// 사찰 찜하기/찜 해제 토글 함수
+export async function toggleTempleFollow(userId: string, templeId: string): Promise<boolean> {
+  try {
+    // 현재 찜 상태 확인
+    const isFollowed = await isTempleFollowed(userId, templeId);
+    
+    if (isFollowed) {
+      // 이미 찜한 경우 -> 찜 해제
+      const result = await unfollowTemple(userId, templeId);
+      return !result; // unfollowTemple이 성공하면 false 반환 (찜 해제됨)
+    } else {
+      // 찜하지 않은 경우 -> 찜하기
+      const result = await followTemple(userId, templeId);
+      return result; // followTemple이 성공하면 true 반환 (찜 추가됨)
+    }
+  } catch (error) {
+    console.error('Error in toggleTempleFollow:', error);
+    return false;
   }
 }

@@ -18,7 +18,19 @@ export async function getTempleStayLocations(): Promise<string[]> {
 // Fetch temple stays from Supabase
 export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Promise<TempleStay[]> {
   try {
-    let query = supabase.from('temple_stays').select('*');
+    // temple_stays와 temples 테이블을 조인하여 데이터 가져오기
+    let query = supabase
+      .from('temple_stays')
+      .select(`
+        *,
+        temples:temple_id (
+          id,
+          name,
+          region,
+          address,
+          image_url
+        )
+      `);
     
     if (sortBy === 'popular') {
       query = query.order('follower_count', { ascending: false });
@@ -40,21 +52,20 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
       templeName: item.temple_name,
       location: item.region,
       imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: item.price,
+      price: parseInt(item.cost_adult) || 50000,
       description: item.description,
-      schedule: item.schedule,
-      direction: item.address,
-      facilities: item.facilities ? JSON.parse(item.facilities) : [],
       likeCount: item.follower_count,
-      tags: item.tags ? JSON.parse(item.tags) : [],
-      duration: item.duration,
-      websiteUrl: item.website_url,
-      contact: {
-        phone: item.contact_phone,
-        email: item.contact_email
-      },
-      latitude: item.latitude,
-      longitude: item.longitude
+      direction: item.public_transportation,
+      temple: item.temples ? {
+        id: item.temples.id,
+        name: item.temples.name,
+        region: item.temples.region,
+        address: item.temples.address,
+        imageUrl: item.temples.image_url
+      } : null,
+      // 기존 필드들 유지
+      longitude: item.longitude,
+      latitude: item.latitude
     }));
     
     // If sort by distance, calculate distances and sort
@@ -148,10 +159,27 @@ export async function searchTempleStays(query: string): Promise<TempleStay[]> {
   if (!query) return [];
   
   try {
+    // 템플스테이 테이블과 사찰 테이블을 조인하여 검색
     const { data, error } = await supabase
       .from('temple_stays')
-      .select('*')
-      .or(`name.ilike.%${query}%,region.ilike.%${query}%,description.ilike.%${query}%`);
+      .select(`
+        *,
+        temples:temple_id (
+          id,
+          name,
+          region,
+          address,
+          image_url
+        )
+      `)
+      .or(`
+        name.ilike.%${query}%,
+        region.ilike.%${query}%,
+        description.ilike.%${query}%,
+        temples.name.ilike.%${query}%,
+        temples.region.ilike.%${query}%,
+        temples.address.ilike.%${query}%
+      `);
     
     if (error) {
       console.error('Error searching temple stays:', error);
@@ -165,7 +193,14 @@ export async function searchTempleStays(query: string): Promise<TempleStay[]> {
       imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
       price: parseInt(item.cost_adult) || 50000,
       likeCount: item.follower_count,
-      direction: item.public_transportation
+      direction: item.public_transportation,
+      temple: item.temples ? {
+        id: item.temples.id,
+        name: item.temples.name,
+        region: item.temples.region,
+        address: item.temples.address,
+        imageUrl: item.temples.image_url
+      } : null
     }));
   } catch (error) {
     console.error('Error in searchTempleStays:', error);

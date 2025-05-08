@@ -12,7 +12,9 @@ export {
     getUserFollowedTemples,
     getTopRegions,
     getTempleRegions,
-    getRegionTags
+    getRegionTags,
+    isTempleFollowed,
+    toggleTempleFollow
   } from './templeRepository';
   
   // 템플스테이 관련 함수
