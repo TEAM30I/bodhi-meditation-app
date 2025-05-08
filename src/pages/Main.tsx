@@ -14,7 +14,7 @@ import {
   getScriptureList
 } from '@/lib/repository';
 import { TempleStay, Temple, Scripture } from '@/types';
-
+import Footer from '@/components/Footer';
 
 const Main = () => {
   const navigate = useNavigate();
@@ -202,7 +202,7 @@ const handleNavigateToCalendar = () => navigate('/scripture/calendar');
           />
         </div>
       </div>
-
+      <Footer />
       <BottomNav />
     </div>
   );
