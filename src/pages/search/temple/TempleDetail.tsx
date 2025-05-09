@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Share, MapPin, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Heart, Share, MapPin, ChevronRight, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Toaster, toast } from 'sonner';
 import { getTempleDetail, isTempleFollowed, toggleTempleFollow } from '@/lib/repository';
 import { Temple } from '@/types';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 
 const TempleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,9 +28,9 @@ const TempleDetail: React.FC = () => {
       
       try {
         setLoading(true);
-        console.log('Loading temple detail for ID:', id); // 디버깅용 로그 추가
+        console.log('Loading temple detail for ID:', id);
         const data = await getTempleDetail(id);
-        console.log('Temple detail data:', data); // 디버깅용 로그 추가
+        console.log('Temple detail data:', data);
         
         if (data) {
           // DB 필드명과 프론트엔드 필드명 매핑
@@ -41,10 +41,12 @@ const TempleDetail: React.FC = () => {
           
           // 사용자가 로그인한 경우 찜 상태 확인
           if (user) {
-            console.log('Checking if temple is followed by user:', user.id); // 디버깅용 로그 추가
-            const followed = await isTempleFollowed(user.id, id);
-            console.log('Temple followed status:', followed); // 디버깅용 로그 추가
-            setIsFavorite(followed);
+            try {
+              const isFollowed = await isTempleFollowed(user.id, id);
+              setIsFavorite(isFollowed);
+            } catch (error) {
+              console.error('Error checking follow status:', error);
+            }
           }
         } else {
           setError('사찰 정보를 찾을 수 없습니다.');
@@ -56,33 +58,38 @@ const TempleDetail: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     loadTempleDetail();
   }, [id, user]);
 
-  // 찜하기/찜 해제 토글
+  // 찜하기 토글 핸들러
   const handleToggleFavorite = async () => {
     if (!user) {
       toast.error('로그인이 필요한 기능입니다.');
       return;
     }
-    
-    if (!temple || !id) return;
-    
+
+    if (!id) {
+      toast.error('사찰 정보가 올바르지 않습니다.');
+      return;
+    }
+
     try {
+      console.log('Toggling favorite for user:', user.id, 'temple:', id);
       const result = await toggleTempleFollow(user.id, id);
+      console.log('Toggle result:', result);
       setIsFavorite(result);
       
-      // 좋아요 카운트 업데이트
+      // 찜 카운트 업데이트
       setTemple(prev => {
         if (!prev) return null;
         return {
           ...prev,
-          likeCount: (prev.likeCount || 0) + (result ? 1 : -1)
+          follower_count: (prev.follower_count || 0) + (result ? 1 : -1)
         };
       });
       
-      toast.success(`${temple.name}을(를) ${result ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
+      toast.success(`${temple?.name}을(를) ${result ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
     } catch (error) {
       console.error('Error toggling favorite:', error);
       toast.error('찜하기 처리 중 오류가 발생했습니다.');
@@ -114,18 +121,19 @@ const TempleDetail: React.FC = () => {
       <Toaster position="bottom-center" />
       
       {/* Header with navigation */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-transparent flex justify-between items-center p-4">
-        <button onClick={() => navigate(-1)} className="bg-white/80 backdrop-blur-sm p-2 rounded-full">
+      <div className="fixed top-0 left-0 right-0 z-20 bg-transparent flex justify-between items-center p-4 max-w-[480px] mx-auto">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:bg-white/90 transition-colors"
+        >
           <ArrowLeft className="h-5 w-5 text-black" />
         </button>
-        <div className="flex gap-2">
-          <button onClick={handleToggleFavorite} className="bg-white/80 backdrop-blur-sm p-2 rounded-full">
-            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-[#DE7834] stroke-[#DE7834]' : 'stroke-black'}`} />
-          </button>
-          <button className="bg-white/80 backdrop-blur-sm p-2 rounded-full">
-            <Share className="h-5 w-5 text-black" />
-          </button>
-        </div>
+        <button 
+          onClick={() => navigate('/')} 
+          className="bg-white/80 backdrop-blur-sm p-2.5 rounded-full shadow-sm hover:bg-white/90 transition-colors"
+        >
+          <Home className="h-5 w-5 text-black" />
+        </button>
       </div>
 
       {/* Temple images */}
@@ -181,10 +189,11 @@ const TempleDetail: React.FC = () => {
         <div className="max-w-[480px] mx-auto flex items-center justify-center">
           <Button
             onClick={handleToggleFavorite}
-            className="w-full h-12 rounded-xl flex items-center justify-center gap-2 bg-[#1A1A1A] hover:bg-[#333333] text-white"
+            className="w-full h-12 rounded-xl flex items-center justify-center gap-2 bg-[#DE7834] hover:bg-[#C26A2D] text-white"
           >
-            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-[#DE7834] stroke-[#DE7834]' : 'stroke-white'}`} />
+            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-white stroke-white' : 'stroke-white'}`} />
             <span>{isFavorite ? '찜 해제하기' : '찜하기'}</span>
+            <span className="ml-1">({temple?.follower_count || 0})</span>
           </Button>
         </div>
       </div>

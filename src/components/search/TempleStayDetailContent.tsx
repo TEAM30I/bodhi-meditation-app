@@ -10,45 +10,22 @@ import { isTempleStayFollowed } from '@/lib/repository';
 interface TempleStayDetailContentProps {
   templeStay: TempleStay;
   onGoToReservation: () => void;
+  isLiked?: boolean;
+  onLikeToggle?: () => void;
 }
 
 const TempleStayDetailContent: React.FC<TempleStayDetailContentProps> = ({ 
   templeStay,
-  onGoToReservation
+  onGoToReservation,
+  isLiked = false,
+  onLikeToggle
 }) => {
-  const [isWishlist, setIsWishlist] = useState(false);
   const { user } = useAuth();
 
-  // 좋아요 상태 확인
-  useEffect(() => {
-    const checkLikeStatus = async () => {
-      if (user && templeStay) {
-        try {
-          const status = await isTempleStayFollowed(user.id, templeStay.id);
-          setIsWishlist(status);
-        } catch (error) {
-          console.error('Error checking like status:', error);
-        }
-      }
-    };
-    
-    checkLikeStatus();
-  }, [user, templeStay]);
-
-  const handleToggleWishlist = async () => {
-    if (!user) {
-      toast.error('로그인이 필요한 기능입니다.');
-      return;
-    }
-    
-    try {
-      const newStatus = await isTempleStayFollowed(user.id, templeStay.id);
-      setIsWishlist(newStatus);
-      
-      toast.success(newStatus ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.');
-    } catch (error) {
-      console.error('Error toggling like:', error);
-      toast.error('처리 중 오류가 발생했습니다.');
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onLikeToggle) {
+      onLikeToggle();
     }
   };
 
@@ -152,19 +129,17 @@ const TempleStayDetailContent: React.FC<TempleStayDetailContentProps> = ({
       {/* 하단 고정 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 flex items-center justify-between max-w-[480px] mx-auto">
         <Button
-          onClick={handleToggleWishlist}
-          className="w-12 h-12 rounded-full bg-white border border-gray-200 hover:bg-gray-100 flex items-center justify-center shadow-sm"
-          variant="outline"
+          onClick={handleLikeClick}
+          className="w-1/4 h-12 rounded-xl bg-[#DE7834] hover:bg-[#C26A2D] text-white flex flex-col items-center justify-center"
         >
           <Heart 
-            className={`w-6 h-6 transition-colors ${
-              isWishlist ? 'fill-[#DE7834] stroke-[#DE7834]' : 'stroke-gray-600'
-            }`} 
+            className={`w-5 h-5 ${isLiked ? 'fill-white stroke-white' : 'stroke-white'}`} 
           />
+          <span className="text-xs mt-1">{templeStay.likeCount || 0}</span>
         </Button>
         <Button
           onClick={onGoToReservation}
-          className="flex-1 ml-3 bg-[#1A1A1A] hover:bg-[#333333] text-white h-12 rounded-xl font-medium shadow-sm"
+          className="w-3/4 ml-3 bg-[#DE7834] hover:bg-[#C26A2D] text-white h-12 rounded-xl font-medium"
         >
           예약하러 가기
         </Button>

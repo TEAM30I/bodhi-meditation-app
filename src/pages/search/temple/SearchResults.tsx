@@ -181,11 +181,6 @@ const SearchResults: React.FC = () => {
               <TabsTrigger value="distance">거리순</TabsTrigger>
             </TabsList>
           </Tabs>
-          
-          <Button variant="outline" size="sm" className="ml-2 flex-shrink-0">
-            <Filter size={16} className="mr-1" />
-            필터
-          </Button>
         </div>
         
         {/* 검색 결과 */}
@@ -201,11 +196,12 @@ const SearchResults: React.FC = () => {
                   key={temple.id}
                   temple={{
                     ...temple,
-                    likeCount: temple.follower_count || 0
+                    follower_count: temple.follower_count || temple.likeCount || 0
                   }}
                   onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
                   isLiked={likedTemples[temple.id] || false}
                   onLikeToggle={() => handleLikeToggle(temple.id)}
+                  showLikeCount={true}
                 />
               ))
             ) : (

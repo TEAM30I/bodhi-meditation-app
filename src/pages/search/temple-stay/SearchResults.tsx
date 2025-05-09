@@ -182,11 +182,6 @@ const SearchResults: React.FC = () => {
               <TabsTrigger value="price_high">가격높은순</TabsTrigger>
             </TabsList>
           </Tabs>
-          
-          <Button variant="outline" size="sm" className="ml-2 flex-shrink-0">
-            <Filter size={16} className="mr-1" />
-            필터
-          </Button>
         </div>
         
         {/* 검색 결과 */}

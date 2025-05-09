@@ -200,8 +200,7 @@ const FindTempleStay = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h4 className="font-medium text-sm mb-1 line-clamp-1">{templestay.templeName}</h4>
-                      <p className="text-xs text-gray-500">{templestay.location}</p>
-                      <p className="text-sm font-semibold mt-1">{templestay.price.toLocaleString()}원</p>
+                      <p className="text-xs text-gray-500">{templestay.temple?.name || templestay.templeName}</p>
                     </div>
                     <div className="flex flex-col items-center">
                       <Heart 

@@ -7,9 +7,10 @@ interface TempleItemProps {
   onClick?: () => void;
   isLiked?: boolean;
   onLikeToggle?: () => void;
+  showLikeCount?: boolean;
 }
 
-const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
+const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick, isLiked, onLikeToggle, showLikeCount = true }) => {
   return (
     <div 
       className="bg-white rounded-xl overflow-hidden cursor-pointer mb-4"
@@ -30,8 +31,19 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
               <h3 className="font-bold text-lg">{temple.name}</h3>
             </div>
             <div className="flex space-x-2">
-              <button className="p-1">
-                <Heart className={`w-5 h-5 ${temple.likeCount && temple.likeCount > 0 ? 'fill-[#DE7834] text-[#DE7834]' : 'text-gray-500'}`} />
+              <button 
+                className="p-1 flex flex-col items-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onLikeToggle) onLikeToggle();
+                }}
+              >
+                <Heart 
+                  className={`w-5 h-5 ${isLiked ? 'fill-[#ff7730] stroke-[#ff7730]' : 'stroke-gray-600'}`} 
+                />
+                {showLikeCount && (
+                  <span className="text-xs mt-1">{temple.follower_count || temple.likeCount || 0}</span>
+                )}
               </button>
               <button className="p-1">
                 <Share className="w-5 h-5 text-gray-500" />
@@ -52,6 +64,13 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
             </div>
           )}
         </div>
+      </div>
+      
+      <div className="flex items-center justify-between p-3">
+        <div className="flex-1">
+          {/* ... existing code ... */}
+        </div>
+        
       </div>
     </div>
   );

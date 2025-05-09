@@ -35,6 +35,16 @@ const TempleStayDetail: React.FC = () => {
         if (data) {
           setTempleStay(data);
           console.log('Loaded temple stay:', data);
+          
+          // 사용자가 로그인한 경우 찜 상태 확인
+          if (user && id) {
+            try {
+              const status = await isTempleStayFollowed(user.id, id);
+              setIsLiked(status);
+            } catch (error) {
+              console.error('Error checking like status:', error);
+            }
+          }
         } else {
           toast.error('템플스테이 정보를 찾을 수 없습니다.');
           navigate('/search/temple-stay');
@@ -48,35 +58,17 @@ const TempleStayDetail: React.FC = () => {
     };
     
     fetchTempleStay();
-  }, [id, navigate]);
-
-  // 좋아요 상태 확인
-  useEffect(() => {
-    const checkLikeStatus = async () => {
-      if (user && templeStay) {
-        try {
-          const status = await isTempleStayFollowed(user.id, templeStay.id);
-          setIsLiked(status);
-        } catch (error) {
-          console.error('Error checking like status:', error);
-        }
-      }
-    };
-    
-    checkLikeStatus();
-  }, [user, templeStay]);
+  }, [id, navigate, user]);
 
   // 좋아요 토글 핸들러
-  const handleLikeToggle = async () => {
+  const handleToggleLike = async () => {
     if (!user) {
       toast.error('로그인이 필요한 기능입니다.');
       return;
     }
-    
-    if (!templeStay) return;
-    
+
     try {
-      const newStatus = await toggleTempleStayFollow(user.id, templeStay.id);
+      const newStatus = await toggleTempleStayFollow(user.id, id!);
       setIsLiked(newStatus);
       
       // 좋아요 카운트 업데이트
@@ -145,19 +137,6 @@ const TempleStayDetail: React.FC = () => {
           {/* Title and actions */}
           <div className="flex justify-between items-start mb-4">
             <h1 className="text-2xl font-bold text-gray-900">{templeStay.templeName}</h1>
-            <div className="flex space-x-2">
-              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <Share className="w-5 h-5 text-gray-600" />
-              </button>
-              <button 
-                onClick={handleLikeToggle}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <Heart 
-                  className={`w-5 h-5 ${isLiked ? 'fill-[#ff7730] stroke-[#ff7730]' : 'stroke-gray-600'}`} 
-                />
-              </button>
-            </div>
           </div>
           
           {/* Location */}
@@ -166,13 +145,6 @@ const TempleStayDetail: React.FC = () => {
             <span className="leading-relaxed">{templeStay.location} • {templeStay.direction || '도보 10분'}</span>
           </div>
           
-          {/* Website
-          {templeStay.websiteUrl && (
-            <div className="text-gray-500 text-sm mb-4 break-words">
-              {templeStay.websiteUrl}
-            </div>
-          )} */}
-          
           {/* Divider */}
           <div className="border-b border-gray-200 my-5"></div>
           
@@ -180,6 +152,8 @@ const TempleStayDetail: React.FC = () => {
           <TempleStayDetailContent 
             templeStay={templeStay} 
             onGoToReservation={handleReservation}
+            isLiked={isLiked}
+            onLikeToggle={handleToggleLike}
           />
         </div>
       </div>

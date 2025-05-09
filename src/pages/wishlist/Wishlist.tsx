@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useAuth } from '@/context/AuthContext';
@@ -10,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Temple } from '@/types/temple';
 import { TempleStay } from '@/types/templeStay';
 import { getUserFollowedTemples, getUserFollowedTempleStays } from '@/lib/repository';
+import { toast } from 'sonner';
+import { toggleTempleFollow } from '@/lib/repository';
 
 const Wishlist = () => {
   const { user } = useAuth();
@@ -46,6 +47,20 @@ const Wishlist = () => {
     fetchWishlist();
   }, [user]);
 
+  const handleTempleUnfollow = async (templeId: string) => {
+    if (!user) return;
+    
+    try {
+      await toggleTempleFollow(user.id, templeId);
+      // 찜 목록에서 제거
+      setTemples(prev => prev.filter(temple => temple.id !== templeId));
+      toast.success('찜 목록에서 제거되었습니다.');
+    } catch (error) {
+      console.error('Error unfollowing temple:', error);
+      toast.error('처리 중 오류가 발생했습니다.');
+    }
+  };
+
   return (
     <PageLayout title="찜 목록">
       <div className="p-4">
@@ -65,8 +80,14 @@ const Wishlist = () => {
                 {temples.map(temple => (
                   <TempleItem
                     key={temple.id}
-                    temple={temple}
+                    temple={{
+                      ...temple,
+                      follower_count: temple.follower_count || temple.likeCount || 0
+                    }}
                     onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
+                    isLiked={true}
+                    onLikeToggle={() => handleTempleUnfollow(temple.id)}
+                    showLikeCount={true}
                   />
                 ))}
               </div>
@@ -87,6 +108,8 @@ const Wishlist = () => {
                     key={templeStay.id}
                     templeStay={templeStay}
                     onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
+                    isLiked={true}
+                    onLikeToggle={(e) => handleTempleStayUnfollow(e, templeStay.id)}
                   />
                 ))}
               </div>
