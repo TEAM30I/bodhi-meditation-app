@@ -1,4 +1,3 @@
-
 // Utility functions for location-based features
 import { DEFAULT_LOCATION } from '@/constants';
 
@@ -30,30 +29,63 @@ export function formatDistance(distance: number): string {
 
 // Get current location of the user
 export async function getCurrentLocation(): Promise<{latitude: number, longitude: number}> {
-  try {
-    if (navigator.geolocation) {
-      return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            resolve({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude
-            });
-          },
-          (error) => {
-            console.error('Error getting current location:', error);
-            // Fallback to default location
-            resolve(DEFAULT_LOCATION);
-          },
-          { timeout: 10000, maximumAge: 60000 }
-        );
-      });
-    } else {
-      console.warn('Geolocation is not supported by this browser.');
-      return DEFAULT_LOCATION;
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      console.log('Geolocation이 지원되지 않는 브라우저입니다');
+      resolve(DEFAULT_LOCATION); // 기본 위치 반환
     }
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        });
+      },
+      (error) => {
+        console.error('위치 정보를 가져오는데 실패했습니다:', error);
+        resolve(DEFAULT_LOCATION); // 오류 시 기본 위치 반환
+      }
+    );
+  });
+}
+
+// 사용자 위치 기반으로 아이템 정렬하는 함수
+export async function sortByDistance<T extends { latitude?: number, longitude?: number }>(
+  items: T[],
+  userLocation?: { latitude: number, longitude: number }
+): Promise<(T & { distance: string, distanceValue: number })[]> {
+  try {
+    // 사용자 위치가 제공되지 않은 경우 현재 위치 가져오기
+    const location = userLocation || await getCurrentLocation();
+    
+    // 위도와 경도가 있는 아이템만 필터링
+    const validItems = items.filter(item => item.latitude && item.longitude);
+    
+    // 각 아이템에 거리 정보 추가
+    const itemsWithDistance = validItems.map(item => {
+      const distance = calculateDistance(
+        location.latitude,
+        location.longitude,
+        item.latitude!,
+        item.longitude!
+      );
+      
+      return {
+        ...item,
+        distance: formatDistance(distance),
+        distanceValue: distance // 정렬용 숫자 값
+      };
+    });
+    
+    // 거리순으로 정렬
+    return itemsWithDistance.sort((a, b) => a.distanceValue - b.distanceValue);
   } catch (error) {
-    console.error('Error in getCurrentLocation:', error);
-    return DEFAULT_LOCATION;
+    console.error('위치 기반 정렬 중 오류 발생:', error);
+    return items.map(item => ({
+      ...item,
+      distance: '알 수 없음',
+      distanceValue: Infinity
+    }));
   }
 }

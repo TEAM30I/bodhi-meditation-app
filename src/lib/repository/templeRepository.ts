@@ -1,6 +1,6 @@
 // src/lib/repository/templeRepository.ts
 import { supabase } from '@/lib/supabase';
-import { calculateDistance, formatDistance } from '@/utils/locationUtils';
+import { calculateDistance, formatDistance, sortByDistance } from '@/utils/locationUtils';
 import { Temple, TempleSort, RegionTag } from '@/types';
 import { DEFAULT_LOCATION } from '@/constants';
 import { DEFAULT_IMAGES } from '@/constants';
@@ -186,23 +186,18 @@ export async function searchTemples(query: string = '', sortBy: TempleSort = 'po
     if (sortBy === 'popular') {
       sortedData.sort((a, b) => (b.follower_count || 0) - (a.follower_count || 0));
     } 
-    else if (sortBy === 'distance' && sortedData.some(temple => temple.latitude && temple.longitude)) {
-      sortedData = sortedData
-        .filter(temple => temple.latitude && temple.longitude)
-        .map(temple => {
-          const distance = calculateDistance(
-            DEFAULT_LOCATION.latitude,
-            DEFAULT_LOCATION.longitude,
-            temple.latitude!,
-            temple.longitude!
-          );
-          return { ...temple, distance: formatDistance(distance) };
-        })
-        .sort((a, b) => {
-          const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');
-          const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
-          return distA - distB;
-        });
+    else if (sortBy === 'distance') {
+      // 위치 기반 정렬 로직 개선
+      const templesWithLocation = sortedData.filter(temple => temple.latitude && temple.longitude);
+      
+      if (templesWithLocation.length > 0) {
+        // 새로운 sortByDistance 함수 사용
+        const sortedTemples = await sortByDistance(templesWithLocation);
+        
+        // 위치 정보가 없는 사찰은 뒤에 추가
+        const templesWithoutLocation = sortedData.filter(temple => !temple.latitude || !temple.longitude);
+        sortedData = [...sortedTemples, ...templesWithoutLocation];
+      }
     }
     
     return sortedData.map(item => ({

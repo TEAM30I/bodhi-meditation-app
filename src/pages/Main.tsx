@@ -88,8 +88,8 @@ const Main = () => {
     );
   }
 
-  const recommendedTemples = temples.slice(0, 4);
-  const recommendedTempleStays = templeStays.slice(0, 4);
+  const recommendedTemples = temples.slice(0, 8);
+  const recommendedTempleStays = templeStays.slice(0, 8);
   const typedReadingSchedule = typedData<typeof getReadingSchedule>(getReadingSchedule);
   const typedScriptures = typedData<typeof scriptures>(scriptures);
   const handleNavigateToCalendar = () => navigate('/scripture/calendar');
@@ -147,7 +147,7 @@ const Main = () => {
             {recommendedTemples.map((temple) => (
               <div
                 key={temple.id}
-                className="min-w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer relative"
+                className="min-w-[100px] w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer relative"
                 onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
               >
                 <img 
@@ -176,7 +176,7 @@ const Main = () => {
             {recommendedTempleStays.map((templeStay) => (
               <div
                 key={templeStay.id}
-                className="min-w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer relative"
+                className="min-w-[100px] w-[100px] h-[100px] flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 cursor-pointer relative"
                 onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
               >
                 <img 

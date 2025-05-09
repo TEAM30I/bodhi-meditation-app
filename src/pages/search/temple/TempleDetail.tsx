@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Share, MapPin, ChevronRight, Home } from 'lucide-react';
+import { ArrowLeft, Heart, Share, MapPin, ChevronRight, Home, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Toaster, toast } from 'sonner';
 import { getTempleDetail, isTempleFollowed, toggleTempleFollow } from '@/lib/repository';
+import {getCurrentLocation,calculateDistance, formatDistance} from '@/utils/locationUtils'
 import { Temple } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
@@ -37,6 +38,23 @@ const TempleDetail: React.FC = () => {
           if (data.image_url && !data.imageUrl) {
             data.imageUrl = data.image_url;
           }
+          
+          // 위치 정보가 있는 경우 현재 위치와의 거리 계산
+          if (data.latitude && data.longitude) {
+            try {
+              const userLocation = await getCurrentLocation();
+              const distance = calculateDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                data.latitude,
+                data.longitude
+              );
+              data.distance = formatDistance(distance);
+            } catch (error) {
+              console.error('Error calculating distance:', error);
+            }
+          }
+          
           setTemple(data);
           
           // 사용자가 로그인한 경우 찜 상태 확인
@@ -152,6 +170,14 @@ const TempleDetail: React.FC = () => {
           <MapPin className="h-4 w-4 mr-1" />
           <span className="text-sm">{temple.address}</span>
         </div>
+        
+        {/* 거리 정보가 있는 경우 표시 */}
+        {temple.distance && (
+          <div className="flex items-center mt-2 text-gray-600">
+            <Navigation className="h-4 w-4 mr-1" />
+            <span className="text-sm">현재 위치에서 {temple.distance}</span>
+          </div>
+        )}
         
         <div className="mt-6 space-y-6">
           {/* Description */}

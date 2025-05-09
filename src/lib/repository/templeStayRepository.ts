@@ -214,24 +214,29 @@ export async function searchTempleStays(query: string = '', sortBy: TempleStaySo
         });
         break;
       case 'distance':
-        if (sortedData.some(item => item.temples?.latitude && item.temples?.longitude)) {
-          sortedData = sortedData
-            .filter(item => item.temples?.latitude && item.temples?.longitude)
-            .map(item => {
-              const distance = calculateDistance(
-                DEFAULT_LOCATION.latitude,
-                DEFAULT_LOCATION.longitude,
-                item.temples!.latitude!,
-                item.temples!.longitude!
-              );
-              return { ...item, distance: formatDistance(distance) };
-            })
-            .sort((a, b) => {
-              const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');
-              const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
-              return distA - distB;
-            });
-        }
+        // 모든 데이터에 대해 거리 계산
+        sortedData = sortedData.map(item => {
+          if (item.temples?.latitude && item.temples?.longitude) {
+            const distance = calculateDistance(
+              DEFAULT_LOCATION.latitude,
+              DEFAULT_LOCATION.longitude,
+              item.temples.latitude,
+              item.temples.longitude
+            );
+            return { ...item, distance: formatDistance(distance) };
+          }
+          return { ...item, distance: '거리 정보 없음' };
+        });
+
+        // 거리 정보가 있는 항목을 앞으로 정렬
+        sortedData.sort((a, b) => {
+          if (!a.distance || a.distance === '거리 정보 없음') return 1;
+          if (!b.distance || b.distance === '거리 정보 없음') return -1;
+          
+          const distA = parseFloat(a.distance.replace('km', '').replace('m', '')) || 0;
+          const distB = parseFloat(b.distance.replace('km', '').replace('m', '')) || 0;
+          return distA - distB;
+        });
         break;
       case 'popular':
       default:

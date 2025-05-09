@@ -10,6 +10,7 @@ import PageLayout from '@/components/PageLayout';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { toggleTempleFollow } from '@/lib/repository';
+import { getCurrentLocation, calculateDistance, formatDistance } from '@/utils/locationUtils';
 
 const SearchResults: React.FC = () => {
   const location = useLocation();
@@ -47,12 +48,39 @@ const SearchResults: React.FC = () => {
     }
   }, [query]);
   
-  // 사찰 데이터 로드
+  // 템플 데이터 로드
   useEffect(() => {
     const loadTemples = async () => {
       setLoading(true);
       try {
         const data = await searchTemples(query, sortByParam);
+        
+        // 거리 정보 표시를 위한 처리
+        if (sortByParam === 'distance') {
+          // 거리 정보가 이미 repository에서 계산되어 있으므로 추가 처리 필요 없음
+          // 단, 거리 표시를 위한 UI 업데이트는 필요할 수 있음
+        } else if (data.length > 0) {
+          // 거리순 정렬이 아니더라도 위치 정보가 있는 경우 거리 계산
+          try {
+            const userLocation = await getCurrentLocation();
+            
+            // 각 사찰에 거리 정보 추가
+            for (const temple of data) {
+              if (temple.latitude && temple.longitude) {
+                const distance = calculateDistance(
+                  userLocation.latitude,
+                  userLocation.longitude,
+                  temple.latitude,
+                  temple.longitude
+                );
+                temple.distance = formatDistance(distance);
+              }
+            }
+          } catch (error) {
+            console.error('Error calculating distances:', error);
+          }
+        }
+        
         setTemples(data);
         
         // 사용자가 로그인한 경우 좋아요 상태 확인
@@ -202,6 +230,7 @@ const SearchResults: React.FC = () => {
                   isLiked={likedTemples[temple.id] || false}
                   onLikeToggle={() => handleLikeToggle(temple.id)}
                   showLikeCount={true}
+                  distance={temple.distance}
                 />
               ))
             ) : (

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Share, MapPin, Home } from 'lucide-react';
+import { ArrowLeft, Heart, Share, MapPin, Home, Navigation } from 'lucide-react';
 import { getTempleStayDetail } from '@/lib/repository';
 import { TempleStay } from '@/types';
 import { toast, Toaster } from 'sonner';
 import TempleStayDetailContent from '@/components/search/TempleStayDetailContent';
 import { useAuth } from '@/context/AuthContext';
 import { isTempleStayFollowed, toggleTempleStayFollow } from '@/lib/repository';
+import { getCurrentLocation, calculateDistance, formatDistance } from '@/utils/locationUtils';
 
 const TempleStayDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +34,22 @@ const TempleStayDetail: React.FC = () => {
         setLoading(true);
         const data = await getTempleStayDetail(id);
         if (data) {
+          // 위치 정보가 있는 경우 현재 위치와의 거리 계산
+          if (data.temple?.latitude && data.temple?.longitude) {
+            try {
+              const userLocation = await getCurrentLocation();
+              const distance = calculateDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                data.temple.latitude,
+                data.temple.longitude
+              );
+              data.distance = formatDistance(distance);
+            } catch (error) {
+              console.error('Error calculating distance:', error);
+            }
+          }
+          
           setTempleStay(data);
           console.log('Loaded temple stay:', data);
           
@@ -154,6 +171,14 @@ const TempleStayDetail: React.FC = () => {
               <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
               <span className="leading-relaxed">{templeStay.temple?.address || templeStay.location}</span>
             </div>
+            
+            {/* 거리 정보가 있는 경우 표시 */}
+            {templeStay.distance && (
+              <div className="flex items-center">
+                <Navigation className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="leading-relaxed">현재 위치에서 {templeStay.distance}</span>
+              </div>
+            )}
             
             {/* Direction as "오시는 길" section without icon */}
             {templeStay.direction && (

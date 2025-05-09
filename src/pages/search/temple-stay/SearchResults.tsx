@@ -10,6 +10,7 @@ import PageLayout from '@/components/PageLayout';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { isTempleStayFollowed, toggleTempleStayFollow } from '@/lib/repository';
+import { getCurrentLocation, calculateDistance, formatDistance  } from '@/utils/locationUtils';
 
 const SearchResults: React.FC = () => {
   const location = useLocation();
@@ -56,12 +57,34 @@ const SearchResults: React.FC = () => {
       setLoading(true);
       try {
         const data = await searchTempleStays(query, sortByParam);
-        setTempleStays(data);
+        
+        // 위치 정보가 있는 경우 현재 위치와의 거리 계산
+        const templeStaysWithDistance = await Promise.all(
+          data.map(async (ts) => {
+            if (ts.temple?.latitude && ts.temple?.longitude) {
+              try {
+                const userLocation = await getCurrentLocation();
+                const distance = calculateDistance(
+                  userLocation.latitude,
+                  userLocation.longitude,
+                  ts.temple.latitude,
+                  ts.temple.longitude
+                );
+                return { ...ts, distance: formatDistance(distance) };
+              } catch (error) {
+                console.error('Error calculating distance:', error);
+              }
+            }
+            return ts;
+          })
+        );
+        
+        setTempleStays(templeStaysWithDistance);
         
         // 사용자가 로그인한 경우 좋아요 상태 확인
         if (user) {
           const likedStatus: Record<string, boolean> = {};
-          for (const templeStay of data) {
+          for (const templeStay of templeStaysWithDistance) {
             likedStatus[templeStay.id] = await isTempleStayFollowed(user.id, templeStay.id);
           }
           setLikedTempleStays(likedStatus);
@@ -197,12 +220,15 @@ const SearchResults: React.FC = () => {
                   key={ts.id}
                   templeStay={{
                     ...ts,
-                    // 템플스테이 정보가 완전하게 표시되도록 보장
                     templeName: (ts as any).temple_name || (ts as any).name || ts.templeName,
                     location: ts.temple?.address || ts.location || '주소 정보 없음',
                     price: typeof ts.price === 'number' ? ts.price : 
                            (typeof ts.price === 'string' ? parseInt((ts.price as string).replace(/[^\d]/g, '') || '0') : 0),
-                    likeCount: ts.likeCount || 0
+                    likeCount: ts.likeCount || 0,
+                    distance: ts.distance || '거리 정보 없음',
+                    temple: ts.temple,
+                    direction: ts.direction,
+                    websiteUrl: ts.websiteUrl
                   }}
                   onClick={() => navigate(`/search/temple-stay/detail/${ts.id}`)}
                   isLiked={likedTempleStays[ts.id] || false}
