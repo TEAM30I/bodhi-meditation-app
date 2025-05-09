@@ -1,6 +1,7 @@
 import React from 'react';
-import { MapPin, Heart, Share, Home } from 'lucide-react';
+import { MapPin, Heart, Home } from 'lucide-react';
 import { TempleStay } from '@/types';
+import { toast } from 'sonner';
 
 interface TempleStayItemProps {
   templeStay: TempleStay;
@@ -50,19 +51,14 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({
               <h3 className="font-bold text-lg">{templeStay.templeName}</h3>
             </div>
             <div className="flex space-x-2">
-              <button className="p-1" onClick={handleLikeClick}>
-                <div className="flex flex-col items-center">
-                  <Heart 
-                    className={`w-5 h-5 ${isLiked ? 'fill-[#DE7834] text-[#DE7834]' : 'text-gray-500'}`} 
-                  />
-                  {/* 좋아요 수 표시 */}
-                  <span className="text-xs text-gray-500 mt-1">
-                    {templeStay.likeCount || 0}
-                  </span>
-                </div>
-              </button>
-              <button className="p-1">
-                <Share className="w-5 h-5 text-gray-500" />
+              <button 
+                className="p-1 flex flex-col items-center"
+                onClick={handleLikeClick}
+              >
+                <Heart 
+                  className={`w-5 h-5 ${isLiked ? 'fill-[#ff7730] stroke-[#ff7730]' : 'stroke-gray-600'}`} 
+                />
+                <span className="text-xs mt-1">{templeStay.likeCount || 0}</span>
               </button>
             </div>
           </div>

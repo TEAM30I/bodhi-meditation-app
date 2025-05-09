@@ -9,7 +9,18 @@ export async function getTempleStayDetail(id: string): Promise<TempleStay | null
   try {
     const { data, error } = await supabase
       .from('temple_stays')
-      .select('*')
+      .select(`
+        *,
+        temples:temple_id (
+          id,
+          name,
+          region,
+          address,
+          image_url,
+          latitude,
+          longitude
+        )
+      `)
       .eq('id', id)
       .single();
     
@@ -53,7 +64,17 @@ export async function getTempleStayDetail(id: string): Promise<TempleStay | null
       websiteUrl: data.reservation_link,
       contact: {
         phone: data.contact
-      }
+      },
+      // 사찰 정보 추가
+      temple: data.temples ? {
+        id: data.temples.id,
+        name: data.temples.name,
+        region: data.temples.region,
+        address: data.temples.address,
+        imageUrl: data.temples.image_url,
+        latitude: data.temples.latitude,
+        longitude: data.temples.longitude
+      } : undefined
     };
     
     return templeStay;
@@ -315,7 +336,21 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
   try {
     const { data, error } = await supabase
       .from('user_follow_temple_stays')
-      .select('temple_stay_id, temple_stays(*)')
+      .select(`
+        temple_stay_id, 
+        temple_stays(
+          *,
+          temples:temple_id (
+            id,
+            name,
+            region,
+            address,
+            image_url,
+            latitude,
+            longitude
+          )
+        )
+      `)
       .eq('user_id', userId);
     
     if (error) {
@@ -336,12 +371,23 @@ export async function getUserFollowedTempleStays(userId: string): Promise<Temple
         
         return {
           id: templeStay.id,
-          templeName: templeStay.name,
-          location: templeStay.region,
+          templeName: templeStay.name || templeStay.temple_name || '',
+          name: templeStay.name || templeStay.temple_name || '',
+          location: templeStay.location || templeStay.region || '',
           imageUrl: templeStay.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
           price: parseInt(templeStay.cost_adult?.replace(/,/g, '')) || 50000,
-          likeCount: templeStay.follower_count,
-          direction: templeStay.public_transportation
+          likeCount: templeStay.follower_count || 0,
+          direction: templeStay.public_transportation || '',
+          // 사찰 정보 추가
+          temple: templeStay.temples ? {
+            id: templeStay.temples.id,
+            name: templeStay.temples.name,
+            region: templeStay.temples.region,
+            address: templeStay.temples.address,
+            imageUrl: templeStay.temples.image_url,
+            latitude: templeStay.temples.latitude,
+            longitude: templeStay.temples.longitude
+          } : undefined
         };
       });
       

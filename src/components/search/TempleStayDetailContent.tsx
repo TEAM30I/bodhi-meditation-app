@@ -107,25 +107,6 @@ const TempleStayDetailContent: React.FC<TempleStayDetailContentProps> = ({
         </div>
       </section>
 
-      {/* 유의사항 */}
-      <section className="pb-32">
-        <h2 className="text-xl font-bold mb-3">유의사항</h2>
-        <ul className="space-y-2 text-gray-700">
-          <li className="flex items-start">
-            <span className="mr-2">•</span>
-            <span>프로그램 시작 10분 전에 도착해주세요.</span>
-          </li>
-          <li className="flex items-start">
-            <span className="mr-2">•</span>
-            <span>편안한 복장으로 참여해주세요.</span>
-          </li>
-          <li className="flex items-start">
-            <span className="mr-2">•</span>
-            <span>귀중품은 별도로 보관해주세요.</span>
-          </li>
-        </ul>
-      </section>
-
       {/* 하단 고정 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 flex items-center justify-between max-w-[480px] mx-auto">
         <Button

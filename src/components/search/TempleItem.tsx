@@ -1,6 +1,7 @@
 import React from 'react';
-import { MapPin, Heart, Share } from 'lucide-react';
+import { MapPin, Heart } from 'lucide-react';
 import { Temple } from '@/types';
+import { toast } from 'sonner';
 
 interface TempleItemProps {
   temple: Temple;
@@ -11,6 +12,13 @@ interface TempleItemProps {
 }
 
 const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick, isLiked, onLikeToggle, showLikeCount = true }) => {
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onLikeToggle) {
+      onLikeToggle();
+    }
+  };
+
   return (
     <div 
       className="bg-white rounded-xl overflow-hidden cursor-pointer mb-4"
@@ -33,10 +41,7 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick, isLiked, onLik
             <div className="flex space-x-2">
               <button 
                 className="p-1 flex flex-col items-center"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onLikeToggle) onLikeToggle();
-                }}
+                onClick={handleLikeClick}
               >
                 <Heart 
                   className={`w-5 h-5 ${isLiked ? 'fill-[#ff7730] stroke-[#ff7730]' : 'stroke-gray-600'}`} 
@@ -44,9 +49,6 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick, isLiked, onLik
                 {showLikeCount && (
                   <span className="text-xs mt-1">{temple.follower_count || temple.likeCount || 0}</span>
                 )}
-              </button>
-              <button className="p-1">
-                <Share className="w-5 h-5 text-gray-500" />
               </button>
             </div>
           </div>

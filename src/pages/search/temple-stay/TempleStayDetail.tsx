@@ -135,14 +135,35 @@ const TempleStayDetail: React.FC = () => {
         {/* Content Section */}
         <div className="p-5">
           {/* Title and actions */}
-          <div className="flex justify-between items-start mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">{templeStay.templeName}</h1>
+          <div className="flex flex-col mb-4">
+            {/* 사찰 이름을 위로 이동 */}
+            {templeStay.temple?.name && (
+              <div className="text-base font-medium text-gray-800 mb-1">
+                <Home className="w-4 h-4 inline mr-1" />
+                {templeStay.temple.name}
+              </div>
+            )}
+            {/* 템플스테이 이름을 아래로 이동하고 스타일 조정 */}
+            <h1 className="text-xl font-bold text-gray-900 mt-1">{templeStay.templeName}</h1>
           </div>
           
-          {/* Location */}
-          <div className="flex items-center text-gray-600 text-sm mb-3">
-            <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-            <span className="leading-relaxed">{templeStay.location} • {templeStay.direction || '도보 10분'}</span>
+          {/* Location and Direction with separate sections */}
+          <div className="flex flex-col space-y-4 text-gray-600 text-sm mb-3">
+            {/* Temple Address with MapPin icon */}
+            <div className="flex items-center">
+              <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="leading-relaxed">{templeStay.temple?.address || templeStay.location}</span>
+            </div>
+            
+            {/* Direction as "오시는 길" section without icon */}
+            {templeStay.direction && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-800 mb-2">오시는 길</h3>
+                <div className="flex items-start">
+                  <span className="leading-relaxed">{templeStay.direction}</span>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Divider */}
