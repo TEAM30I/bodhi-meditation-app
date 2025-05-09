@@ -1,41 +1,45 @@
 import React from 'react';
 
-// 요일 문자열 배열
-const days = ['일', '월', '화', '수', '목', '금', '토'];
-
-// 주간 날짜 계산 함수
+/**
+ * 현재 주간의 날짜 배열을 생성하는 함수
+ * @returns 7일간의 날짜 정보를 담은 배열
+ */
 const getWeekDates = () => {
   const today = new Date();
-  const currentDay = today.getDay();
+  const day = today.getDay(); // 0: 일요일, 1: 월요일, ...
   const dates = [];
-
+  
+  // 현재 날짜를 기준으로 그 주의 시작일(일요일)을 계산
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - day);
+  
+  // 일요일부터 토요일까지 7일의 날짜 생성
   for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    // 이번 주 일요일 기준으로 i칸 이동
-    date.setDate(today.getDate() - currentDay + i);
-
-    const isToday = i === currentDay;
-
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + i);
+    
+    // 날짜 정보 객체 생성
     dates.push({
-      day: days[i],         // 예: '일', '월'
-      date: date.getDate(), // 실제 날짜 (예: 10, 11, 12...)
-      active: isToday,      // 오늘인지 여부
-      isPrayer: i === 0,    // i === 0이면 일요일 → 기도 아이콘
+      date: date.getDate(), // 날짜 (1-31)
+      day: ['일', '월', '화', '수', '목', '금', '토'][date.getDay()], // 요일 한글
+      active: date.getDate() === today.getDate(), // 오늘 여부
+      isPrayer: date.getDay() === 0, // 일요일(기도일) 여부
     });
   }
-
+  
   return dates;
 };
 
-// ---------------------------
-// React 컴포넌트로 export 예시
-// ---------------------------
+/**
+ * 경전 캘린더 프리뷰 컴포넌트
+ * 한 주의 날짜를 보여주며 현재 날짜와 기도일을 표시합니다.
+ */
 export const ScriptureCalendarPrev: React.FC = () => {
   const weekDates = getWeekDates();
 
   return (
-    <div className="bg-white rounded-3xl p-3.5 shadow-sm">
-      <div className="flex gap-0.5 overflow-x-auto">
+    <div className="bg-white rounded-3xl p-3.5 shadow-sm w-full">
+      <div className="flex justify-center gap-0.5 overflow-x-auto">
         {weekDates.map((date, index) => (
           <div
             key={index}
@@ -56,7 +60,7 @@ export const ScriptureCalendarPrev: React.FC = () => {
               </div>
             ) : (
               <div
-                className={`text-sm ${
+                className={`text-sm text-center ${
                   date.active ? 'font-bold text-black' : 'text-gray-800'
                 } ${
                   date.active ? 'bg-[#F1F3F5] rounded-full w-full py-1' : ''

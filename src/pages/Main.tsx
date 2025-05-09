@@ -135,15 +135,15 @@ const Main = () => {
       {/* 헤더 */}
       <div className="w-full bg-white shadow-sm">
         <div className="flex justify-between items-center px-5 py-3 max-w-[480px] mx-auto">
-          <div className="text-[#DE7834] text-xl font-['Rubik Mono One']">BODHI</div>
+          <div className="text-[#DE7834] text-xl font-['Rubik Mono One'] font-bold">BODHI</div>
           <div className="flex-1 mx-2">
-            <div
+            {/* <div
               className="flex items-center bg-[#E5E9ED] bg-opacity-87 rounded-full px-3 py-2 cursor-pointer"
               onClick={() => navigate('/search')}
             >
               <Search className="w-4 h-4 text-gray-500 mr-2" />
               <span className="text-[11px] text-gray-500">검색어를 입력하세요</span>
-            </div>
+            </div> */}
           </div>
           <button className="relative" onClick={() => navigate('/notifications')}>
             <Bell className="w-6 h-6" />
@@ -155,12 +155,12 @@ const Main = () => {
       {/* 본문 */}
       <div className="w-full max-w-[480px] mx-auto pb-20 py-4 px-5">
         {/* 경전 캘린더 */}
-        <div className="mb-3 cursor-pointer" onClick={handleNavigateToCalendar}>
-          <div className="flex items-center">
+        <div className="mb-8 cursor-pointer" onClick={handleNavigateToCalendar}>
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-bold">경전 캘린더</h2>
-            <ChevronRight size={18} className="text-gray-400 ml-1" />
+            <ChevronRight size={18} className="text-gray-400" />
           </div>
-          <div className="mb-6">
+          <div className="w-full flex justify-center">
             <ScriptureCalendarPrev />
           </div>
         </div>
