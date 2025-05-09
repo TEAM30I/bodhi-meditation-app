@@ -54,159 +54,239 @@ const TempleMap: React.FC = () => {
     radiusCircle.current = circle;
   };
   
-  // 카카오맵 SDK 로딩 확인 함수 추가
-  const waitForKakaoMaps = (maxWaitTime = 10000): Promise<boolean> => {
-    return new Promise((resolve) => {
-      // 이미 로드되었는지 확인
-      if (window.kakao && window.kakao.maps) {
-        console.log('카카오맵 SDK가 이미 로드되어 있습니다.');
-        resolve(true);
-        return;
-      }
-
-      let waited = 0;
-      const interval = 100;
+  // 지도 컨테이너 준비 확인 함수
+  const ensureMapContainer = (): boolean => {
+    if (!mapRef.current) {
+      console.error('지도 컨테이너 참조를 찾을 수 없습니다.');
+      return false;
+    }
+    
+    // 컨테이너 크기 확인 및 설정
+    const containerWidth = mapRef.current.clientWidth;
+    const containerHeight = mapRef.current.clientHeight;
+    
+    console.log(`지도 컨테이너 크기: ${containerWidth}x${containerHeight}`);
+    
+    if (containerWidth === 0 || containerHeight === 0) {
+      console.log('지도 컨테이너 크기가 0입니다. 크기 설정 시도...');
       
-      // 로드될 때까지 대기
-      const checkKakaoMaps = setInterval(() => {
+      // 명시적 크기 설정
+      mapRef.current.style.width = '100%';
+      mapRef.current.style.height = '60vh';
+      mapRef.current.style.minHeight = '300px';
+      
+      // 레이아웃 재계산 강제
+      const newWidth = mapRef.current.clientWidth;
+      const newHeight = mapRef.current.clientHeight;
+      
+      console.log(`지도 컨테이너 크기 재설정: ${newWidth}x${newHeight}`);
+      
+      if (newWidth === 0 || newHeight === 0) {
+        console.error('지도 컨테이너 크기를 설정할 수 없습니다.');
+        return false;
+      }
+    }
+    
+    return true;
+  };
+  
+  // 카카오맵 SDK 로딩 확인 및 초기화 함수
+  const loadKakaoMapScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      console.log('카카오맵 SDK 로딩 시작...');
+      
+      // 이미 로드된 경우 체크
+      if (document.getElementById('kakao-map-script')) {
+        console.log('카카오맵 스크립트가 이미 로드되어 있습니다.');
+        
+        // 초기화 확인
         if (window.kakao && window.kakao.maps) {
-          console.log('카카오맵 SDK 로드 완료');
-          clearInterval(checkKakaoMaps);
+          console.log('카카오맵 SDK가 이미 초기화되어 있습니다.');
           resolve(true);
           return;
         }
+      }
+      
+      // 스크립트 엘리먼트 생성
+      const script = document.createElement('script');
+      script.id = 'kakao-map-script';
+      script.type = 'text/javascript';
+      script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=03d6d5879a4ccf404846b3db22c8e0ea&libraries=services&autoload=false';
+      
+      // 로드 이벤트 핸들러
+      script.onload = () => {
+        console.log('카카오맵 SDK 스크립트 로드 완료');
         
-        waited += interval;
-        if (waited >= maxWaitTime) {
-          console.error('카카오맵 SDK 로드 타임아웃');
-          clearInterval(checkKakaoMaps);
+        // 카카오맵 SDK 초기화
+        if (window.kakao && window.kakao.maps) {
+          window.kakao.maps.load(() => {
+            console.log('카카오맵 SDK 초기화 완료');
+            resolve(true);
+          });
+        } else {
+          console.error('카카오맵 SDK 객체를 찾을 수 없습니다.');
           resolve(false);
         }
-      }, interval);
+      };
+      
+      // 에러 핸들러
+      script.onerror = () => {
+        console.error('카카오맵 SDK 스크립트 로드 실패');
+        resolve(false);
+      };
+      
+      // DOM에 스크립트 추가
+      document.head.appendChild(script);
+      
+      // 타임아웃 설정 (20초)
+      setTimeout(() => {
+        if (!window.kakao || !window.kakao.maps) {
+          console.error('카카오맵 SDK 로드 타임아웃 (20초)');
+          resolve(false);
+        }
+      }, 20000);
     });
   };
   
-  // 카카오맵 초기화 함수
-  const initializeKakaoMap = (lat: number, lng: number) => {
-    if (!window.kakao || !window.kakao.maps) {
-      console.error('Kakao maps SDK not loaded');
-      return;
-    }
-
-    if (!mapRef.current) return;
-
-    const options = {
-      center: new window.kakao.maps.LatLng(lat, lng),
-      level: 8  // 지도 확대 레벨 (높을수록 넓은 지역 표시)
-    };
-
-    const map = new window.kakao.maps.Map(mapRef.current, options);
-    kakaoMapRef.current = map;
-    setMapCenter({lat, lng});
-
-    // 현재 위치 마커 추가 (사용자 위치)
-    const userMarker = new window.kakao.maps.Marker({
-      position: new window.kakao.maps.LatLng(lat, lng),
-      map: map
-    });
-
-    // 사용자 위치 표시를 위한 커스텀 오버레이
-    const userContent = `<div style="padding:5px; background:#fff; border-radius:50%; border:2px solid #DE7834; display:flex; justify-content:center; align-items:center; width:15px; height:15px;">
-                          <div style="background:#DE7834; width:7px; height:7px; border-radius:50%;"></div>
-                        </div>`;
-    
-    const userOverlay = new window.kakao.maps.CustomOverlay({
-      position: new window.kakao.maps.LatLng(lat, lng),
-      content: userContent,
-      map: map
-    });
-
-    // 중심 마커 추가
-    const centerContent = `<div style="padding:5px; background:#fff; border-radius:50%; border:2px solid #FF3B30; display:flex; justify-content:center; align-items:center; width:24px; height:24px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
-                          <div style="background:#FF3B30; width:12px; height:12px; border-radius:50%;"></div>
-                        </div>`;
-    
-    const centerOverlay = new window.kakao.maps.CustomOverlay({
-      position: new window.kakao.maps.LatLng(lat, lng),
-      content: centerContent,
-      map: map,
-      zIndex: 10
-    });
-    
-    setCenterMarker(centerOverlay);
-    
-    // 검색 반경 원 추가
-    const circle = new window.kakao.maps.Circle({
-      center: new window.kakao.maps.LatLng(lat, lng),
-      radius: searchRadius * 1000, // 미터 단위로 변환
-      strokeWeight: 1,
-      strokeColor: '#DE7834',
-      strokeOpacity: 0.3,
-      strokeStyle: 'solid',
-      fillColor: '#DE7834',
-      fillOpacity: 0.1
-    });
-    circle.setMap(map);
-    setRadiusCircle(circle);
-
-    // 지도 이동 이벤트 리스너 추가
-    window.kakao.maps.event.addListener(map, 'dragend', function() {
-      const center = map.getCenter();
-      const newLat = center.getLat();
-      const newLng = center.getLng();
+  // 지도 초기화 함수 개선
+  const initializeKakaoMap = (lat: number, lng: number): boolean => {
+    try {
+      console.log('지도 초기화 시작...');
       
-      // 중심 마커 위치 업데이트
-      centerOverlay.setPosition(new window.kakao.maps.LatLng(newLat, newLng));
-      setMapCenter({lat: newLat, lng: newLng});
-      
-      // 검색 반경 원 위치 업데이트
-      if (radiusCircle.current) {
-        radiusCircle.current.setPosition(new window.kakao.maps.LatLng(newLat, newLng));
+      // 카카오맵 SDK 확인
+      if (!window.kakao || !window.kakao.maps) {
+        console.error('카카오맵 SDK가 로드되지 않았습니다.');
+        return false;
       }
       
-      // 지도 중심 위치 기준으로 주변 사찰 및 템플스테이 다시 검색
-      fetchNearbyItems(newLat, newLng, searchRadius);
-    });
-    
-    // 지도 확대/축소 이벤트 리스너 추가
-    window.kakao.maps.event.addListener(map, 'zoom_changed', function() {
-      const center = map.getCenter();
-      const newLat = center.getLat();
-      const newLng = center.getLng();
-      const level = map.getLevel();
-      
-      // 지도 레벨에 따른 검색 반경 자동 조정 (각 레벨마다 2배씩 증가)
-      let newRadius = 1; // 기본값
-      
-      // 카카오맵 레벨은 1~14까지 있음
-      switch(level) {
-        case 1: newRadius = 0.5; break;  // 가장 가까운 줌
-        case 2: newRadius = 1; break;
-        case 3: newRadius = 2; break;
-        case 4: newRadius = 4; break;
-        case 5: newRadius = 8; break;
-        case 6: newRadius = 16; break;
-        case 7: newRadius = 32; break;
-        case 8: newRadius = 64; break;
-        case 9: newRadius = 128; break;
-        default: newRadius = 256; break; // 매우 먼 줌
+      // 지도 컨테이너 확인
+      if (!ensureMapContainer()) {
+        return false;
       }
       
-      // 반경이 변경된 경우에만 업데이트
-      if (newRadius !== searchRadius) {
-        setSearchRadius(newRadius);
+      // 지도 옵션 설정
+      const options = {
+        center: new window.kakao.maps.LatLng(lat, lng),
+        level: 8
+      };
+      
+      console.log('지도 생성 시도...');
+      
+      // 지도 생성
+      const map = new window.kakao.maps.Map(mapRef.current!, options);
+      kakaoMapRef.current = map;
+      setMapCenter({lat, lng});
+      
+      console.log('지도 생성 성공!');
+      
+      // 현재 위치 마커 추가
+      const userMarker = new window.kakao.maps.Marker({
+        position: new window.kakao.maps.LatLng(lat, lng),
+        map: map
+      });
+
+      // 사용자 위치 표시를 위한 커스텀 오버레이
+      const userContent = `<div style="padding:5px; background:#fff; border-radius:50%; border:2px solid #DE7834; display:flex; justify-content:center; align-items:center; width:15px; height:15px;">
+                            <div style="background:#DE7834; width:7px; height:7px; border-radius:50%;"></div>
+                          </div>`;
+      
+      const userOverlay = new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(lat, lng),
+        content: userContent,
+        map: map
+      });
+
+      // 중심 마커 추가
+      const centerContent = `<div style="padding:5px; background:#fff; border-radius:50%; border:2px solid #FF3B30; display:flex; justify-content:center; align-items:center; width:24px; height:24px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                            <div style="background:#FF3B30; width:12px; height:12px; border-radius:50%;"></div>
+                          </div>`;
+      
+      const centerOverlay = new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(lat, lng),
+        content: centerContent,
+        map: map,
+        zIndex: 10
+      });
+      
+      setCenterMarker(centerOverlay);
+      
+      // 검색 반경 원 추가
+      const circle = new window.kakao.maps.Circle({
+        center: new window.kakao.maps.LatLng(lat, lng),
+        radius: searchRadius * 1000, // 미터 단위로 변환
+        strokeWeight: 1,
+        strokeColor: '#DE7834',
+        strokeOpacity: 0.3,
+        strokeStyle: 'solid',
+        fillColor: '#DE7834',
+        fillOpacity: 0.1
+      });
+      circle.setMap(map);
+      setRadiusCircle(circle);
+
+      // 지도 이동 이벤트 리스너 추가
+      window.kakao.maps.event.addListener(map, 'dragend', function() {
+        const center = map.getCenter();
+        const newLat = center.getLat();
+        const newLng = center.getLng();
         
-        // 검색 반경 원 업데이트
+        // 중심 마커 위치 업데이트
+        centerOverlay.setPosition(new window.kakao.maps.LatLng(newLat, newLng));
+        setMapCenter({lat: newLat, lng: newLng});
+        
+        // 검색 반경 원 위치 업데이트
         if (radiusCircle.current) {
-          radiusCircle.current.setRadius(newRadius * 1000);
+          radiusCircle.current.setPosition(new window.kakao.maps.LatLng(newLat, newLng));
         }
         
-        // 새 반경으로 주변 검색
-        fetchNearbyItems(newLat, newLng, newRadius);
-      }
-    });
+        // 지도 중심 위치 기준으로 주변 사찰 및 템플스테이 다시 검색
+        fetchNearbyItems(newLat, newLng, searchRadius);
+      });
+      
+      // 지도 확대/축소 이벤트 리스너 추가
+      window.kakao.maps.event.addListener(map, 'zoom_changed', function() {
+        const center = map.getCenter();
+        const newLat = center.getLat();
+        const newLng = center.getLng();
+        const level = map.getLevel();
+        
+        // 지도 레벨에 따른 검색 반경 자동 조정 (각 레벨마다 2배씩 증가)
+        let newRadius = 1; // 기본값
+        
+        // 카카오맵 레벨은 1~14까지 있음
+        switch(level) {
+          case 1: newRadius = 0.5; break;  // 가장 가까운 줌
+          case 2: newRadius = 1; break;
+          case 3: newRadius = 2; break;
+          case 4: newRadius = 4; break;
+          case 5: newRadius = 8; break;
+          case 6: newRadius = 16; break;
+          case 7: newRadius = 32; break;
+          case 8: newRadius = 64; break;
+          case 9: newRadius = 128; break;
+          default: newRadius = 256; break; // 매우 먼 줌
+        }
+        
+        // 반경이 변경된 경우에만 업데이트
+        if (newRadius !== searchRadius) {
+          setSearchRadius(newRadius);
+          
+          // 검색 반경 원 업데이트
+          if (radiusCircle.current) {
+            radiusCircle.current.setRadius(newRadius * 1000);
+          }
+          
+          // 새 반경으로 주변 검색
+          fetchNearbyItems(newLat, newLng, newRadius);
+        }
+      });
 
-    setMapLoaded(true);
+      setMapLoaded(true);
+      return true;
+    } catch (error) {
+      console.error('지도 초기화 중 오류 발생:', error);
+      return false;
+    }
   };
   
   // 마커 추가 함수 수정
@@ -369,59 +449,103 @@ const TempleMap: React.FC = () => {
     }
   }, [mapLoaded, nearbyTemples, nearbyTempleStays]);
   
-  // 위치 정보 및 지도 초기화 함수 수정
+  // 위치 정보 및 지도 초기화 함수 개선 - 서울시청 위치 사용
   const initializeMapWithLocation = async () => {
     try {
       setLoading(true);
       
-      // 카카오맵 SDK 로딩 대기
-      const isKakaoLoaded = await waitForKakaoMaps();
+      // 1. 카카오맵 SDK 로딩
+      console.log('카카오맵 SDK 로딩 시작...');
+      const isKakaoLoaded = await loadKakaoMapScript();
+      
       if (!isKakaoLoaded) {
+        console.error('카카오맵 SDK 로드 실패');
         toast.error('지도를 불러오는데 실패했습니다. 페이지를 새로고침해주세요.');
         setLoading(false);
         return;
       }
       
-      // 현재 위치 가져오기
-      const location = await getCurrentLocation();
-      setUserLocation(location);
+      // 2. 서울시청 위치 사용 (GPS 요청 없음)
+      const seoulCityHall = { latitude: 37.5665, longitude: 126.9780 };
+      setUserLocation(seoulCityHall);
+      console.log('서울시청 위치로 지도 초기화:', seoulCityHall);
       
-      // 위치 정보가 기본값(서울 시청)인지 확인
-      const isDefaultLocation = 
-        location.latitude === 37.5665 && location.longitude === 126.9780;
-      
-      if (isDefaultLocation) {
-        toast.warning('위치 정보를 가져올 수 없어 서울 시청 주변을 검색합니다.');
+      // 3. 지도 컨테이너 확인
+      if (!ensureMapContainer()) {
+        console.error('지도 컨테이너 준비 실패');
+        toast.error('지도를 표시할 수 없습니다. 페이지를 새로고침해주세요.');
+        setLoading(false);
+        return;
       }
       
-      console.log('위치 정보 수신 성공:', location);
+      // 4. 지도 초기화
+      try {
+        console.log('지도 초기화 시작...');
+        
+        // 지도 옵션 설정
+        const options = {
+          center: new window.kakao.maps.LatLng(seoulCityHall.latitude, seoulCityHall.longitude),
+          level: 8
+        };
+        
+        // 지도 생성
+        const map = new window.kakao.maps.Map(mapRef.current!, options);
+        kakaoMapRef.current = map;
+        setMapCenter({lat: seoulCityHall.latitude, lng: seoulCityHall.longitude});
+        
+        console.log('지도 생성 성공!');
+        
+        // 5. 주변 아이템 검색
+        console.log('주변 아이템 검색 시작...');
+        await fetchNearbyItems(seoulCityHall.latitude, seoulCityHall.longitude, searchRadius);
+        
+        setMapLoaded(true);
+      } catch (mapError) {
+        console.error('지도 초기화 중 오류 발생:', mapError);
+        toast.error('지도를 초기화하는데 실패했습니다.');
+      }
       
-      // 카카오맵 초기화
-      initializeKakaoMap(location.latitude, location.longitude);
-      
-      // 주변 사찰 및 템플스테이 검색
-      await fetchNearbyItems(location.latitude, location.longitude, searchRadius);
-      
-      setMapLoaded(true);
       setLoading(false);
     } catch (error) {
       console.error('지도 초기화 오류:', error);
-      toast.error('위치 정보를 가져오는데 실패했습니다.');
+      toast.error('지도를 불러오는데 실패했습니다.');
       setLoading(false);
     }
   };
   
-  // 컴포넌트 마운트 시 초기화
+  // 모바일 환경 감지 함수
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
+  // 컴포넌트 마운트 시 초기화 로직
   useEffect(() => {
     let isMounted = true;
+    let initializeAttempts = 0;
+    const maxAttempts = 3;
     
     const initialize = async () => {
-      if (isMounted) {
+      if (!isMounted) return;
+      
+      try {
         await initializeMapWithLocation();
+      } catch (error) {
+        console.error('지도 초기화 중 오류 발생:', error);
+        
+        // 재시도 로직
+        initializeAttempts++;
+        if (initializeAttempts < maxAttempts) {
+          console.log(`지도 초기화 재시도 (${initializeAttempts}/${maxAttempts})...`);
+          setTimeout(initialize, 1000); // 1초 후 재시도
+        } else {
+          toast.error('지도를 불러오는데 실패했습니다. 페이지를 새로고침해주세요.');
+          setLoading(false);
+        }
       }
     };
     
-    initialize();
+    // 약간의 지연 후 초기화 (DOM 렌더링 완료 보장)
+    setTimeout(initialize, 500);
     
     return () => {
       isMounted = false;
