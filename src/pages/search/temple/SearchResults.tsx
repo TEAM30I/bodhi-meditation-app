@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter, Search } from 'lucide-react';
-import { searchTemples, getTempleList, searchTemplesByRegion } from '@/lib/repository';
+import { searchTemples } from '@/lib/repository';
 import { Temple, TempleSort } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,9 +18,9 @@ const SearchResults: React.FC = () => {
   
   // URL 쿼리 파라미터 가져오기
   const queryParams = new URLSearchParams(location.search);
-  const searchQuery = queryParams.get('query') || '';
-  const regionQuery = queryParams.get('region') || '';
-  const sortQuery = queryParams.get('sort') as TempleSort || 'popular';
+  const query = queryParams.get('query') || '';
+  const nearby = queryParams.get('nearby') === 'true';
+  const sortByParam = queryParams.get('sort') as TempleSort || 'popular';
   
   // 현재 활성화된 탭 (temple 또는 temple-stay)
   const isTempleTab = !location.pathname.includes('temple-stay');
@@ -37,34 +37,19 @@ const SearchResults: React.FC = () => {
   
   // 검색어 초기화
   useEffect(() => {
-    if (searchQuery) {
-      setSearchValue(searchQuery);
+    if (query) {
+      setSearchValue(query);
     }
-  }, [searchQuery]);
+  }, [query]);
   
   useEffect(() => {
-    // URL에서 정렬 방식 가져오기
-    if (sortQuery) {
-      setSortBy(sortQuery);
-    }
-    
-    const fetchTemples = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        let results: Temple[] = [];
-        
-        if (searchQuery) {
-          // 검색어로 사찰 검색
-          results = await searchTemples(searchQuery);
-        } else if (regionQuery) {
-          // 지역으로 사찰 검색
-          results = await searchTemplesByRegion(regionQuery);
-        } else {
-          // 기본 정렬 방식으로 모든 사찰 가져오기
-          results = await getTempleList(sortBy);
-        }
-        
+        // 검색어 유무와 관계없이 searchTemples 함수만 사용
+        const results = await searchTemples(query, sortByParam);
         setTemples(results);
+        setSortBy(sortByParam);
       } catch (error) {
         console.error('Error fetching temples:', error);
       } finally {
@@ -72,16 +57,15 @@ const SearchResults: React.FC = () => {
       }
     };
     
-    fetchTemples();
-  }, [searchQuery, regionQuery, sortBy, sortQuery]);
+    fetchData();
+  }, [query, sortByParam]);
   
-  const handleSortChange = (value: string) => {
-    const newSortBy = value as TempleSort;
-    setSortBy(newSortBy);
+  const handleSortChange = (newSort: TempleSort) => {
+    setSortBy(newSort);
     
     // URL 업데이트
     const params = new URLSearchParams(location.search);
-    params.set('sort', newSortBy);
+    params.set('sort', newSort);
     navigate(`${location.pathname}?${params.toString()}`);
   };
   
@@ -90,11 +74,14 @@ const SearchResults: React.FC = () => {
     navigate(`/search/temple/results?query=${searchValue}`);
   };
   
-  const title = searchQuery 
-    ? `'${searchQuery}' 검색 결과` 
-    : regionQuery 
-      ? `${regionQuery} 지역 사찰` 
-      : '사찰 목록';
+  const title = query 
+    ? `'${query}' 검색 결과` 
+    : '검색 결과';
+  
+  // 지역 버튼 클릭 핸들러
+  const handleRegionClick = (region: string) => {
+    navigate(`/search/temple/results?query=${region}`);
+  };
   
   return (
     <PageLayout 
@@ -134,7 +121,7 @@ const SearchResults: React.FC = () => {
         </form>
         
         {/* 검색 결과 타이틀 */}
-        {(searchQuery || regionQuery) && (
+        {(query) && (
           <h2 className="font-semibold text-lg mb-4">{title}</h2>
         )}
         

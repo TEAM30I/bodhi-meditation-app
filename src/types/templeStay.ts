@@ -36,4 +36,4 @@ export interface TempleStay {
   };
 }
 
-export type TempleStaySort = 'popular' | 'recent' | 'distance' | 'price';
+export type TempleStaySort = 'popular' | 'recent' | 'distance' | 'price_low' | 'price_high';

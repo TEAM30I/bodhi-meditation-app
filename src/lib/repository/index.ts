@@ -1,17 +1,12 @@
 // src/lib/repository/index.ts
 // 사찰 관련 함수
 export {
-    getTempleList,
     getTempleDetail,
     searchTemples,
-    searchTemplesByRegion,
-    filterTemplesByTag,
     followTemple,
     unfollowTemple,
     getTopLikedTemples,
-    getNearbyTemples,
     getUserFollowedTemples,
-    getTopRegions,
     getTempleRegions,
     getRegionTags,
     isTempleFollowed,
@@ -20,14 +15,11 @@ export {
   
   // 템플스테이 관련 함수
   export {
-    getTempleStayList,
     getTempleStayDetail,
     searchTempleStays,
-    filterTempleStaysByTag,
     followTempleStay,
     unfollowTempleStay,
     getUserFollowedTempleStays,
-    getTempleStaysByRegion,
     getTopLikedTempleStays,
     getTempleStayRegions,
     getTempleStayLocations

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter, Search } from 'lucide-react';
-import { searchTempleStays, getTempleStayList, getTempleStaysByRegion } from '@/lib/repository';
+import { searchTempleStays } from '@/lib/repository';
 import { TempleStay, TempleStaySort } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,9 +19,9 @@ const SearchResults: React.FC = () => {
   // URL 쿼리 파라미터 가져오기
   const queryParams = new URLSearchParams(location.search);
   const query = queryParams.get('query') || '';
-  const region = queryParams.get('region') || '';
   const nearby = queryParams.get('nearby') === 'true';
-  const sortBy = queryParams.get('sort') as TempleStaySort || 'popular';
+  const isRegion = queryParams.get('isRegion') === 'true';
+  const sortByParam = queryParams.get('sort') as TempleStaySort || 'popular';
   
   // 현재 활성화된 탭 (temple 또는 temple-stay)
   const isTempleStayTab = location.pathname.includes('temple-stay');
@@ -43,37 +43,16 @@ const SearchResults: React.FC = () => {
     }
   }, [query]);
   
+  const [sortBy, setSortBy] = useState<TempleStaySort>(sortByParam);
+  
   useEffect(() => {
-    if (sortBy) {
-      setActiveFilter(sortBy);
-    }
-    
     const fetchData = async () => {
       setLoading(true);
-      const term = query || region;
-      
       try {
-        let results: TempleStay[] = [];
-        
-        if (nearby) {
-          // Handle nearby search
-          results = await getTempleStayList('distance');
-        } else if (term) {
-          console.log(`Searching for temple stays with term: ${term}`);
-          
-          if (region) {
-            // If region parameter exists, search by region
-            results = await getTempleStaysByRegion(region);
-          } else {
-            // Otherwise search by the query term
-            results = await searchTempleStays(term, activeFilter);
-          }
-        } else {
-          // If no search term, get all temple stays with current sort
-          results = await getTempleStayList(activeFilter);
-        }
-        
+        // 검색어 유무와 관계없이 searchTempleStays 함수만 사용
+        const results = await searchTempleStays(query, sortByParam);
         setTempleStays(results);
+        setActiveFilter(sortByParam);
       } catch (error) {
         console.error('Error fetching temple stays:', error);
       } finally {
@@ -82,10 +61,9 @@ const SearchResults: React.FC = () => {
     };
     
     fetchData();
-  }, [query, region, nearby, activeFilter, sortBy]);
+  }, [query, sortByParam]);
   
-  const handleFilterChange = (value: string) => {
-    const newFilter = value as TempleStaySort;
+  const handleFilterChange = (newFilter: TempleStaySort) => {
     setActiveFilter(newFilter);
     
     // URL 업데이트
@@ -101,11 +79,7 @@ const SearchResults: React.FC = () => {
   
   const title = query 
     ? `'${query}' 검색 결과` 
-    : region 
-      ? `${region} 지역 템플스테이` 
-      : nearby 
-        ? '내 주변 템플스테이' 
-        : '템플스테이 목록';
+    : '검색 결과';
   
   return (
     <PageLayout 
@@ -145,7 +119,7 @@ const SearchResults: React.FC = () => {
         </form>
         
         {/* 검색 결과 타이틀 */}
-        {(query || region || nearby) && (
+        {(query || nearby) && (
           <h2 className="font-semibold text-lg mb-4">{title}</h2>
         )}
         

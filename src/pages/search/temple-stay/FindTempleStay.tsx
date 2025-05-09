@@ -63,7 +63,7 @@ const FindTempleStay = () => {
   };
 
   const handleRegionClick = (region: string) => {
-    navigate(`/search/temple-stay/results?region=${region}`);
+    navigate(`/search/temple-stay/results?query=${region}&isRegion=true`);
   };
 
   return (

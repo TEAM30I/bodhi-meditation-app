@@ -8,8 +8,8 @@ import { ScriptureCalendarPrev } from '@/components/scripture/ScriptureCalendar_
 import ScriptureProgressList from '@/components/scripture/ScriptureProgressList';
 import { typedData } from '@/utils/typeUtils';
 import {
-  getTempleList,
-  getTempleStayList,
+  searchTemples,
+  searchTempleStays,
   getReadingSchedule,
   getScriptureList,
 } from '@/lib/repository';
@@ -44,8 +44,8 @@ const Main = () => {
     const fetchData = async () => {
       try {
         const [templesData, templeStaysData, scripturesData] = await Promise.all([
-          getTempleList(),
-          getTempleStayList(),
+          searchTemples('', 'popular'),
+          searchTempleStays('', 'popular'),
           getScriptureList(),
         ]);
 

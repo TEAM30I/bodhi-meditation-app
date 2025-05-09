@@ -15,102 +15,6 @@ export async function getTempleStayLocations(): Promise<string[]> {
   }
 }
 
-// Fetch temple stays from Supabase
-export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Promise<TempleStay[]> {
-  try {
-    // temple_stays와 temples 테이블을 조인하여 데이터 가져오기
-    let query = supabase
-      .from('temple_stays')
-      .select(`
-        *,
-        temples:temple_id (
-          id,
-          name,
-          region,
-          address,
-          image_url,
-          latitude,
-          longitude
-        )
-      `);
-    
-    // 정렬 적용
-    switch (sortBy) {
-      case 'recent':
-        query = query.order('created_at', { ascending: false });
-        break;
-      case 'price':
-        query = query.order('cost_adult', { ascending: true });
-        break;
-      case 'popular':
-      default:
-        query = query.order('follower_count', { ascending: false });
-        break;
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) throw error;
-    if (!data) return [];
-    
-    // 데이터 매핑
-    const templeStays = data.map(item => ({
-      id: item.id,
-      templeName: item.temple_name || item.name,
-      location: item.location || '',
-      imageUrl: item.image_url,
-      price: item.cost_adult ? parseInt(item.cost_adult.replace(/,/g, '')) : (item.price || 0),
-      description: item.description || '',
-      likeCount: item.like_count || 0,
-      // 템플 객체 항상 포함
-      temple: item.temples ? {
-        id: item.temples.id,
-        name: item.temples.name,
-        region: item.temples.region,
-        address: item.temples.address,
-        imageUrl: item.temples.image_url,
-        latitude: item.temples.latitude,
-        longitude: item.temples.longitude
-      } : {
-        id: '',
-        name: item.temple_name || '사찰 정보 없음',
-        region: item.location || '',
-        address: '',
-        imageUrl: '',
-        latitude: 0,
-        longitude: 0
-      }
-    }));
-    
-    // 거리순 정렬 로직은 그대로 유지
-    if (sortBy === 'distance') {
-      const filteredTempleStays = templeStays
-        .filter(templeStay => templeStay.temple?.latitude && templeStay.temple?.longitude)
-        .map(templeStay => {
-          const distance = calculateDistance(
-            DEFAULT_LOCATION.latitude,
-            DEFAULT_LOCATION.longitude,
-            templeStay.temple?.latitude!,
-            templeStay.temple?.longitude!
-          );
-          return { ...templeStay, distance: formatDistance(distance) };
-        })
-        .sort((a, b) => {
-          const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');
-          const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
-          return distA - distB;
-        });
-        
-      return filteredTempleStays;
-    }
-    
-    return templeStays;
-  } catch (error) {
-    console.error('Error in getTempleStayList:', error);
-    return [];
-  }
-}
-
 // Fetch temple stay detail by ID
 export async function getTempleStayDetail(id: string): Promise<TempleStay | null> {
   try {
@@ -170,10 +74,8 @@ export async function getTempleStayDetail(id: string): Promise<TempleStay | null
   }
 }
 
-// Search temple stays by text query
-export async function searchTempleStays(query: string, sortBy: TempleStaySort = 'popular'): Promise<TempleStay[]> {
-  if (!query) return [];
-  
+// 통합된 검색 함수
+export async function searchTempleStays(query: string = '', sortBy: TempleStaySort = 'popular'): Promise<TempleStay[]> {
   try {
     // 템플스테이 테이블과 사찰 테이블을 조인하여 검색
     const { data, error } = await supabase
@@ -184,66 +86,149 @@ export async function searchTempleStays(query: string, sortBy: TempleStaySort = 
           id,
           name,
           region,
-          address
+          address,
+          image_url,
+          latitude,
+          longitude
         )
       `);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error searching temple stays:', error);
+      return [];
+    }
     
-    if (!data || data.length === 0) return [];
+    // 검색어가 없으면 모든 데이터 반환
+    let filteredData = data;
     
-    // 검색어를 소문자로 변환
-    const normalizedQuery = query.toLowerCase();
-    
-    // 템플스테이 이름, 사찰 이름, 지역명으로 필터링
-    const filteredData = data.filter(item => {
-      // 템플스테이 자체 이름 검색
-      if (item.temple_name && item.temple_name.toLowerCase().includes(normalizedQuery)) {
-        return true;
+    // 검색어가 있는 경우에만 필터링 수행
+    if (query) {
+      // 지역명 검색을 위한 정규화된 쿼리 생성
+      const normalizedQuery = query.trim().toLowerCase();
+      
+      // 지역명 약어 매핑
+      const regionMappings: Record<string, string[]> = {
+        '경상북도': ['경북'],
+        '경상남도': ['경남'],
+        '전라북도': ['전북'],
+        '전라남도': ['전남'],
+        '충청북도': ['충북'],
+        '충청남도': ['충남'],
+        '경기도': ['경기'],
+        '강원도': ['강원'],
+        '제주특별자치도': ['제주'],
+        '서울특별시': ['서울'],
+        '부산광역시': ['부산'],
+        '대구광역시': ['대구'],
+        '인천광역시': ['인천'],
+        '광주광역시': ['광주'],
+        '대전광역시': ['대전'],
+        '울산광역시': ['울산'],
+        '세종특별자치시': ['세종']
+      };
+      
+      // 검색어 확장
+      let expandedQueries = [normalizedQuery];
+      
+      for (const [fullName, shortNames] of Object.entries(regionMappings)) {
+        if (fullName.toLowerCase().includes(normalizedQuery)) {
+          expandedQueries.push(fullName.toLowerCase());
+          expandedQueries.push(...shortNames.map(name => name.toLowerCase()));
+        }
+        
+        if (shortNames.some(name => name.toLowerCase().includes(normalizedQuery))) {
+          expandedQueries.push(fullName.toLowerCase());
+          expandedQueries.push(...shortNames.map(name => name.toLowerCase()));
+        }
       }
       
-      // 연관된 사찰 정보로 검색
-      if (item.temples) {
-        // 사찰 이름으로 검색
-        if (item.temples.name && item.temples.name.toLowerCase().includes(normalizedQuery)) {
+      // 중복 제거
+      expandedQueries = [...new Set(expandedQueries)];
+      
+      // 클라이언트 측에서 필터링
+      filteredData = data.filter(item => {
+        // 템플스테이 이름으로 검색
+        if ((item.name && item.name.toLowerCase().includes(normalizedQuery)) ||
+            (item.temple_name && item.temple_name.toLowerCase().includes(normalizedQuery))) {
           return true;
         }
         
-        // 사찰 지역으로 검색 (전체 지역명 또는 약식 지역명)
-        if (item.temples.region) {
-          const region = item.temples.region.toLowerCase();
-          
-          // 지역명 정규화 (예: '경상북도 경주시' -> '경북', '경주')
-          const normalizedRegion = normalizeRegion(region);
-          
-          if (region.includes(normalizedQuery) || 
-              normalizedRegion.some(r => r.includes(normalizedQuery))) {
+        // 사찰 이름으로 검색
+        if (item.temples && item.temples.name && 
+            item.temples.name.toLowerCase().includes(normalizedQuery)) {
+          return true;
+        }
+        
+        // 지역명으로 검색 (확장된 쿼리 사용)
+        if (item.location) {
+          const normalizedLocation = item.location.toLowerCase();
+          if (expandedQueries.some(q => normalizedLocation.includes(q))) {
+            return true;
+          }
+        }
+        
+        // 사찰 지역명으로 검색
+        if (item.temples && item.temples.region) {
+          const normalizedRegion = item.temples.region.toLowerCase();
+          if (expandedQueries.some(q => normalizedRegion.includes(q))) {
             return true;
           }
         }
         
         // 사찰 주소로 검색
-        if (item.temples.address && item.temples.address.toLowerCase().includes(normalizedQuery)) {
+        if (item.temples && item.temples.address && 
+            item.temples.address.toLowerCase().includes(normalizedQuery)) {
           return true;
         }
-      }
-      
-      return false;
-    });
+        
+        return false;
+      });
+    }
     
     // 정렬 적용
     let sortedData = [...filteredData];
     
     switch (sortBy) {
       case 'recent':
-        sortedData.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        sortedData.sort((a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return dateB - dateA;
+        });
         break;
-      case 'price':
+      case 'price_low':
         sortedData.sort((a, b) => {
           const priceA = a.cost_adult ? parseInt(a.cost_adult.replace(/,/g, '')) : (a.price || 0);
           const priceB = b.cost_adult ? parseInt(b.cost_adult.replace(/,/g, '')) : (b.price || 0);
           return priceA - priceB;
         });
+        break;
+      case 'price_high':
+        sortedData.sort((a, b) => {
+          const priceA = a.cost_adult ? parseInt(a.cost_adult.replace(/,/g, '')) : (a.price || 0);
+          const priceB = b.cost_adult ? parseInt(b.cost_adult.replace(/,/g, '')) : (b.price || 0);
+          return priceB - priceA;
+        });
+        break;
+      case 'distance':
+        if (sortedData.some(item => item.temples?.latitude && item.temples?.longitude)) {
+          sortedData = sortedData
+            .filter(item => item.temples?.latitude && item.temples?.longitude)
+            .map(item => {
+              const distance = calculateDistance(
+                DEFAULT_LOCATION.latitude,
+                DEFAULT_LOCATION.longitude,
+                item.temples!.latitude!,
+                item.temples!.longitude!
+              );
+              return { ...item, distance: formatDistance(distance) };
+            })
+            .sort((a, b) => {
+              const distA = parseFloat(a.distance?.replace('km', '').replace('m', '') || '0');
+              const distB = parseFloat(b.distance?.replace('km', '').replace('m', '') || '0');
+              return distA - distB;
+            });
+        }
         break;
       case 'popular':
       default:
@@ -251,22 +236,31 @@ export async function searchTempleStays(query: string, sortBy: TempleStaySort = 
         break;
     }
     
-    // 결과 매핑 및 반환
     return sortedData.map(item => ({
       id: item.id,
-      templeName: item.temple_name,
+      templeName: item.name || item.temple_name || '',
+      name: item.name || item.temple_name || '',
+      temple_name: item.temple_name || item.name || '',
       location: item.location || '',
-      imageUrl: item.image_url,
+      imageUrl: item.image_url || DEFAULT_IMAGES.TEMPLE_STAY,
       price: item.cost_adult ? parseInt(item.cost_adult.replace(/,/g, '')) : (item.price || 0),
       description: item.description || '',
-      likeCount: item.like_count || 0,
-      // ... 기타 필드 매핑 ...
+      likeCount: item.like_count || item.follower_count || 0,
+      direction: item.public_transportation || '',
+      facilities: item.facilities ? JSON.parse(item.facilities) : [],
+      tags: item.tags ? JSON.parse(item.tags) : [],
+      longitude: item.temples?.longitude,
+      latitude: item.temples?.latitude,
+      distance: item.distance,
       temple: item.temples ? {
         id: item.temples.id,
         name: item.temples.name,
         region: item.temples.region,
-        address: item.temples.address
-      } : null
+        address: item.temples.address,
+        imageUrl: item.temples.image_url,
+        latitude: item.temples.latitude,
+        longitude: item.temples.longitude
+      } : undefined
     }));
   } catch (error) {
     console.error('Error in searchTempleStays:', error);
@@ -274,105 +268,7 @@ export async function searchTempleStays(query: string, sortBy: TempleStaySort = 
   }
 }
 
-// 지역명 정규화 함수
-function normalizeRegion(region: string): string[] {
-  const result: string[] = [];
-  
-  // 도/시 약칭 매핑
-  const regionMappings: Record<string, string[]> = {
-    '경상북도': ['경북'],
-    '경상남도': ['경남'],
-    '전라북도': ['전북'],
-    '전라남도': ['전남'],
-    '충청북도': ['충북'],
-    '충청남도': ['충남'],
-    '강원도': ['강원'],
-    '경기도': ['경기'],
-    '제주특별자치도': ['제주'],
-    '서울특별시': ['서울'],
-    '부산광역시': ['부산'],
-    '대구광역시': ['대구'],
-    '인천광역시': ['인천'],
-    '광주광역시': ['광주'],
-    '대전광역시': ['대전'],
-    '울산광역시': ['울산'],
-    '세종특별자치시': ['세종']
-  };
-  
-  // 전체 지역명에서 도/시 부분 추출
-  for (const [fullName, shortNames] of Object.entries(regionMappings)) {
-    if (region.includes(fullName)) {
-      result.push(...shortNames);
-      
-      // 시/군/구 추출 (예: '경상북도 경주시' -> '경주')
-      const cityMatch = region.match(new RegExp(`${fullName}\\s+([^\\s]+)`));
-      if (cityMatch && cityMatch[1]) {
-        const city = cityMatch[1].replace(/(시|군|구)$/, '');
-        result.push(city);
-      }
-      
-      break;
-    }
-  }
-  
-  return result;
-}
 
-// Filter temple stays by tag
-export async function filterTempleStaysByTag(tag: string): Promise<TempleStay[]> {
-  try {
-    const { data, error } = await supabase
-      .from('temple_stays')
-      .select('*')
-      .eq('region', tag);
-    
-    if (error) {
-      console.error('Error filtering temple stays by tag:', error);
-      return [];
-    }
-    
-    return data.map(item => ({
-      id: item.id,
-      templeName: item.name,
-      location: item.region,
-      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: parseInt(item.cost_adult?.replace(/,/g, '')) || 50000,
-      likeCount: item.follower_count,
-      direction: item.public_transportation
-    }));
-  } catch (error) {
-    console.error('Error in filterTempleStaysByTag:', error);
-    return [];
-  }
-}
-
-// Get temple stays by region
-export async function getTempleStaysByRegion(region: string): Promise<TempleStay[]> {
-  try {
-    const { data, error } = await supabase
-      .from('temple_stays')
-      .select('*')
-      .eq('region', region);
-    
-    if (error) {
-      console.error('Error fetching temple stays by region:', error);
-      return [];
-    }
-    
-    return data.map(item => ({
-      id: item.id,
-      templeName: item.name,
-      location: item.region,
-      imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
-      price: parseInt(item.cost_adult?.replace(/,/g, '')) || 50000,
-      likeCount: item.follower_count,
-      direction: item.public_transportation
-    }));
-  } catch (error) {
-    console.error('Error in getTempleStaysByRegion:', error);
-    return [];
-  }
-}
 
 // Follow temple stay
 export async function followTempleStay(userId: string, templeStayId: string): Promise<boolean> {
