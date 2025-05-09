@@ -27,52 +27,12 @@ export function formatDistance(distance: number): string {
   return `${distance.toFixed(1)}km`;
 }
 
-// 사용자 현재 위치 가져오기
+// 사용자 현재 위치 가져오기 (서울시청 위치 바로 반환)
 export const getCurrentLocation = (): Promise<{latitude: number, longitude: number}> => {
-  return new Promise((resolve, reject) => {
-    // 브라우저가 위치 정보를 지원하는지 확인
-    if (!navigator.geolocation) {
-      console.error('이 브라우저는 위치 정보를 지원하지 않습니다.');
-      // 기본 위치(서울 시청) 반환
-      resolve({ latitude: 37.5665, longitude: 126.9780 });
-      return;
-    }
-
-    // 위치 정보 가져오기 옵션
-    const options = {
-      enableHighAccuracy: true,  // 높은 정확도 사용
-      timeout: 15000,            // 15초로 타임아웃 증가
-      maximumAge: 30000          // 30초 이내의 캐시된 위치 허용
-    };
-
-    // 위치 정보 가져오기 요청
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        console.log('위치 정보 수신 성공:', { latitude, longitude });
-        resolve({ latitude, longitude });
-      },
-      (err) => {
-        console.error('위치 정보 수신 실패:', err.message);
-        
-        // 오류 코드에 따른 처리
-        switch(err.code) {
-          case err.PERMISSION_DENIED:
-            alert('위치 정보 접근을 허용해주세요. 현재 서울시청 위치로 검색합니다.');
-            break;
-          case err.POSITION_UNAVAILABLE:
-            alert('위치 정보를 사용할 수 없습니다. 현재 서울시청 위치로 검색합니다.');
-            break;
-          case err.TIMEOUT:
-            alert('위치 정보 요청 시간이 초과되었습니다. 현재 서울시청 위치로 검색합니다.');
-            break;
-        }
-        
-        // 기본 위치(서울 시청) 반환
-        resolve({ latitude: 37.5665, longitude: 126.9780 });
-      },
-      options
-    );
+  return new Promise((resolve) => {
+    // 서울시청 위치 바로 반환
+    console.log('서울시청 위치 사용 (GPS 요청 없음)');
+    resolve({ latitude: 37.5665, longitude: 126.9780 });
   });
 };
 
