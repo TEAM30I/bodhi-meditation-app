@@ -1,4 +1,3 @@
-
 import { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 
@@ -20,6 +19,7 @@ export default {
       fontFamily: {
         sans: ["Pretendard", ...fontFamily.sans],
         pretendard: ["Pretendard", "sans-serif"],
+        rubik: ["Rubik Mono One", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

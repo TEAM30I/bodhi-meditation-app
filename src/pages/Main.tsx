@@ -99,7 +99,7 @@ const Main = () => {
       {/* 헤더 */}
       <div className="w-full bg-white shadow-sm">
         <div className="flex justify-between items-center px-5 py-3 max-w-[480px] mx-auto">
-          <div className="text-[#DE7834] text-xl font-['Rubik Mono One'] font-bold">BODHI</div>
+          <div className="text-[#DE7834] text-xl font-rubik font-bold">BODHI</div>
           <div className="flex-1 mx-2">
             {/* 검색바 주석 처리 */}
           </div>

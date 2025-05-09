@@ -1,4 +1,3 @@
-
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,8 +17,8 @@ const NotFound = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-bodhi-background">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 font-pretendard">404</h1>
-        <p className="text-xl text-bodhi-darkGray mb-6 font-pretendard">
+        <h1 className="text-4xl font-bold mb-4">404</h1>
+        <p className="text-xl text-bodhi-darkGray mb-6">
           페이지를 찾을 수 없습니다
         </p>
         <Button 
