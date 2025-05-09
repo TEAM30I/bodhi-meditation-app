@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
 import { Search, Bell, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -28,18 +28,29 @@ const Main = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const location = useLocation();
 
   const [loading, setLoading] = useState(true);
   const [temples, setTemples] = useState<Temple[]>([]);
   const [templeStays, setTempleStays] = useState<TempleStay[]>([]);
   const [scriptures, setScriptures] = useState<Scripture[]>([]);
+  const [showSurveyPopup, setShowSurveyPopup] = useState(false);
 
   /* ------------------------------------------------------------------
-   * 데이터 패칭
+   * 팝업 관련 함수
    * ------------------------------------------------------------------ */
+  const checkShouldShowPopup = () => {
+    // 쿠키에서 팝업 숨김 상태 확인
+    const cookies = document.cookie.split(';');
+    const hidePopupCookie = cookies.find(cookie => cookie.trim().startsWith('hideSurveyPopup='));
+    
+    // 쿠키가 없으면 팝업 표시
+    return !hidePopupCookie;
+  };
+
+  const handleClosePopup = () => {
+    setShowSurveyPopup(false);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -56,66 +67,18 @@ const Main = () => {
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
+        
+        // 데이터 로딩 후 현재 경로가 '/main'인 경우에만 팝업 표시 여부 확인
+        if (location.pathname === '/main' && checkShouldShowPopup()) {
+          setShowSurveyPopup(true);
+        }
       }
     };
 
     fetchData();
     window.scrollTo(0, 0);
-  }, []);
+  }, [location.pathname]);
 
-  /* ------------------------------------------------------------------
-   * 카카오맵 초기화 (kakao.js 는 load() 내부에서 자동 로드됨)
-   * ------------------------------------------------------------------ */
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    const initializeMap = () => {
-      console.log('kakao.js loaded ✔');
-      
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current = null;
-      }
-      
-      const map = new window.kakao.maps.Map(mapRef.current as HTMLElement, {
-        center: new window.kakao.maps.LatLng(37.566826, 126.9786567), // 서울시청 좌표
-        level: 8, // 지도의 확대 레벨
-      });
-
-      mapInstanceRef.current = map;
-
-      const marker = new window.kakao.maps.Marker({
-        position: map.getCenter()
-      });
-      marker.setMap(map);
-
-      const infowindow = new window.kakao.maps.InfoWindow({
-        content: '<div style="padding:5px;font-size:12px;">서울시청</div>'
-      });
-      infowindow.open(map, marker);
-
-      const zoomControl = new window.kakao.maps.ZoomControl();
-      map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
-
-      const mapTypeControl = new window.kakao.maps.MapTypeControl();
-      map.addControl(mapTypeControl, window.kakao.maps.ControlPosition.TOPRIGHT);
-
-      setTimeout(() => map.relayout(), 0);
-    };
-
-    if (window.kakao && window.kakao.maps) {
-      initializeMap();
-    } else {
-      window.kakao.maps.load(initializeMap);
-    }
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
-
-  /* ------------------------------ 렌더링 ------------------------------ */
   if (loading) {
     return (
       <div className="flex items-center justify-center w-screen h-screen">
@@ -137,13 +100,7 @@ const Main = () => {
         <div className="flex justify-between items-center px-5 py-3 max-w-[480px] mx-auto">
           <div className="text-[#DE7834] text-xl font-['Rubik Mono One'] font-bold">BODHI</div>
           <div className="flex-1 mx-2">
-            {/* <div
-              className="flex items-center bg-[#E5E9ED] bg-opacity-87 rounded-full px-3 py-2 cursor-pointer"
-              onClick={() => navigate('/search')}
-            >
-              <Search className="w-4 h-4 text-gray-500 mr-2" />
-              <span className="text-[11px] text-gray-500">검색어를 입력하세요</span>
-            </div> */}
+            {/* 검색바 주석 처리 */}
           </div>
           <button className="relative" onClick={() => navigate('/notifications')}>
             <Bell className="w-6 h-6" />
@@ -165,19 +122,15 @@ const Main = () => {
           </div>
         </div>
 
-        {/* 사찰 지도 */}
+        {/* 사찰 지도 대신 메시지 */}
         <div className="py-4 mb-8">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="font-semibold text-lg">사찰 지도</h2>
           </div>
-          <p className="text-gray-500 text-sm mb-3">도로 사찰을 둘러보고, 관심 사찰로 저장해보세요</p>
-          <div
-            id="kakao-map"
-            ref={mapRef}
-            style={{ width: '100%', height: '250px' }}
-            className="w-full h-64 bg-gray-200 rounded-lg mb-1 overflow-hidden cursor-pointer"
-            onClick={() => navigate('/nearby')}
-          />
+          <p className="text-gray-500 text-sm mb-3 text-center">
+            🚧 지도 기능은 현재 준비중인 기능이에요! 🚧<br />
+            조금만 기다려주세요! 🙏
+          </p>
         </div>
 
         {/* 추천 사찰 */}
@@ -241,9 +194,8 @@ const Main = () => {
           </div>
         </div>
 
-        {/* 경전 진행 리스트 (곧 업데이트될 예정) */}
+        {/* 경전 진행 리스트 */}
         <div className="mb-8 relative">
-          {/* 블러 오버레이 */}
           <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px] z-10 flex items-center justify-center">
             <div className="bg-white/90 px-6 py-4 rounded-lg shadow-sm">
               <p className="text-gray-700 font-medium text-center">
@@ -268,6 +220,9 @@ const Main = () => {
       </div>
       <Footer />
       <BottomNav />
+      
+      {/* 설문 팝업 */}
+      {showSurveyPopup && <SurveyPopup onClose={handleClosePopup} />}
     </div>
   );
 };
