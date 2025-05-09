@@ -41,40 +41,38 @@ export const getCurrentLocation = (): Promise<{latitude: number, longitude: numb
     // 위치 정보 가져오기 옵션
     const options = {
       enableHighAccuracy: true,  // 높은 정확도 사용
-      timeout: 10000,            // 10초 타임아웃
-      maximumAge: 0              // 캐시된 위치 정보 사용 안함
-    };
-
-    // 위치 정보 가져오기 성공 시 콜백
-    const success = (position: GeolocationPosition) => {
-      const { latitude, longitude } = position.coords;
-      console.log('위치 정보 수신 성공:', { latitude, longitude });
-      resolve({ latitude, longitude });
-    };
-
-    // 위치 정보 가져오기 실패 시 콜백
-    const error = (err: GeolocationPositionError) => {
-      console.error('위치 정보 수신 실패:', err.message);
-      
-      // 오류 코드에 따른 처리
-      switch(err.code) {
-        case err.PERMISSION_DENIED:
-          console.error('사용자가 위치 정보 접근을 거부했습니다.');
-          break;
-        case err.POSITION_UNAVAILABLE:
-          console.error('위치 정보를 사용할 수 없습니다.');
-          break;
-        case err.TIMEOUT:
-          console.error('위치 정보 요청 시간이 초과되었습니다.');
-          break;
-      }
-      
-      // 기본 위치(서울 시청) 반환
-      resolve({ latitude: 37.5665, longitude: 126.9780 });
+      timeout: 15000,            // 15초로 타임아웃 증가
+      maximumAge: 30000          // 30초 이내의 캐시된 위치 허용
     };
 
     // 위치 정보 가져오기 요청
-    navigator.geolocation.getCurrentPosition(success, error, options);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        console.log('위치 정보 수신 성공:', { latitude, longitude });
+        resolve({ latitude, longitude });
+      },
+      (err) => {
+        console.error('위치 정보 수신 실패:', err.message);
+        
+        // 오류 코드에 따른 처리
+        switch(err.code) {
+          case err.PERMISSION_DENIED:
+            alert('위치 정보 접근을 허용해주세요. 현재 서울시청 위치로 검색합니다.');
+            break;
+          case err.POSITION_UNAVAILABLE:
+            alert('위치 정보를 사용할 수 없습니다. 현재 서울시청 위치로 검색합니다.');
+            break;
+          case err.TIMEOUT:
+            alert('위치 정보 요청 시간이 초과되었습니다. 현재 서울시청 위치로 검색합니다.');
+            break;
+        }
+        
+        // 기본 위치(서울 시청) 반환
+        resolve({ latitude: 37.5665, longitude: 126.9780 });
+      },
+      options
+    );
   });
 };
 

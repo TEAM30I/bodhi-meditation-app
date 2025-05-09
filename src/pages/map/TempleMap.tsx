@@ -54,6 +54,38 @@ const TempleMap: React.FC = () => {
     radiusCircle.current = circle;
   };
   
+  // 카카오맵 SDK 로딩 확인 함수 추가
+  const waitForKakaoMaps = (maxWaitTime = 10000): Promise<boolean> => {
+    return new Promise((resolve) => {
+      // 이미 로드되었는지 확인
+      if (window.kakao && window.kakao.maps) {
+        console.log('카카오맵 SDK가 이미 로드되어 있습니다.');
+        resolve(true);
+        return;
+      }
+
+      let waited = 0;
+      const interval = 100;
+      
+      // 로드될 때까지 대기
+      const checkKakaoMaps = setInterval(() => {
+        if (window.kakao && window.kakao.maps) {
+          console.log('카카오맵 SDK 로드 완료');
+          clearInterval(checkKakaoMaps);
+          resolve(true);
+          return;
+        }
+        
+        waited += interval;
+        if (waited >= maxWaitTime) {
+          console.error('카카오맵 SDK 로드 타임아웃');
+          clearInterval(checkKakaoMaps);
+          resolve(false);
+        }
+      }, interval);
+    });
+  };
+  
   // 카카오맵 초기화 함수
   const initializeKakaoMap = (lat: number, lng: number) => {
     if (!window.kakao || !window.kakao.maps) {
@@ -337,10 +369,18 @@ const TempleMap: React.FC = () => {
     }
   }, [mapLoaded, nearbyTemples, nearbyTempleStays]);
   
-  // 위치 정보 및 지도 초기화 함수
+  // 위치 정보 및 지도 초기화 함수 수정
   const initializeMapWithLocation = async () => {
     try {
       setLoading(true);
+      
+      // 카카오맵 SDK 로딩 대기
+      const isKakaoLoaded = await waitForKakaoMaps();
+      if (!isKakaoLoaded) {
+        toast.error('지도를 불러오는데 실패했습니다. 페이지를 새로고침해주세요.');
+        setLoading(false);
+        return;
+      }
       
       // 현재 위치 가져오기
       const location = await getCurrentLocation();
