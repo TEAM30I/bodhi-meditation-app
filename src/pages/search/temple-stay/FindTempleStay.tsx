@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, ArrowRight } from 'lucide-react';
-import { getTempleStayRegions, getTopLikedTempleStays } from '@/lib/repository';
+import { Search, ArrowRight, Heart } from 'lucide-react';
+import { getTempleStayRegions, getTopLikedTempleStays, isTempleStayFollowed, toggleTempleStayFollow } from '@/lib/repository';
 import { TempleStay } from '@/types';
 import PageLayout from '@/components/PageLayout';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
@@ -14,6 +16,8 @@ const FindTempleStay = () => {
   const [loading, setLoading] = useState(true);
   const [locationList, setLocationList] = useState<string[]>([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
+  const [likedTempleStays, setLikedTempleStays] = useState<Record<string, boolean>>({});
+  const { user } = useAuth();
   
   // 현재 활성화된 탭 (temple 또는 temple-stay)
   const isTempleStayTab = location.pathname.includes('temple-stay');
@@ -32,10 +36,19 @@ const FindTempleStay = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getTopLikedTempleStays(4);
+        const data = await getTopLikedTempleStays();
         setTopTempleStays(data);
+        
+        // 사용자가 로그인한 경우 좋아요 상태 확인
+        if (user) {
+          const likedStatus: Record<string, boolean> = {};
+          for (const templeStay of data) {
+            likedStatus[templeStay.id] = await isTempleStayFollowed(user.id, templeStay.id);
+          }
+          setLikedTempleStays(likedStatus);
+        }
       } catch (error) {
-        console.error("Error fetching top temple stays:", error);
+        console.error('Error loading top temple stays:', error);
       } finally {
         setLoading(false);
       }
@@ -55,7 +68,7 @@ const FindTempleStay = () => {
 
     fetchData();
     fetchLocations();
-  }, []);
+  }, [user]);
 
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -64,6 +77,41 @@ const FindTempleStay = () => {
 
   const handleRegionClick = (region: string) => {
     navigate(`/search/temple-stay/results?query=${region}&isRegion=true`);
+  };
+
+  // 좋아요 토글 핸들러
+  const handleLikeToggle = async (e: React.MouseEvent, templeStayId: string) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error('로그인이 필요한 기능입니다.');
+      return;
+    }
+    
+    try {
+      const newStatus = await toggleTempleStayFollow(user.id, templeStayId);
+      setLikedTempleStays(prev => ({
+        ...prev,
+        [templeStayId]: newStatus
+      }));
+      
+      // 좋아요 카운트 업데이트
+      setTopTempleStays(prev => 
+        prev.map(ts => 
+          ts.id === templeStayId 
+            ? { 
+                ...ts, 
+                likeCount: (ts.likeCount || 0) + (newStatus ? 1 : -1)
+              } 
+            : ts
+        )
+      );
+      
+      toast.success(newStatus ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.');
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      toast.error('처리 중 오류가 발생했습니다.');
+    }
   };
 
   return (
@@ -139,7 +187,7 @@ const FindTempleStay = () => {
               {topTempleStays.map(templestay => (
                 <div 
                   key={templestay.id}
-                  className="cursor-pointer"
+                  className="cursor-pointer relative"
                   onClick={() => navigate(`/search/temple-stay/detail/${templestay.id}`)}
                 >
                   <div className="aspect-[4/3] mb-2 rounded-lg overflow-hidden">
@@ -149,9 +197,20 @@ const FindTempleStay = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <h4 className="font-medium text-sm mb-1 line-clamp-1">{templestay.templeName}</h4>
-                  <p className="text-xs text-gray-500">{templestay.location}</p>
-                  <p className="text-sm font-semibold mt-1">{templestay.price.toLocaleString()}원</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-medium text-sm mb-1 line-clamp-1">{templestay.templeName}</h4>
+                      <p className="text-xs text-gray-500">{templestay.location}</p>
+                      <p className="text-sm font-semibold mt-1">{templestay.price.toLocaleString()}원</p>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <Heart 
+                        className={`w-5 h-5 ${likedTempleStays[templestay.id] ? 'fill-[#ff7730] stroke-[#ff7730]' : 'stroke-gray-600'}`}
+                        onClick={(e) => handleLikeToggle(e, templestay.id)}
+                      />
+                      <span className="text-xs mt-1">{templestay.likeCount || 0}</span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

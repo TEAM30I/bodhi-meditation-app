@@ -5,39 +5,6 @@ import { Temple, TempleSort, RegionTag } from '@/types';
 import { DEFAULT_LOCATION } from '@/constants';
 import { DEFAULT_IMAGES } from '@/constants';
 
-
-// Export regionTags for UI components that need immediate access
-// This will be populated with data from the database rather than hardcoded
-export const regionTags: RegionTag[] = [];
-
-// Initialize regionTags on module load
-(async () => {
-  try {
-    const tags = await getRegionTags();
-    // Clear the array and add the fetched tags
-    regionTags.length = 0;
-    regionTags.push(...tags);
-  } catch (error) {
-    console.error('Error initializing regionTags array:', error);
-  }
-})();
-
-
-// Get all regions as an array 
-export async function getRegionTags(): Promise<RegionTag[]> {
-  try {
-    const regions = await getTempleRegions();
-    return regions.map((region, index) => ({
-      id: `region-${index}`,
-      name: region,
-      active: index === 0
-    }));
-  } catch (error) {
-    console.error('Error getting region tags:', error);
-    return [];
-  }
-}
-
 // 지역명을 광역시/도 단위로 정규화하는 함수
 function normalizeRegionToProvince(region: string): string {
   // 도/시 약칭 매핑
@@ -218,13 +185,8 @@ export async function searchTemples(query: string = '', sortBy: TempleSort = 'po
     
     if (sortBy === 'popular') {
       sortedData.sort((a, b) => (b.follower_count || 0) - (a.follower_count || 0));
-    } else if (sortBy === 'recent') {
-      sortedData.sort((a, b) => {
-        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return dateB - dateA;
-      });
-    } else if (sortBy === 'distance' && sortedData.some(temple => temple.latitude && temple.longitude)) {
+    } 
+    else if (sortBy === 'distance' && sortedData.some(temple => temple.latitude && temple.longitude)) {
       sortedData = sortedData
         .filter(temple => temple.latitude && temple.longitude)
         .map(temple => {
@@ -264,38 +226,6 @@ export async function searchTemples(query: string = '', sortBy: TempleSort = 'po
   }
 }
 
-// Supabase에서 좋아요 기준으로 정렬된 사찰 목록 가져오기
-export async function getTopLikedTemples(limit = 5): Promise<Temple[]> {
-  try {
-    const { data, error } = await supabase
-      .from('temples')
-      .select('*')
-      .order('follower_count', { ascending: false })
-      .limit(limit);
-      
-    if (error) {
-      console.error('Error fetching top liked temples:', error);
-      return [];
-    }
-    
-    return data.map(temple => ({
-      id: temple.id,
-      name: temple.name,
-      address: temple.address || temple.region || '',
-      region: temple.region || '',
-      contact: temple.contact || '',
-      imageUrl: temple.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=Temple",
-      image_url: temple.image_url,
-      likeCount: temple.follower_count,
-      description: temple.description,
-      latitude: temple.latitude,
-      longitude: temple.longitude
-    }));
-  } catch (error) {
-    console.error('Error in getTopLikedTemples:', error);
-    return [];
-  }
-}
 
 // 사용자 사찰 팔로우 기능
 export async function followTemple(userId: string, templeId: string): Promise<boolean> {
@@ -447,7 +377,12 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
   }
 }
 
-// 사찰 찜 상태 확인
+/**
+ * 사용자가 특정 사찰을 찜했는지 확인하는 함수
+ * @param userId 사용자 ID
+ * @param templeId 사찰 ID
+ * @returns 찜 여부 (true/false)
+ */
 export async function isTempleFollowed(userId: string, templeId: string): Promise<boolean> {
   try {
     const { data, error } = await supabase
@@ -458,13 +393,13 @@ export async function isTempleFollowed(userId: string, templeId: string): Promis
       .single();
     
     if (error && error.code !== 'PGRST116') { // PGRST116: 결과가 없음
-      console.error('Error checking temple follow status:', error);
+      console.error('사찰 찜 상태 확인 중 오류:', error);
       return false;
     }
     
     return !!data; // data가 있으면 true, 없으면 false
   } catch (error) {
-    console.error('Error in isTempleFollowed:', error);
+    console.error('isTempleFollowed 함수 오류:', error);
     return false;
   }
 }
@@ -487,5 +422,43 @@ export async function toggleTempleFollow(userId: string, templeId: string): Prom
   } catch (error) {
     console.error('Error in toggleTempleFollow:', error);
     return false;
+  }
+}
+
+// 인기 사찰 목록 가져오기 (팔로워 수 기준)
+export async function getTopLikedTemples(limit: number = 10): Promise<Temple[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*')
+      .order('follower_count', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error('Error fetching top liked temples:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      address: item.address || '',
+      region: item.region || '',
+      contact: item.contact || '',
+      description: item.description,
+      imageUrl: item.image_url,
+      image_url: item.image_url,
+      likeCount: item.follower_count || 0,
+      follower_count: item.follower_count || 0,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      // 선택적 필드들
+      facilities: item.facilities ? JSON.parse(item.facilities) : [],
+      tags: item.tags ? JSON.parse(item.tags) : [],
+      websiteUrl: item.website_url
+    }));
+  } catch (error) {
+    console.error('Error in getTopLikedTemples:', error);
+    return [];
   }
 }

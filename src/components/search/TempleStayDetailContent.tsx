@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, Share, CalendarClock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TempleStay } from '@/types';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
+import { isTempleStayFollowed } from '@/lib/repository';
 
 interface TempleStayDetailContentProps {
   templeStay: TempleStay;
@@ -15,14 +17,39 @@ const TempleStayDetailContent: React.FC<TempleStayDetailContentProps> = ({
   onGoToReservation
 }) => {
   const [isWishlist, setIsWishlist] = useState(false);
+  const { user } = useAuth();
 
-  const handleToggleWishlist = () => {
-    setIsWishlist(!isWishlist);
+  // 좋아요 상태 확인
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      if (user && templeStay) {
+        try {
+          const status = await isTempleStayFollowed(user.id, templeStay.id);
+          setIsWishlist(status);
+        } catch (error) {
+          console.error('Error checking like status:', error);
+        }
+      }
+    };
     
-    toast.success(
-      !isWishlist ? "찜 목록에 추가되었습니다" : "찜 목록에서 삭제되었습니다",
-      { duration: 2000 }
-    );
+    checkLikeStatus();
+  }, [user, templeStay]);
+
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      toast.error('로그인이 필요한 기능입니다.');
+      return;
+    }
+    
+    try {
+      const newStatus = await isTempleStayFollowed(user.id, templeStay.id);
+      setIsWishlist(newStatus);
+      
+      toast.success(newStatus ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.');
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      toast.error('처리 중 오류가 발생했습니다.');
+    }
   };
 
   const groupedSchedule = React.useMemo(() => {

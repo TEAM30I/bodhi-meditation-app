@@ -5,9 +5,24 @@ import { TempleStay } from '@/types';
 interface TempleStayItemProps {
   templeStay: TempleStay;
   onClick: () => void;
+  isLiked?: boolean;
+  onLikeToggle?: (e: React.MouseEvent) => void;
 }
 
-const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) => {
+const TempleStayItem: React.FC<TempleStayItemProps> = ({ 
+  templeStay, 
+  onClick,
+  isLiked = false,
+  onLikeToggle 
+}) => {
+  // 좋아요 버튼 클릭 핸들러
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 부모 요소의 onClick 이벤트 전파 방지
+    if (onLikeToggle) {
+      onLikeToggle(e);
+    }
+  };
+
   return (
     <div 
       className="bg-white rounded-xl overflow-hidden cursor-pointer mb-4"
@@ -19,11 +34,6 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
           alt={templeStay.templeName}
           className="w-full h-56 object-cover"
         />
-        
-        {/* Image indicator (1/4) */}
-        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-          1/4
-        </div>
         
         {/* Title and actions */}
         <div className="p-4">
@@ -40,8 +50,16 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
               <h3 className="font-bold text-lg">{templeStay.templeName}</h3>
             </div>
             <div className="flex space-x-2">
-              <button className="p-1">
-                <Heart className={`w-5 h-5 ${templeStay.likeCount && templeStay.likeCount > 0 ? 'fill-[#DE7834] text-[#DE7834]' : 'text-gray-500'}`} />
+              <button className="p-1" onClick={handleLikeClick}>
+                <div className="flex flex-col items-center">
+                  <Heart 
+                    className={`w-5 h-5 ${isLiked ? 'fill-[#DE7834] text-[#DE7834]' : 'text-gray-500'}`} 
+                  />
+                  {/* 좋아요 수 표시 */}
+                  <span className="text-xs text-gray-500 mt-1">
+                    {templeStay.likeCount || 0}
+                  </span>
+                </div>
               </button>
               <button className="p-1">
                 <Share className="w-5 h-5 text-gray-500" />

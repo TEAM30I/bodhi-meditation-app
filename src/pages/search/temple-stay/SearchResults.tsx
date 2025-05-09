@@ -5,8 +5,11 @@ import { searchTempleStays } from '@/lib/repository';
 import { TempleStay, TempleStaySort } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import TempleStayItem from '@/components/search/temple-stay/TempleStayItem';
+import TempleStayItem from '@/components/search/TempleStayItem';
 import PageLayout from '@/components/PageLayout';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
+import { isTempleStayFollowed, toggleTempleStayFollow } from '@/lib/repository';
 
 const SearchResults: React.FC = () => {
   const location = useLocation();
@@ -15,6 +18,8 @@ const SearchResults: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<TempleStaySort>('popular');
   const [searchValue, setSearchValue] = useState('');
+  const [likedTempleStays, setLikedTempleStays] = useState<Record<string, boolean>>({});
+  const { user } = useAuth();
   
   // URL 쿼리 파라미터 가져오기
   const queryParams = new URLSearchParams(location.search);
@@ -45,28 +50,37 @@ const SearchResults: React.FC = () => {
   
   const [sortBy, setSortBy] = useState<TempleStaySort>(sortByParam);
   
+  // 템플스테이 데이터 로드
   useEffect(() => {
-    const fetchData = async () => {
+    const loadTempleStays = async () => {
       setLoading(true);
       try {
-        // 검색어 유무와 관계없이 searchTempleStays 함수만 사용
-        const results = await searchTempleStays(query, sortByParam);
-        setTempleStays(results);
-        setActiveFilter(sortByParam);
+        const data = await searchTempleStays(query, sortByParam);
+        setTempleStays(data);
+        
+        // 사용자가 로그인한 경우 좋아요 상태 확인
+        if (user) {
+          const likedStatus: Record<string, boolean> = {};
+          for (const templeStay of data) {
+            likedStatus[templeStay.id] = await isTempleStayFollowed(user.id, templeStay.id);
+          }
+          setLikedTempleStays(likedStatus);
+        }
       } catch (error) {
-        console.error('Error fetching temple stays:', error);
+        console.error('Error loading temple stays:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchData();
-  }, [query, sortByParam]);
+    loadTempleStays();
+  }, [query, sortByParam, user]);
   
-  const handleFilterChange = (newFilter: TempleStaySort) => {
+  const handleFilterChange = (value: string) => {
+    const newFilter = value as TempleStaySort;
     setActiveFilter(newFilter);
     
-    // URL 업데이트
+    // URL 파라미터 업데이트
     const params = new URLSearchParams(location.search);
     params.set('sort', newFilter);
     navigate(`${location.pathname}?${params.toString()}`);
@@ -75,6 +89,41 @@ const SearchResults: React.FC = () => {
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
     navigate(`/search/temple-stay/results?query=${searchValue}`);
+  };
+  
+  // 좋아요 토글 핸들러
+  const handleLikeToggle = async (e: React.MouseEvent, templeStayId: string) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error('로그인이 필요한 기능입니다.');
+      return;
+    }
+    
+    try {
+      const newStatus = await toggleTempleStayFollow(user.id, templeStayId);
+      setLikedTempleStays(prev => ({
+        ...prev,
+        [templeStayId]: newStatus
+      }));
+      
+      // 좋아요 카운트 업데이트
+      setTempleStays(prev => 
+        prev.map(ts => 
+          ts.id === templeStayId 
+            ? { 
+                ...ts, 
+                likeCount: (ts.likeCount || 0) + (newStatus ? 1 : -1)
+              } 
+            : ts
+        )
+      );
+      
+      toast.success(newStatus ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.');
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      toast.error('처리 중 오류가 발생했습니다.');
+    }
   };
   
   const title = query 
@@ -126,8 +175,9 @@ const SearchResults: React.FC = () => {
         {/* 정렬 옵션 */}
         <div className="flex justify-between items-center mb-4">
           <Tabs value={activeFilter} onValueChange={handleFilterChange} className="w-full">
-            <TabsList className="grid grid-cols-3 h-9">
+            <TabsList className="grid grid-cols-4 h-9">
               <TabsTrigger value="popular">인기순</TabsTrigger>
+              <TabsTrigger value="distance">거리순</TabsTrigger>
               <TabsTrigger value="price_low">가격낮은순</TabsTrigger>
               <TabsTrigger value="price_high">가격높은순</TabsTrigger>
             </TabsList>
@@ -156,9 +206,12 @@ const SearchResults: React.FC = () => {
                     templeName: (ts as any).temple_name || (ts as any).name || ts.templeName,
                     location: ts.temple?.address || ts.location || '주소 정보 없음',
                     price: typeof ts.price === 'number' ? ts.price : 
-                           (typeof ts.price === 'string' ? parseInt((ts.price as string).replace(/[^\d]/g, '') || '0') : 0)
+                           (typeof ts.price === 'string' ? parseInt((ts.price as string).replace(/[^\d]/g, '') || '0') : 0),
+                    likeCount: ts.likeCount || 0
                   }}
                   onClick={() => navigate(`/search/temple-stay/detail/${ts.id}`)}
+                  isLiked={likedTempleStays[ts.id] || false}
+                  onLikeToggle={(e) => handleLikeToggle(e, ts.id)}
                 />
               ))
             ) : (

@@ -64,7 +64,6 @@ const TempleDetail: React.FC = () => {
   const handleToggleFavorite = async () => {
     if (!user) {
       toast.error('로그인이 필요한 기능입니다.');
-      navigate('/login', { state: { from: `/search/temple/${id}` } });
       return;
     }
     
@@ -73,6 +72,16 @@ const TempleDetail: React.FC = () => {
     try {
       const result = await toggleTempleFollow(user.id, id);
       setIsFavorite(result);
+      
+      // 좋아요 카운트 업데이트
+      setTemple(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          likeCount: (prev.likeCount || 0) + (result ? 1 : -1)
+        };
+      });
+      
       toast.success(`${temple.name}을(를) ${result ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
     } catch (error) {
       console.error('Error toggling favorite:', error);

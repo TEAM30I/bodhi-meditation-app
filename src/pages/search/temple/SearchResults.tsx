@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter, Search } from 'lucide-react';
-import { searchTemples } from '@/lib/repository';
+import { searchTemples, isTempleFollowed } from '@/lib/repository';
 import { Temple, TempleSort } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import TempleItem from '@/components/search/temple/TempleItem';
+import TempleItem from '@/components/search/TempleItem';
 import PageLayout from '@/components/PageLayout';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
+import { toggleTempleFollow } from '@/lib/repository';
 
 const SearchResults: React.FC = () => {
   const location = useLocation();
@@ -15,6 +18,8 @@ const SearchResults: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<TempleSort>('popular');
   const [searchValue, setSearchValue] = useState('');
+  const [likedTemples, setLikedTemples] = useState<Record<string, boolean>>({});
+  const { user } = useAuth();
   
   // URL 쿼리 파라미터 가져오기
   const queryParams = new URLSearchParams(location.search);
@@ -42,30 +47,39 @@ const SearchResults: React.FC = () => {
     }
   }, [query]);
   
+  // 사찰 데이터 로드
   useEffect(() => {
-    const fetchData = async () => {
+    const loadTemples = async () => {
       setLoading(true);
       try {
-        // 검색어 유무와 관계없이 searchTemples 함수만 사용
-        const results = await searchTemples(query, sortByParam);
-        setTemples(results);
-        setSortBy(sortByParam);
+        const data = await searchTemples(query, sortByParam);
+        setTemples(data);
+        
+        // 사용자가 로그인한 경우 좋아요 상태 확인
+        if (user) {
+          const likedStatus: Record<string, boolean> = {};
+          for (const temple of data) {
+            likedStatus[temple.id] = await isTempleFollowed(user.id, temple.id);
+          }
+          setLikedTemples(likedStatus);
+        }
       } catch (error) {
-        console.error('Error fetching temples:', error);
+        console.error('Error loading temples:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchData();
-  }, [query, sortByParam]);
+    loadTemples();
+  }, [query, sortByParam, user]);
   
-  const handleSortChange = (newSort: TempleSort) => {
-    setSortBy(newSort);
+  const handleSortChange = (value: string) => {
+    const newSortBy = value as TempleSort;
+    setSortBy(newSortBy);
     
-    // URL 업데이트
+    // URL 파라미터 업데이트
     const params = new URLSearchParams(location.search);
-    params.set('sort', newSort);
+    params.set('sort', newSortBy);
     navigate(`${location.pathname}?${params.toString()}`);
   };
   
@@ -81,6 +95,40 @@ const SearchResults: React.FC = () => {
   // 지역 버튼 클릭 핸들러
   const handleRegionClick = (region: string) => {
     navigate(`/search/temple/results?query=${region}`);
+  };
+  
+  // 좋아요 토글 핸들러
+  const handleLikeToggle = async (templeId: string) => {
+    if (!user) {
+      toast.error('로그인이 필요한 기능입니다.');
+      return;
+    }
+    
+    try {
+      const newStatus = await toggleTempleFollow(user.id, templeId);
+      setLikedTemples(prev => ({
+        ...prev,
+        [templeId]: newStatus
+      }));
+      
+      // 좋아요 카운트 업데이트
+      setTemples(prev => 
+        prev.map(temple => 
+          temple.id === templeId 
+            ? { 
+                ...temple, 
+                likeCount: (temple.likeCount || 0) + (newStatus ? 1 : -1),
+                follower_count: (temple.follower_count || 0) + (newStatus ? 1 : -1)
+              } 
+            : temple
+        )
+      );
+      
+      toast.success(newStatus ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.');
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      toast.error('처리 중 오류가 발생했습니다.');
+    }
   };
   
   return (
@@ -128,9 +176,8 @@ const SearchResults: React.FC = () => {
         {/* 정렬 옵션 */}
         <div className="flex justify-between items-center mb-4">
           <Tabs value={sortBy} onValueChange={handleSortChange} className="w-full">
-            <TabsList className="grid grid-cols-3 h-9">
+            <TabsList className="grid grid-cols-2 h-9">
               <TabsTrigger value="popular">인기순</TabsTrigger>
-              <TabsTrigger value="recent">최신순</TabsTrigger>
               <TabsTrigger value="distance">거리순</TabsTrigger>
             </TabsList>
           </Tabs>
@@ -152,8 +199,13 @@ const SearchResults: React.FC = () => {
               temples.map((temple) => (
                 <TempleItem
                   key={temple.id}
-                  temple={temple}
+                  temple={{
+                    ...temple,
+                    likeCount: temple.follower_count || 0
+                  }}
                   onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
+                  isLiked={likedTemples[temple.id] || false}
+                  onLikeToggle={() => handleLikeToggle(temple.id)}
                 />
               ))
             ) : (

@@ -5,6 +5,8 @@ import { getTempleStayDetail } from '@/lib/repository';
 import { TempleStay } from '@/types';
 import { toast, Toaster } from 'sonner';
 import TempleStayDetailContent from '@/components/search/TempleStayDetailContent';
+import { useAuth } from '@/context/AuthContext';
+import { isTempleStayFollowed, toggleTempleStayFollow } from '@/lib/repository';
 
 const TempleStayDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +14,8 @@ const TempleStayDetail: React.FC = () => {
   const [templeStay, setTempleStay] = useState<TempleStay | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const { user } = useAuth();
 
   const handleReservation = () => {
     if (templeStay?.websiteUrl) {
@@ -45,6 +49,51 @@ const TempleStayDetail: React.FC = () => {
     
     fetchTempleStay();
   }, [id, navigate]);
+
+  // 좋아요 상태 확인
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      if (user && templeStay) {
+        try {
+          const status = await isTempleStayFollowed(user.id, templeStay.id);
+          setIsLiked(status);
+        } catch (error) {
+          console.error('Error checking like status:', error);
+        }
+      }
+    };
+    
+    checkLikeStatus();
+  }, [user, templeStay]);
+
+  // 좋아요 토글 핸들러
+  const handleLikeToggle = async () => {
+    if (!user) {
+      toast.error('로그인이 필요한 기능입니다.');
+      return;
+    }
+    
+    if (!templeStay) return;
+    
+    try {
+      const newStatus = await toggleTempleStayFollow(user.id, templeStay.id);
+      setIsLiked(newStatus);
+      
+      // 좋아요 카운트 업데이트
+      setTempleStay(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          likeCount: (prev.likeCount || 0) + (newStatus ? 1 : -1)
+        };
+      });
+      
+      toast.success(newStatus ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.');
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      toast.error('처리 중 오류가 발생했습니다.');
+    }
+  };
 
   if (loading) {
     return (
@@ -99,6 +148,14 @@ const TempleStayDetail: React.FC = () => {
             <div className="flex space-x-2">
               <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <Share className="w-5 h-5 text-gray-600" />
+              </button>
+              <button 
+                onClick={handleLikeToggle}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <Heart 
+                  className={`w-5 h-5 ${isLiked ? 'fill-[#ff7730] stroke-[#ff7730]' : 'stroke-gray-600'}`} 
+                />
               </button>
             </div>
           </div>

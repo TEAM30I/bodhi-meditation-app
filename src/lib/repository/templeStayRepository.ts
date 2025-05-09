@@ -4,17 +4,6 @@ import { calculateDistance, formatDistance } from '@/utils/locationUtils';
 import { TempleStay, TempleStaySort } from '@/types';
 import { DEFAULT_LOCATION, DEFAULT_IMAGES } from '@/constants';
 
-// Get all available regions for UI location selection
-export async function getTempleStayLocations(): Promise<string[]> {
-  try {
-    const regions = await getTempleStayRegions();
-    return regions;
-  } catch (error) {
-    console.error('Error fetching temple stay locations:', error);
-    return [];
-  }
-}
-
 // Fetch temple stay detail by ID
 export async function getTempleStayDetail(id: string): Promise<TempleStay | null> {
   try {
@@ -189,13 +178,6 @@ export async function searchTempleStays(query: string = '', sortBy: TempleStaySo
     let sortedData = [...filteredData];
     
     switch (sortBy) {
-      case 'recent':
-        sortedData.sort((a, b) => {
-          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-          return dateB - dateA;
-        });
-        break;
       case 'price_low':
         sortedData.sort((a, b) => {
           const priceA = a.cost_adult ? parseInt(a.cost_adult.replace(/,/g, '')) : (a.price || 0);
@@ -267,8 +249,6 @@ export async function searchTempleStays(query: string = '', sortBy: TempleStaySo
     return [];
   }
 }
-
-
 
 // Follow temple stay
 export async function followTempleStay(userId: string, templeStayId: string): Promise<boolean> {
@@ -443,3 +423,46 @@ export async function getTempleStayRegions(): Promise<string[]> {
 // Export empty locations array for backward compatibility
 // This will be filled by the getTempleStayLocations function instead of being hardcoded
 export const locations: string[] = [];
+
+// 템플스테이 토글 함수 추가
+export async function toggleTempleStayFollow(userId: string, templeStayId: string): Promise<boolean> {
+  try {
+    // 현재 팔로우 상태 확인
+    const isFollowed = await isTempleStayFollowed(userId, templeStayId);
+    
+    if (isFollowed) {
+      // 이미 팔로우한 경우 -> 팔로우 해제
+      const result = await unfollowTempleStay(userId, templeStayId);
+      return !result; // unfollowTempleStay가 성공하면 false 반환 (팔로우 해제됨)
+    } else {
+      // 팔로우하지 않은 경우 -> 팔로우 추가
+      const result = await followTempleStay(userId, templeStayId);
+      return result; // followTempleStay가 성공하면 true 반환 (팔로우 추가됨)
+    }
+  } catch (error) {
+    console.error('Error in toggleTempleStayFollow:', error);
+    return false;
+  }
+}
+
+// 템플스테이 팔로우 상태 확인 함수 추가
+export async function isTempleStayFollowed(userId: string, templeStayId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('user_follow_temple_stays')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('temple_stay_id', templeStayId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116: 결과가 없음
+      console.error('Error checking temple stay follow status:', error);
+      return false;
+    }
+    
+    return !!data; // data가 있으면 true, 없으면 false
+  } catch (error) {
+    console.error('Error in isTempleStayFollowed:', error);
+    return false;
+  }
+}

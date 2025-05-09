@@ -5,6 +5,8 @@ import { Temple } from '@/types';
 interface TempleItemProps {
   temple: Temple;
   onClick?: () => void;
+  isLiked?: boolean;
+  onLikeToggle?: () => void;
 }
 
 const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
@@ -20,10 +22,6 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick }) => {
           className="w-full h-56 object-cover"
         />
         
-        {/* Image indicator (1/4) */}
-        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-          1/4
-        </div>
         
         {/* Title and actions */}
         <div className="p-4">

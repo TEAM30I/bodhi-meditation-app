@@ -26,7 +26,7 @@ export interface Temple {
   facilities?: string[];
 }
 
-export type TempleSort = 'popular' | 'recent' | 'distance';
+export type TempleSort = 'popular' | 'distance';
 
 export interface RegionTag {
   id: string;
