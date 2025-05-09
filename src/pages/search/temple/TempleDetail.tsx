@@ -93,9 +93,7 @@ const TempleDetail: React.FC = () => {
     }
 
     try {
-      console.log('Toggling favorite for user:', user.id, 'temple:', id);
       const result = await toggleTempleFollow(user.id, id);
-      console.log('Toggle result:', result);
       setIsFavorite(result);
       
       // 찜 카운트 업데이트
@@ -107,10 +105,10 @@ const TempleDetail: React.FC = () => {
         };
       });
       
-      toast.success(`${temple?.name}을(를) ${result ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
+      toast.success(`${result ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      toast.error('찜하기 처리 중 오류가 발생했습니다.');
+      toast.error('처리 중 오류가 발생했습니다.');
     }
   };
 

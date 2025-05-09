@@ -5,9 +5,9 @@ import { toast } from 'sonner';
 
 interface TempleItemProps {
   temple: Temple;
-  onClick?: () => void;
-  isLiked?: boolean;
-  onLikeToggle?: () => void;
+  onClick: () => void;
+  isLiked: boolean;
+  onLikeToggle: (e: React.MouseEvent) => void | Promise<void>;
   showLikeCount?: boolean;
   distance?: string;
 }
@@ -16,7 +16,7 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick, isLiked, onLik
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onLikeToggle) {
-      onLikeToggle();
+      onLikeToggle(e);
     }
   };
 

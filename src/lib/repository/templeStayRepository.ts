@@ -517,3 +517,71 @@ export async function isTempleStayFollowed(userId: string, templeStayId: string)
     return false;
   }
 }
+
+// 특정 좌표 주변의 템플스테이 검색
+export async function searchNearbyTempleStays(
+  latitude: number, 
+  longitude: number, 
+  radius: number = 50, // 기본 반경 50km
+  limit: number = 10
+): Promise<TempleStay[]> {
+  try {
+    // 모든 템플스테이 데이터 가져오기
+    const { data, error } = await supabase
+      .from('temple_stays')
+      .select('*, temple:temple_id(*)');
+      
+    if (error) {
+      console.error('Error fetching temple stays:', error);
+      return [];
+    }
+    
+    // 각 템플스테이의 거리 계산 (사찰 위치 기준)
+    const templeStaysWithDistance = data.map(templeStay => {
+      if (templeStay.temple?.latitude && templeStay.temple?.longitude) {
+        const distance = calculateDistance(
+          latitude,
+          longitude,
+          templeStay.temple.latitude,
+          templeStay.temple.longitude
+        );
+        
+        return {
+          ...templeStay,
+          distance: formatDistance(distance),
+          distanceValue: distance
+        };
+      }
+      return { ...templeStay, distanceValue: Infinity };
+    });
+    
+    // 거리 기준으로 정렬하고 반경 내의 템플스테이만 필터링
+    return templeStaysWithDistance
+      .filter(templeStay => templeStay.distanceValue <= radius)
+      .sort((a, b) => a.distanceValue - b.distanceValue)
+      .slice(0, limit)
+      .map(templeStay => ({
+        id: templeStay.id,
+        templeName: templeStay.name || templeStay.temple_name,
+        temple_name: templeStay.temple_name,
+        location: templeStay.location || templeStay.temple?.address,
+        price: templeStay.price,
+        imageUrl: templeStay.image_url,
+        likeCount: templeStay.follower_count || 0,
+        distance: templeStay.distance,
+        temple: templeStay.temple ? {
+          id: templeStay.temple.id,
+          name: templeStay.temple.name,
+          region: templeStay.temple.region || '',
+          address: templeStay.temple.address,
+          latitude: templeStay.temple.latitude,
+          longitude: templeStay.temple.longitude
+        } : undefined,
+        direction: templeStay.direction,
+        websiteUrl: templeStay.website_url
+      }));
+  } catch (error) {
+    console.error('Error in searchNearbyTempleStays:', error);
+    return [];
+  }
+}

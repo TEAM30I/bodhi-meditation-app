@@ -32,20 +32,41 @@ export async function getCurrentLocation(): Promise<{latitude: number, longitude
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
       console.log('Geolocation이 지원되지 않는 브라우저입니다');
-      resolve(DEFAULT_LOCATION); // 기본 위치 반환
+      return resolve(DEFAULT_LOCATION);
     }
+    
+    const options = {
+      enableHighAccuracy: true,  // 높은 정확도 요청
+      timeout: 5000,            // 5초 타임아웃
+      maximumAge: 0             // 캐시된 위치 정보를 사용하지 않음
+    };
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        resolve({
+        const location = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
-        });
+        };
+        console.log('현재 위치:', location); // 디버깅용
+        resolve(location);
       },
       (error) => {
-        console.error('위치 정보를 가져오는데 실패했습니다:', error);
-        resolve(DEFAULT_LOCATION); // 오류 시 기본 위치 반환
-      }
+        console.warn('위치 정보 수신 실패:', error.message);
+        // 에러 종류에 따른 사용자 친화적인 메시지 표시
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            console.log('위치 정보 수집이 거부되었습니다.');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            console.log('위치 정보를 사용할 수 없습니다.');
+            break;
+          case error.TIMEOUT:
+            console.log('위치 정보 요청 시간이 초과되었습니다.');
+            break;
+        }
+        resolve(DEFAULT_LOCATION);
+      },
+      options
     );
   });
 }

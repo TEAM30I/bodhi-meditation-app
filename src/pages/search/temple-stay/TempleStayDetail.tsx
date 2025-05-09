@@ -78,28 +78,33 @@ const TempleStayDetail: React.FC = () => {
   }, [id, navigate, user]);
 
   // 좋아요 토글 핸들러
-  const handleToggleLike = async () => {
+  const handleToggleFavorite = async () => {
     if (!user) {
       toast.error('로그인이 필요한 기능입니다.');
       return;
     }
 
+    if (!id) {
+      toast.error('템플스테이 정보가 올바르지 않습니다.');
+      return;
+    }
+
     try {
-      const newStatus = await toggleTempleStayFollow(user.id, id!);
-      setIsLiked(newStatus);
+      const result = await toggleTempleStayFollow(user.id, id);
+      setIsLiked(result);
       
       // 좋아요 카운트 업데이트
       setTempleStay(prev => {
         if (!prev) return null;
         return {
           ...prev,
-          likeCount: (prev.likeCount || 0) + (newStatus ? 1 : -1)
+          likeCount: (prev.likeCount || 0) + (result ? 1 : -1)
         };
       });
       
-      toast.success(newStatus ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.');
+      toast.success(`${result ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error('Error toggling favorite:', error);
       toast.error('처리 중 오류가 발생했습니다.');
     }
   };
@@ -199,7 +204,7 @@ const TempleStayDetail: React.FC = () => {
             templeStay={templeStay} 
             onGoToReservation={handleReservation}
             isLiked={isLiked}
-            onLikeToggle={handleToggleLike}
+            onLikeToggle={handleToggleFavorite}
           />
         </div>
       </div>

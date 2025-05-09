@@ -53,7 +53,7 @@ const Wishlist = () => {
       
       await toggleTempleFollow(user.id, templeId);
       setTemples(prev => prev.filter(temple => temple.id !== templeId));
-      toast.success('찜 목록에서 제거되었습니다.');
+      toast.success('찜 목록에서 제거했습니다.');
     } catch (error) {
       console.error('Error unfollowing temple:', error);
       toast.error('처리 중 오류가 발생했습니다.');
@@ -67,7 +67,7 @@ const Wishlist = () => {
       
       await toggleTempleStayFollow(user.id, templeStayId);
       setTempleStays(prev => prev.filter(ts => ts.id !== templeStayId));
-      toast.success('찜 목록에서 제거되었습니다.');
+      toast.success('찜 목록에서 제거했습니다.');
     } catch (error) {
       console.error('Error unfollowing temple stay:', error);
       toast.error('처리 중 오류가 발생했습니다.');

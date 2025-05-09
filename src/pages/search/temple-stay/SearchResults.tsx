@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter, Search } from 'lucide-react';
-import { searchTempleStays } from '@/lib/repository';
+import { searchTempleStays, isTempleStayFollowed, searchNearbyTempleStays } from '@/lib/repository';
 import { TempleStay, TempleStaySort } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,7 +9,7 @@ import TempleStayItem from '@/components/search/TempleStayItem';
 import PageLayout from '@/components/PageLayout';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { isTempleStayFollowed, toggleTempleStayFollow } from '@/lib/repository';
+import { toggleTempleStayFollow } from '@/lib/repository';
 import { getCurrentLocation, calculateDistance, formatDistance  } from '@/utils/locationUtils';
 
 const SearchResults: React.FC = () => {
@@ -22,11 +22,13 @@ const SearchResults: React.FC = () => {
   const [likedTempleStays, setLikedTempleStays] = useState<Record<string, boolean>>({});
   const { user } = useAuth();
   
-  // URL 쿼리 파라미터 가져오기
+  // URL 쿼리 파라미터를 먼저 가져오기
   const queryParams = new URLSearchParams(location.search);
   const query = queryParams.get('query') || '';
   const nearby = queryParams.get('nearby') === 'true';
-  const isRegion = queryParams.get('isRegion') === 'true';
+  const lat = parseFloat(queryParams.get('lat') || '0');
+  const lng = parseFloat(queryParams.get('lng') || '0');
+  const address = queryParams.get('address') || '';
   const sortByParam = queryParams.get('sort') as TempleStaySort || 'popular';
   
   // 현재 활성화된 탭 (temple 또는 temple-stay)
@@ -46,8 +48,10 @@ const SearchResults: React.FC = () => {
   useEffect(() => {
     if (query) {
       setSearchValue(query);
+    } else if (address) {
+      setSearchValue(address); // 주소가 있으면 검색창에 표시
     }
-  }, [query]);
+  }, [query, address]);
   
   const [sortBy, setSortBy] = useState<TempleStaySort>(sortByParam);
   
@@ -56,35 +60,73 @@ const SearchResults: React.FC = () => {
     const loadTempleStays = async () => {
       setLoading(true);
       try {
-        const data = await searchTempleStays(query, sortByParam);
+        let data: TempleStay[] = [];
         
-        // 위치 정보가 있는 경우 현재 위치와의 거리 계산
-        const templeStaysWithDistance = await Promise.all(
-          data.map(async (ts) => {
-            if (ts.temple?.latitude && ts.temple?.longitude) {
-              try {
-                const userLocation = await getCurrentLocation();
+        // 주변 검색인 경우
+        if (nearby && lat && lng) {
+          // 주변 템플스테이 데이터 가져오기 (이미 거리순으로 정렬된 상위 10개)
+          data = await searchNearbyTempleStays(lat, lng);
+          
+          // 정렬 방식에 따라 재정렬
+          if (sortBy === 'popular') {
+            // 인기순 정렬 (좋아요 수 기준)
+            data.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+          } else if (sortBy === 'price_low') {
+            // 가격 낮은순 정렬
+            data.sort((a, b) => {
+              const priceA = typeof a.price === 'number' ? a.price : 
+                            (typeof a.price === 'string' ? parseInt(a.price.replace(/[^\d]/g, '') || '0') : 0);
+              const priceB = typeof b.price === 'number' ? b.price : 
+                            (typeof b.price === 'string' ? parseInt(b.price.replace(/[^\d]/g, '') || '0') : 0);
+              return priceA - priceB;
+            });
+          } else if (sortBy === 'price_high') {
+            // 가격 높은순 정렬
+            data.sort((a, b) => {
+              const priceA = typeof a.price === 'number' ? a.price : 
+                            (typeof a.price === 'string' ? parseInt(a.price.replace(/[^\d]/g, '') || '0') : 0);
+              const priceB = typeof b.price === 'number' ? b.price : 
+                            (typeof b.price === 'string' ? parseInt(b.price.replace(/[^\d]/g, '') || '0') : 0);
+              return priceB - priceA;
+            });
+          }
+          // distance는 이미 정렬되어 있음
+        } else {
+          // 일반 검색
+          data = await searchTempleStays(query, sortBy);
+          
+          // 쿼리가 없을 때 최대 30개로 제한
+          if (!query) {
+            data = data.slice(0, 30);
+          }
+          
+          // 모든 정렬 방식에서 거리 정보 추가
+          try {
+            const userLocation = await getCurrentLocation();
+            
+            // 각 템플스테이에 거리 정보 추가
+            for (const templeStay of data) {
+              if (templeStay.temple?.latitude && templeStay.temple?.longitude) {
                 const distance = calculateDistance(
                   userLocation.latitude,
                   userLocation.longitude,
-                  ts.temple.latitude,
-                  ts.temple.longitude
+                  templeStay.temple.latitude,
+                  templeStay.temple.longitude
                 );
-                return { ...ts, distance: formatDistance(distance) };
-              } catch (error) {
-                console.error('Error calculating distance:', error);
+                templeStay.distance = formatDistance(distance);
               }
             }
-            return ts;
-          })
-        );
+          } catch (error) {
+            console.error('Error calculating distances:', error);
+          }
+        }
         
-        setTempleStays(templeStaysWithDistance);
+        setTempleStays(data);
         
         // 사용자가 로그인한 경우 좋아요 상태 확인
         if (user) {
           const likedStatus: Record<string, boolean> = {};
-          for (const templeStay of templeStaysWithDistance) {
+          for (const templeStay of data) {
             likedStatus[templeStay.id] = await isTempleStayFollowed(user.id, templeStay.id);
           }
           setLikedTempleStays(likedStatus);
@@ -97,10 +139,11 @@ const SearchResults: React.FC = () => {
     };
     
     loadTempleStays();
-  }, [query, sortByParam, user]);
+  }, [query, sortBy, nearby, lat, lng, user]);
   
   const handleFilterChange = (value: string) => {
     const newFilter = value as TempleStaySort;
+    setSortBy(newFilter);
     setActiveFilter(newFilter);
     
     // URL 파라미터 업데이트
@@ -142,16 +185,35 @@ const SearchResults: React.FC = () => {
         )
       );
       
-      toast.success(newStatus ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.');
+      toast.success(`${newStatus ? '찜 목록에 추가했습니다.' : '찜 목록에서 제거했습니다.'}`);
     } catch (error) {
       console.error('Error toggling like:', error);
       toast.error('처리 중 오류가 발생했습니다.');
     }
   };
   
-  const title = query 
-    ? `'${query}' 검색 결과` 
-    : '검색 결과';
+  // 주변 검색 핸들러
+  const handleNearbySearch = async () => {
+    try {
+      // 현재 위치 가져오기
+      const userLocation = await getCurrentLocation();
+      
+      // 주변 검색 결과 페이지로 이동
+      navigate(`/search/temple-stay/results?nearby=true&lat=${userLocation.latitude}&lng=${userLocation.longitude}`);
+    } catch (error) {
+      console.error('Error getting location:', error);
+      toast.error('위치 정보를 가져오는데 실패했습니다.');
+    }
+  };
+  
+  // 타이틀 설정
+  const title = nearby 
+    ? address 
+      ? `'${address}' 주변 템플스테이` 
+      : '내 주변 템플스테이'
+    : query 
+      ? `'${query}' 검색 결과` 
+      : '검색 결과';
   
   return (
     <PageLayout 
@@ -184,10 +246,19 @@ const SearchResults: React.FC = () => {
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="사찰명, 템플스테이명 또는 지역으로 검색"
+            placeholder="템플스테이명 또는 지역으로 검색"
             className="w-full p-4 pl-10 bg-white border border-gray-200 rounded-lg"
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          
+          {/* 주변 검색 버튼 */}
+          <button
+            type="button"
+            onClick={handleNearbySearch}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-[#DE7834] text-white px-3 py-1 rounded-full text-sm"
+          >
+            주변 검색
+          </button>
         </form>
         
         {/* 검색 결과 타이틀 */}

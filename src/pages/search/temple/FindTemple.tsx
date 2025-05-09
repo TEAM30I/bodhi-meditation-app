@@ -7,6 +7,8 @@ import PageLayout from '@/components/PageLayout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { addressToCoords } from '@/utils/geocodeUtils';
+import {getCurrentLocation} from '@/utils/locationUtils';
 
 const FindTemple = () => {
   const navigate = useNavigate();
@@ -72,9 +74,50 @@ const FindTemple = () => {
     fetchLocations();
   }, [user]);
 
-  const handleSearch = (event: React.FormEvent) => {
+  // 주변 검색 핸들러
+  const handleNearbySearch = async () => {
+    try {
+      // 현재 위치 가져오기
+      const userLocation = await getCurrentLocation();
+      
+      // 주변 검색 결과 페이지로 이동
+      navigate(`/search/temple/results?nearby=true&lat=${userLocation.latitude}&lng=${userLocation.longitude}`);
+    } catch (error) {
+      console.error('Error getting location:', error);
+      toast.error('위치 정보를 가져오는데 실패했습니다.');
+    }
+  };
+  
+  // 주소 검색 핸들러
+  const handleAddressSearch = async (event: React.FormEvent) => {
     event.preventDefault();
-    navigate(`/search/temple/results?query=${searchValue}`);
+    
+    if (!searchValue.trim()) {
+      toast.error('검색어를 입력해주세요.');
+      return;
+    }
+    
+    // 일반 검색어인지 주소인지 확인
+    if (searchValue.includes('로') || searchValue.includes('길') || searchValue.includes('동') || searchValue.includes('구')) {
+      try {
+        // 주소를 좌표로 변환
+        const coords = await addressToCoords(searchValue);
+        
+        if (coords) {
+          // 좌표 기반 검색 결과 페이지로 이동
+          navigate(`/search/temple/results?nearby=true&address=${encodeURIComponent(searchValue)}&lat=${coords.latitude}&lng=${coords.longitude}`);
+        } else {
+          // 좌표 변환 실패 시 일반 검색으로 진행
+          navigate(`/search/temple/results?query=${searchValue}`);
+        }
+      } catch (error) {
+        console.error('Error in address search:', error);
+        navigate(`/search/temple/results?query=${searchValue}`);
+      }
+    } else {
+      // 일반 검색어로 검색
+      navigate(`/search/temple/results?query=${searchValue}`);
+    }
   };
 
   const handleRegionClick = (region: string) => {
@@ -138,16 +181,26 @@ const FindTemple = () => {
           </Button>
         </div>
 
-        <form onSubmit={handleSearch} className="relative mb-6">
-          <input
-            type="text"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="사찰명 또는 지역으로 검색"
-            className="w-full p-4 pl-10 bg-white border border-gray-200 rounded-lg"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-        </form>
+        <div className="relative mb-6">
+          <form onSubmit={handleAddressSearch} className="relative">
+            <input
+              type="text"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="사찰명, 지역 또는 주소로 검색"
+              className="w-full p-4 pl-10 bg-white border border-gray-200 rounded-lg"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          </form>
+          
+          {/* 주변 검색 버튼 */}
+          <button
+            onClick={handleNearbySearch}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-[#DE7834] text-white px-3 py-1 rounded-full text-sm"
+          >
+            주변 검색
+          </button>
+        </div>
 
         <div className="mb-8">
           <h3 className="font-semibold text-lg mb-4">지역별 사찰</h3>

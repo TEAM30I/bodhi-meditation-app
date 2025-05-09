@@ -9,7 +9,8 @@ export {
   getUserFollowedTemples,
   getTempleRegions,
   isTempleFollowed,
-  toggleTempleFollow
+  toggleTempleFollow,
+  searchNearbyTemples
 } from './templeRepository';
   
 // 템플스테이 관련 함수
@@ -22,7 +23,8 @@ export {
   getTopLikedTempleStays,
   getTempleStayRegions,
   isTempleStayFollowed,
-  toggleTempleStayFollow
+  toggleTempleStayFollow,
+  searchNearbyTempleStays
 } from './templeStayRepository';
 
 // 경전 관련 함수

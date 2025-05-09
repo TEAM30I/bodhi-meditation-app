@@ -457,3 +457,70 @@ export async function getTopLikedTemples(limit: number = 10): Promise<Temple[]> 
     return [];
   }
 }
+
+// 특정 좌표 주변의 사찰 검색
+export async function searchNearbyTemples(
+  latitude: number, 
+  longitude: number, 
+  radius: number = 50, // 기본 반경 50km
+  limit: number = 10
+): Promise<Temple[]> {
+  try {
+    // 모든 사찰 데이터 가져오기
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*');
+      
+    if (error) {
+      console.error('Error fetching temples:', error);
+      return [];
+    }
+    
+    // 각 사찰의 거리 계산
+    const templesWithDistance = data.map(temple => {
+      if (temple.latitude && temple.longitude) {
+        const distance = calculateDistance(
+          latitude,
+          longitude,
+          temple.latitude,
+          temple.longitude
+        );
+        
+        return {
+          ...temple,
+          distance: formatDistance(distance),
+          distanceValue: distance
+        };
+      }
+      return { ...temple, distanceValue: Infinity };
+    });
+    
+    // 거리 기준으로 정렬하고 반경 내의 사찰만 필터링
+    return templesWithDistance
+      .filter(temple => temple.distanceValue <= radius)
+      .sort((a, b) => a.distanceValue - b.distanceValue)
+      .slice(0, limit)
+      .map(temple => ({
+        id: temple.id,
+        name: temple.name,
+        address: temple.address || '',
+        region: temple.region || '',
+        contact: temple.contact || '',
+        description: temple.description,
+        imageUrl: temple.image_url,
+        image_url: temple.image_url,
+        likeCount: temple.follower_count || 0,
+        follower_count: temple.follower_count || 0,
+        latitude: temple.latitude,
+        longitude: temple.longitude,
+        distance: temple.distance,
+        // 선택적 필드들
+        facilities: temple.facilities ? JSON.parse(temple.facilities) : [],
+        tags: temple.tags ? JSON.parse(temple.tags) : [],
+        websiteUrl: temple.website_url
+      }));
+  } catch (error) {
+    console.error('Error in searchNearbyTemples:', error);
+    return [];
+  }
+}

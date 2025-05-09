@@ -32,7 +32,7 @@ interface TempleStayItemProps {
 const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick, isLiked, onLikeToggle }) => {
   // 좋아요 버튼 클릭 핸들러
   const handleLikeClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 부모 요소의 onClick 이벤트 전파 방지
+    e.stopPropagation();
     if (onLikeToggle) {
       onLikeToggle(e);
     }
