@@ -4,6 +4,7 @@ export {
     getTempleList,
     getTempleDetail,
     searchTemples,
+    searchTemplesByRegion,
     filterTemplesByTag,
     followTemple,
     unfollowTemple,

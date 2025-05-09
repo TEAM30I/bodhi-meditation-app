@@ -31,6 +31,8 @@ export interface TempleStay {
     region: string;
     address?: string;
     imageUrl?: string;
+    latitude?: number;
+    longitude?: number;
   };
 }
 

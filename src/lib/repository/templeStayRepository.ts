@@ -40,7 +40,7 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
         query = query.order('created_at', { ascending: false });
         break;
       case 'price':
-        query = query.order('price', { ascending: true });
+        query = query.order('cost_adult', { ascending: true });
         break;
       case 'popular':
       default:
@@ -56,13 +56,13 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
     // 데이터 매핑
     const templeStays = data.map(item => ({
       id: item.id,
-      templeName: item.temple_name,
+      templeName: item.temple_name || item.name,
       location: item.location || '',
       imageUrl: item.image_url,
       price: item.cost_adult ? parseInt(item.cost_adult.replace(/,/g, '')) : (item.price || 0),
       description: item.description || '',
       likeCount: item.like_count || 0,
-      // ... 기타 필드 매핑 ...
+      // 템플 객체 항상 포함
       temple: item.temples ? {
         id: item.temples.id,
         name: item.temples.name,
@@ -71,7 +71,15 @@ export async function getTempleStayList(sortBy: TempleStaySort = 'popular'): Pro
         imageUrl: item.temples.image_url,
         latitude: item.temples.latitude,
         longitude: item.temples.longitude
-      } : null
+      } : {
+        id: '',
+        name: item.temple_name || '사찰 정보 없음',
+        region: item.location || '',
+        address: '',
+        imageUrl: '',
+        latitude: 0,
+        longitude: 0
+      }
     }));
     
     // 거리순 정렬 로직은 그대로 유지
@@ -163,7 +171,7 @@ export async function getTempleStayDetail(id: string): Promise<TempleStay | null
 }
 
 // Search temple stays by text query
-export async function searchTempleStays(query: string): Promise<TempleStay[]> {
+export async function searchTempleStays(query: string, sortBy: TempleStaySort = 'popular'): Promise<TempleStay[]> {
   if (!query) return [];
   
   try {
@@ -223,8 +231,28 @@ export async function searchTempleStays(query: string): Promise<TempleStay[]> {
       return false;
     });
     
+    // 정렬 적용
+    let sortedData = [...filteredData];
+    
+    switch (sortBy) {
+      case 'recent':
+        sortedData.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        break;
+      case 'price':
+        sortedData.sort((a, b) => {
+          const priceA = a.cost_adult ? parseInt(a.cost_adult.replace(/,/g, '')) : (a.price || 0);
+          const priceB = b.cost_adult ? parseInt(b.cost_adult.replace(/,/g, '')) : (b.price || 0);
+          return priceA - priceB;
+        });
+        break;
+      case 'popular':
+      default:
+        sortedData.sort((a, b) => (b.follower_count || 0) - (a.follower_count || 0));
+        break;
+    }
+    
     // 결과 매핑 및 반환
-    return filteredData.map(item => ({
+    return sortedData.map(item => ({
       id: item.id,
       templeName: item.temple_name,
       location: item.location || '',
@@ -453,7 +481,16 @@ export async function getTopLikedTempleStays(limit = 5): Promise<TempleStay[]> {
   try {
     const { data, error } = await supabase
       .from('temple_stays')
-      .select('*')
+      .select(`
+        *,
+        temples:temple_id (
+          id,
+          name,
+          region,
+          address,
+          image_url
+        )
+      `)
       .order('follower_count', { ascending: false })
       .limit(limit);
     
@@ -464,12 +501,19 @@ export async function getTopLikedTempleStays(limit = 5): Promise<TempleStay[]> {
     
     return data.map(item => ({
       id: item.id,
-      templeName: item.name,
-      location: item.region,
+      templeName: item.temple_name || item.name,
+      location: item.region || '',
       imageUrl: item.image_url || "https://via.placeholder.com/400x300/DE7834/FFFFFF/?text=TempleStay",
       price: parseInt(item.cost_adult?.replace(/,/g, '')) || 50000,
       likeCount: item.follower_count,
-      direction: item.public_transportation
+      direction: item.public_transportation,
+      temple: item.temples ? {
+        id: item.temples.id,
+        name: item.temples.name,
+        region: item.temples.region,
+        address: item.temples.address,
+        imageUrl: item.temples.image_url
+      } : null
     }));
   } catch (error) {
     console.error('Error in getTopLikedTempleStays:', error);

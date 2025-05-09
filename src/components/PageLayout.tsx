@@ -10,6 +10,7 @@ interface PageLayoutProps {
   showBackButton?: boolean;
   showBottomNav?: boolean;
   className?: string;
+  onBackButtonClick?: () => void;
 }
 
 const PageLayout: React.FC<PageLayoutProps> = ({
@@ -18,6 +19,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   showBackButton = true,
   showBottomNav = true,
   className = '',
+  onBackButtonClick,
 }) => {
   const navigate = useNavigate();
 
@@ -40,7 +42,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
                 variant="ghost"
                 size="icon"
                 className="absolute w-[23px] h-[23px] left-5"
-                onClick={() => navigate('/main')}
+                onClick={onBackButtonClick || (() => navigate('/main'))}
               >
                 <ArrowLeft className="w-[23px] h-[23px]" />
               </Button>

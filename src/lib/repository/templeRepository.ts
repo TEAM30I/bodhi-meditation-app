@@ -38,6 +38,70 @@ export async function getRegionTags(): Promise<RegionTag[]> {
   }
 }
 
+// 지역명을 광역시/도 단위로 정규화하는 함수
+function normalizeRegionToProvince(region: string): string {
+  // 광역시/도 추출 정규식
+  const provinceRegex = /^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)/;
+  
+  const match = region.match(provinceRegex);
+  if (match) {
+    return match[1];
+  }
+  
+  // 특별한 케이스 처리
+  if (region.includes('충청북도')) return '충북';
+  if (region.includes('충청남도')) return '충남';
+  if (region.includes('전라북도')) return '전북';
+  if (region.includes('전라남도')) return '전남';
+  if (region.includes('경상북도')) return '경북';
+  if (region.includes('경상남도')) return '경남';
+  if (region.includes('제주특별자치도')) return '제주';
+  if (region.includes('세종특별자치시')) return '세종';
+  
+  // 기본값 반환
+  return region;
+}
+
+// 사찰 지역 목록 가져오기 (광역시/도 단위로 그룹화)
+export async function getTempleRegions(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('temples')
+      .select('region')
+      .not('region', 'is', null);
+    
+    if (error) {
+      console.error('Error fetching temple regions:', error);
+      return [];
+    }
+    
+    // 모든 지역을 광역시/도 단위로 정규화
+    const normalizedRegions = data
+      .map(item => normalizeRegionToProvince(item.region || ''))
+      .filter(Boolean); // 빈 문자열 제거
+    
+    // 중복 제거 및 정렬
+    const uniqueRegions = [...new Set(normalizedRegions)].sort();
+    
+    // 기본 지역 목록 (데이터가 없을 경우 대비)
+    const defaultRegions = [
+      '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
+      '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+    ];
+    
+    // 데이터베이스에서 가져온 지역이 없으면 기본 지역 목록 반환
+    return uniqueRegions.length > 0 ? uniqueRegions : defaultRegions;
+  } catch (error) {
+    console.error('Error in getTempleRegions:', error);
+    
+    // 오류 발생 시 기본 지역 목록 반환
+    return [
+      '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
+      '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+    ];
+  }
+}
+
 // Supabase 데이터베이스에서 사찰 목록 가져오기
 export async function getTempleList(sortBy: TempleSort = 'popular'): Promise<Temple[]> {
   try {
@@ -464,29 +528,6 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
   }
 }
 
-// Get temple regions from database
-export async function getTempleRegions(): Promise<string[]> {
-  try {
-    const { data, error } = await supabase
-      .from('temples')
-      .select('region')
-      .not('region', 'is', null)
-      .order('region', { ascending: true });
-    
-    if (error) {
-      console.error('Error fetching temple regions:', error);
-      return [];
-    }
-    
-    // Extract unique regions
-    const regions = [...new Set(data.map(item => item.region).filter(Boolean))];
-    return regions;
-  } catch (error) {
-    console.error('Error in getTempleRegions:', error);
-    return [];
-  }
-}
-
 // Get top regions
 export async function getTopRegions(limit = 8): Promise<{name: string, count: number}[]> {
   try {
@@ -570,5 +611,41 @@ export async function toggleTempleFollow(userId: string, templeId: string): Prom
   } catch (error) {
     console.error('Error in toggleTempleFollow:', error);
     return false;
+  }
+}
+
+// 지역별 사찰 검색 기능
+export async function searchTemplesByRegion(region: string): Promise<Temple[]> {
+  try {
+    const normalizedRegion = normalizeRegionToProvince(region);
+    
+    const { data, error } = await supabase
+      .from('temples')
+      .select('*')
+      .ilike('region', `%${normalizedRegion}%`);
+      
+    if (error) {
+      console.error('Error searching temples by region:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      address: item.address || item.region || '',
+      region: item.region || '',
+      contact: item.contact || '',
+      imageUrl: item.image_url || DEFAULT_IMAGES.TEMPLE,
+      image_url: item.image_url || DEFAULT_IMAGES.TEMPLE,
+      description: item.description,
+      likeCount: item.follower_count,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      facilities: item.facilities ? JSON.parse(item.facilities) : [],
+      tags: item.tags ? JSON.parse(item.tags) : []
+    }));
+  } catch (error) {
+    console.error('Error in searchTemplesByRegion:', error);
+    return [];
   }
 }

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Book, Search, Heart, User, Home } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface NavItemProps {
   icon: JSX.Element;
@@ -29,7 +30,7 @@ const BottomNav = () => {
   const isHomePath = pathname === '/main';
   const isWishlistPath = pathname.startsWith('/wishlist');
   const isScripturePath = pathname.startsWith('/scripture');
-  const isSearchPath = pathname.includes('/search');
+  const isSearchPath = pathname.includes('/search/temple');
   const isProfilePath = pathname.startsWith('/profile');
 
   return (
@@ -51,7 +52,7 @@ const BottomNav = () => {
           icon={<Search size={28} className={isSearchPath ? "fill-[rgba(222,120,52,0.2)] stroke-[#DE7834]" : ""} />}
           label="검색"
           isActive={isSearchPath}
-          onClick={() => navigate('/search')}
+          onClick={() => navigate('/search/temple')}
         />
         <NavItem
           icon={<Heart size={28} className={isWishlistPath ? "fill-[rgba(222,120,52,0.2)] stroke-[#DE7834]" : ""} />}

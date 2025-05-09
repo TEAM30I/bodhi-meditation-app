@@ -1,180 +1,183 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Search, X, SlidersHorizontal } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Filter, Search } from 'lucide-react';
+import { searchTemples, getTempleList, searchTemplesByRegion } from '@/lib/repository';
+import { Temple, TempleSort } from '@/types';
 import { Button } from '@/components/ui/button';
-import TempleItem from '@/components/search/TempleItem';
-import { getTempleList, searchTemples, getNearbyTemples } from '@/lib/repository';
-import { Temple } from '@/types';
-import { getCurrentLocation } from '@/utils/locationUtils';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TempleItem from '@/components/search/temple/TempleItem';
+import PageLayout from '@/components/PageLayout';
 
 const SearchResults: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const query = searchParams.get('query') || '';
-  const region = searchParams.get('region') || '';
-  const nearby = searchParams.get('nearby') === 'true';
-  
-  const [searchValue, setSearchValue] = useState(query || region);
   const [temples, setTemples] = useState<Temple[]>([]);
-  const [activeFilter, setActiveFilter] = useState<'popular' | 'recent' | 'distance'>('popular');
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<TempleSort>('popular');
+  const [searchValue, setSearchValue] = useState('');
+  
+  // URL 쿼리 파라미터 가져오기
+  const queryParams = new URLSearchParams(location.search);
+  const searchQuery = queryParams.get('query') || '';
+  const regionQuery = queryParams.get('region') || '';
+  const sortQuery = queryParams.get('sort') as TempleSort || 'popular';
+  
+  // 현재 활성화된 탭 (temple 또는 temple-stay)
+  const isTempleTab = !location.pathname.includes('temple-stay');
 
+  // 템플스테이 탭으로 이동
+  const handleTempleStayTab = () => {
+    navigate('/search/temple-stay');
+  };
+
+  // 사찰 탭으로 이동
+  const handleTempleTab = () => {
+    navigate('/search/temple');
+  };
+  
+  // 검색어 초기화
   useEffect(() => {
+    if (searchQuery) {
+      setSearchValue(searchQuery);
+    }
+  }, [searchQuery]);
+  
+  useEffect(() => {
+    // URL에서 정렬 방식 가져오기
+    if (sortQuery) {
+      setSortBy(sortQuery);
+    }
+    
     const fetchTemples = async () => {
       setLoading(true);
       try {
         let results: Temple[] = [];
         
-        if (nearby) {
-          // Get user location
-          const userLocation = await getCurrentLocation();
-          results = await getNearbyTemples(userLocation.latitude, userLocation.longitude);
-        } else if (query || region) {
-          // Search temples based on query or region
-          const searchTerm = query || region;
-          results = await searchTemples(searchTerm);
+        if (searchQuery) {
+          // 검색어로 사찰 검색
+          results = await searchTemples(searchQuery);
+        } else if (regionQuery) {
+          // 지역으로 사찰 검색
+          results = await searchTemplesByRegion(regionQuery);
         } else {
-          // Just get all temples with the current sort
-          results = await getTempleList(activeFilter);
+          // 기본 정렬 방식으로 모든 사찰 가져오기
+          results = await getTempleList(sortBy);
         }
         
         setTemples(results);
       } catch (error) {
         console.error('Error fetching temples:', error);
-        setTemples([]);
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchTemples();
-  }, [query, region, nearby]);
-
-  // Update sort when filter changes
-  useEffect(() => {
-    const sortTemples = async () => {
-      setLoading(true);
-      try {
-        // If we're in regular search mode (not nearby or specific query)
-        if (!nearby && !query && !region) {
-          const sortedTemples = await getTempleList(activeFilter);
-          setTemples(sortedTemples);
-        } else if (nearby) {
-          // If we're in nearby mode, resort the existing temples by distance
-          const userLocation = await getCurrentLocation();
-          const newResults = await getNearbyTemples(userLocation.latitude, userLocation.longitude);
-          setTemples(newResults);
-        }
-      } catch (error) {
-        console.error('Error sorting temples:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    sortTemples();
-  }, [activeFilter]);
-
-  const handleClearSearch = () => {
-    setSearchValue('');
-  };
-
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchValue.trim()) {
-      navigate(`/search/temple/results?query=${encodeURIComponent(searchValue.trim())}`);
-    }
-  };
-
-  const handleTempleClick = (id: string) => {
-    navigate(`/search/temple/detail/${id}`);
+  }, [searchQuery, regionQuery, sortBy, sortQuery]);
+  
+  const handleSortChange = (value: string) => {
+    const newSortBy = value as TempleSort;
+    setSortBy(newSortBy);
+    
+    // URL 업데이트
+    const params = new URLSearchParams(location.search);
+    params.set('sort', newSortBy);
+    navigate(`${location.pathname}?${params.toString()}`);
   };
   
-  const handleSearch = () => navigate(`/search/temple/results?query=${searchValue}`);
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    navigate(`/search/temple/results?query=${searchValue}`);
+  };
+  
+  const title = searchQuery 
+    ? `'${searchQuery}' 검색 결과` 
+    : regionQuery 
+      ? `${regionQuery} 지역 사찰` 
+      : '사찰 목록';
   
   return (
-    <div className="bg-white min-h-screen pb-16">
-      <div className="bg-white sticky top-0 z-10 border-b border-[#E5E5EC]">
-        <div className="max-w-[480px] mx-auto px-5 py-3 flex items-center space-x-4">
-          <button onClick={() => navigate(-1)} className="p-1">
-            <ArrowLeft className="h-6 w-6" />
-          </button>
-          
-          <form onSubmit={handleSearchSubmit} className="flex-1 relative">
-            <Input
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="사찰 검색"
-              className="w-full pl-9 pr-4 py-2 rounded-full bg-[#F5F5F5] border-none"
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          </form>
-        </div>
-        {/* ✅ 검색하기 버튼 */}
-        <Button
-          className="w-full h-11 mb-4 bg-[#DE7834] hover:bg-[#c96b2e]"
-          onClick={handleSearch}
-        >
-          검색하기
-        </Button>
-      </div>
-      
-      <div className="max-w-[480px] mx-auto px-5 py-3">
-        <div className="flex gap-2 mb-4">
+    <PageLayout 
+      title="사찰 찾기" 
+      showBackButton 
+      onBackButtonClick={() => navigate(-1)}
+    >
+      <div className="p-4">
+        {/* 탭 버튼 */}
+        <div className="flex gap-2 mb-6">
           <Button
-            variant={activeFilter === 'popular' ? 'default' : 'outline'}
-            onClick={() => setActiveFilter('popular')}
-            className={activeFilter === 'popular' ? 'bg-[#DE7834]' : 'bg-white'}
-            size="sm"
+            variant={isTempleTab ? 'default' : 'outline'}
+            className={`flex-1 ${isTempleTab ? 'bg-[#DE7834]' : ''}`}
+            onClick={handleTempleTab}
           >
-            인기순
+            사찰
           </Button>
           <Button
-            variant={activeFilter === 'recent' ? 'default' : 'outline'}
-            onClick={() => setActiveFilter('recent')}
-            className={activeFilter === 'recent' ? 'bg-[#DE7834]' : 'bg-white'}
-            size="sm"
+            variant={!isTempleTab ? 'default' : 'outline'}
+            className={`flex-1 ${!isTempleTab ? 'bg-[#DE7834]' : ''}`}
+            onClick={handleTempleStayTab}
           >
-            최신순
-          </Button>
-          <Button
-            variant={activeFilter === 'distance' ? 'default' : 'outline'}
-            onClick={() => setActiveFilter('distance')}
-            className={activeFilter === 'distance' ? 'bg-[#DE7834]' : 'bg-white'}
-            size="sm"
-          >
-            거리순
+            템플스테이
           </Button>
         </div>
         
-        {/* 사찰 목록 */}
+        {/* 검색창 추가 */}
+        <form onSubmit={handleSearch} className="relative mb-6">
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder="사찰명 또는 지역으로 검색"
+            className="w-full p-4 pl-10 bg-white border border-gray-200 rounded-lg"
+          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        </form>
+        
+        {/* 검색 결과 타이틀 */}
+        {(searchQuery || regionQuery) && (
+          <h2 className="font-semibold text-lg mb-4">{title}</h2>
+        )}
+        
+        {/* 정렬 옵션 */}
+        <div className="flex justify-between items-center mb-4">
+          <Tabs value={sortBy} onValueChange={handleSortChange} className="w-full">
+            <TabsList className="grid grid-cols-3 h-9">
+              <TabsTrigger value="popular">인기순</TabsTrigger>
+              <TabsTrigger value="recent">최신순</TabsTrigger>
+              <TabsTrigger value="distance">거리순</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          <Button variant="outline" size="sm" className="ml-2 flex-shrink-0">
+            <Filter size={16} className="mr-1" />
+            필터
+          </Button>
+        </div>
+        
+        {/* 검색 결과 */}
         {loading ? (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DE7834]" />
           </div>
-        ) : temples.length > 0 ? (
-          <div className="space-y-4">
-            {temples.map((temple) => (
-              <TempleItem 
-                key={temple.id}
-                temple={temple}
-                onClick={() => handleTempleClick(temple.id)}
-              />
-            ))}
-          </div>
         ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-500">검색 결과가 없습니다.</p>
+          <div>
+            {temples.length ? (
+              temples.map((temple) => (
+                <TempleItem
+                  key={temple.id}
+                  temple={temple}
+                  onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">검색 결과가 없습니다.</p>
+              </div>
+            )}
           </div>
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

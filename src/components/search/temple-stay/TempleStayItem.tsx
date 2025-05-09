@@ -52,7 +52,7 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick }) 
           {/* Location */}
           <div className="flex items-center text-gray-600 text-sm mt-1 mb-3">
             <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-            <span className="line-clamp-1">{templeStay.temple?.address || templeStay.location} • {templeStay.direction || '도보 10분'}</span>
+            <span className="line-clamp-1">{templeStay.temple?.address || templeStay.location} • {templeStay.direction }</span>
           </div>
           
           {/* Website */}

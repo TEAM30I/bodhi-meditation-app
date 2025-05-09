@@ -74,7 +74,7 @@ import ProfileManage from "@/pages/profile/ProfileManage";
 import Wishlist from "@/pages/wishlist";
 
 // Search Module
-import SearchHome from "@/pages/search/SearchHome";
+// import SearchHome from "@/pages/search/SearchHome";
 
 // Temple Module
 import FindTemple from './pages/search/temple/FindTemple';
@@ -192,7 +192,7 @@ const App: React.FC = () => {
             {/* Search Module Routes */}
             <Route path="/search" element={
               <ProtectedRoute>
-                <SearchHome />
+                <Navigate to="/search/temple" replace />
               </ProtectedRoute>
             } />
             

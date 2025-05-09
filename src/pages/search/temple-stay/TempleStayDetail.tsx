@@ -89,10 +89,6 @@ const TempleStayDetail: React.FC = () => {
             className="w-full h-[300px] object-cover"
           />
           
-          {/* Image indicator */}
-          <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
-            1/4
-          </div>
         </div>
 
         {/* Content Section */}

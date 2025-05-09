@@ -1,19 +1,32 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, ArrowRight } from 'lucide-react';
-import { getTempleStayLocations, getTopLikedTempleStays } from '@/lib/repository';
+import { getTempleStayRegions, getTopLikedTempleStays } from '@/lib/repository';
 import { TempleStay } from '@/types';
 import PageLayout from '@/components/PageLayout';
-import BottomNav from '@/components/BottomNav';
+import { Button } from '@/components/ui/button';
 
 const FindTempleStay = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchValue, setSearchValue] = useState('');
   const [topTempleStays, setTopTempleStays] = useState<TempleStay[]>([]);
   const [loading, setLoading] = useState(true);
   const [locationList, setLocationList] = useState<string[]>([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
+  
+  // 현재 활성화된 탭 (temple 또는 temple-stay)
+  const isTempleStayTab = location.pathname.includes('temple-stay');
+
+  // 템플스테이 탭으로 이동
+  const handleTempleStayTab = () => {
+    navigate('/search/temple-stay');
+  };
+
+  // 사찰 탭으로 이동
+  const handleTempleTab = () => {
+    navigate('/search/temple');
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,7 +44,7 @@ const FindTempleStay = () => {
     const fetchLocations = async () => {
       try {
         setLocationsLoading(true);
-        const locations = await getTempleStayLocations();
+        const locations = await getTempleStayRegions();
         setLocationList(locations);
       } catch (error) {
         console.error("Error fetching locations:", error);
@@ -56,12 +69,30 @@ const FindTempleStay = () => {
   return (
     <PageLayout title="템플스테이 찾기">
       <div className="p-4">
+        {/* 탭 버튼 추가 */}
+        <div className="flex gap-2 mb-6">
+          <Button
+            variant={!isTempleStayTab ? 'default' : 'outline'}
+            className={`flex-1 ${!isTempleStayTab ? 'bg-[#DE7834]' : ''}`}
+            onClick={handleTempleTab}
+          >
+            사찰
+          </Button>
+          <Button
+            variant={isTempleStayTab ? 'default' : 'outline'}
+            className={`flex-1 ${isTempleStayTab ? 'bg-[#DE7834]' : ''}`}
+            onClick={handleTempleStayTab}
+          >
+            템플스테이
+          </Button>
+        </div>
+
         <form onSubmit={handleSearch} className="relative mb-6">
           <input
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="사찰명 또는 지역으로 검색"
+            placeholder="사찰명, 템플스테이명 또는 지역으로 검색"
             className="w-full p-4 pl-10 bg-white border border-gray-200 rounded-lg"
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -127,7 +158,6 @@ const FindTempleStay = () => {
           )}
         </div>
       </div>
-      <BottomNav />
     </PageLayout>
   );
 };

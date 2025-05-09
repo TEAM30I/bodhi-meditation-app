@@ -41,8 +41,18 @@ const Scripture: React.FC = () => {
   const handleNavigateToCalendar = () => navigate('/scripture/calendar');
 
   return (
-    <PageLayout title="경전 읽기" showBackButton={true}>
-      <div className="w-full max-w-[480px] mx-auto min-h-screen bg-gray-50">
+    <PageLayout title="경전 읽기" showBackButton={true} onBackButtonClick={() => navigate(-1)}>
+      <div className="w-full max-w-[480px] mx-auto min-h-screen bg-gray-50 relative">
+        {/* 블러 오버레이 */}
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px] z-10 flex items-center justify-center">
+          <div className="bg-white/90 px-6 py-4 rounded-lg shadow-sm">
+            <p className="text-gray-700 font-medium text-center">
+              곧 새로운 내용으로
+              <br />업데이트될 예정입니다.
+            </p>
+          </div>
+        </div>
+        
         <div className="p-4 space-y-4">
           {activeTab === 'reading' ? (
             <>
