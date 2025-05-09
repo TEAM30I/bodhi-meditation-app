@@ -16,63 +16,28 @@ interface NotificationItem {
 const notificationData: NotificationItem[] = [
   {
     id: "1",
-    type: "템플스테이",
-    title: "다가오는 2025-04-15일 봉기점 봉정사 사찰 체험이 되세요!",
-    date: "2025.04.08",
+    type: "가입축하",
+    title: "BODHI에 오신 것을 환영합니다! 신규 가입을 축하드립니다.",
+    date: "2025.05.10",
     icon: (
-      <div className="w-6 h-6 bg-[#FF8433] rounded-md flex items-center justify-center">
+      <div className="w-6 h-6 bg-[#DE7834] rounded-md flex items-center justify-center">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M11.3333 2.66667H13.3333C13.5101 2.66667 13.6797 2.73691 13.8047 2.86193C13.9298 2.98696 14 3.15652 14 3.33333V13.3333C14 13.5101 13.9298 13.6797 13.8047 13.8047C13.6797 13.9298 13.5101 14 13.3333 14H2.66667C2.48986 14 2.32029 13.9298 2.19526 13.8047C2.07024 13.6797 2 13.5101 2 13.3333V3.33333C2 3.15652 2.07024 2.98696 2.19526 2.86193C2.32029 2.73691 2.48986 2.66667 2.66667 2.66667H4.66667" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M10.6667 1.33334H5.33333C5.14924 1.33334 5 1.48258 5 1.66667V3.66667C5 3.85077 5.14924 4.00001 5.33333 4.00001H10.6667C10.8507 4.00001 11 3.85077 11 3.66667V1.66667C11 1.48258 10.8507 1.33334 10.6667 1.33334Z" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M5.33331 8H10.6666" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M5.33331 10.6667H10.6666" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M8 14.6667C11.6819 14.6667 14.6667 11.6819 14.6667 8.00004C14.6667 4.31814 11.6819 1.33337 8 1.33337C4.3181 1.33337 1.33333 4.31814 1.33333 8.00004C1.33333 11.6819 4.3181 14.6667 8 14.6667Z" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M5.33333 8.00004L7.33333 10.0L11.3333 6.00004" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
     )
   },
   {
     id: "2",
-    type: "사찰",
-    title: "My 사찰로 등록한 '봉정사'에서 새로운 공지사항이 게재되었습니다!",
-    date: "2025.04.08",
+    type: "추천",
+    title: "나에게 맞는 템플스테이와 사찰을 둘러보세요.",
+    date: "2025.05.10",
     icon: (
-      <div className="w-6 h-6 bg-gray-200 rounded-md flex items-center justify-center">
+      <div className="w-6 h-6 bg-[#8B5CF6] rounded-md flex items-center justify-center">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 14.6666C11.6819 14.6666 14.6667 11.6819 14.6667 7.99998C14.6667 4.31808 11.6819 1.33331 8 1.33331C4.3181 1.33331 1.33333 4.31808 1.33333 7.99998C1.33333 11.6819 4.3181 14.6666 8 14.6666Z" stroke="#777777" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M8 5.33331V7.99998" stroke="#777777" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M8 10.6667H8.00667" stroke="#777777" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: "3",
-    type: "템플스테이",
-    title: "다가오는 2025-04-15일 봉기점 봉정사 사찰 체험이 되세요!",
-    date: "2025.04.08",
-    icon: (
-      <div className="w-6 h-6 bg-[#FF8433] rounded-md flex items-center justify-center">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M11.3333 2.66667H13.3333C13.5101 2.66667 13.6797 2.73691 13.8047 2.86193C13.9298 2.98696 14 3.15652 14 3.33333V13.3333C14 13.5101 13.9298 13.6797 13.8047 13.8047C13.6797 13.9298 13.5101 14 13.3333 14H2.66667C2.48986 14 2.32029 13.9298 2.19526 13.8047C2.07024 13.6797 2 13.5101 2 13.3333V3.33333C2 3.15652 2.07024 2.98696 2.19526 2.86193C2.32029 2.73691 2.48986 2.66667 2.66667 2.66667H4.66667" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M10.6667 1.33334H5.33333C5.14924 1.33334 5 1.48258 5 1.66667V3.66667C5 3.85077 5.14924 4.00001 5.33333 4.00001H10.6667C10.8507 4.00001 11 3.85077 11 3.66667V1.66667C11 1.48258 10.8507 1.33334 10.6667 1.33334Z" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M5.33331 8H10.6666" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M5.33331 10.6667H10.6666" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    id: "4",
-    type: "템플스테이",
-    title: "다가오는 2025-04-15일 봉기점 봉정사 사찰 체험이 되세요!",
-    date: "2025.04.08",
-    icon: (
-      <div className="w-6 h-6 bg-[#FF8433] rounded-md flex items-center justify-center">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M11.3333 2.66667H13.3333C13.5101 2.66667 13.6797 2.73691 13.8047 2.86193C13.9298 2.98696 14 3.15652 14 3.33333V13.3333C14 13.5101 13.9298 13.6797 13.8047 13.8047C13.6797 13.9298 13.5101 14 13.3333 14H2.66667C2.48986 14 2.32029 13.9298 2.19526 13.8047C2.07024 13.6797 2 13.5101 2 13.3333V3.33333C2 3.15652 2.07024 2.98696 2.19526 2.86193C2.32029 2.73691 2.48986 2.66667 2.66667 2.66667H4.66667" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M10.6667 1.33334H5.33333C5.14924 1.33334 5 1.48258 5 1.66667V3.66667C5 3.85077 5.14924 4.00001 5.33333 4.00001H10.6667C10.8507 4.00001 11 3.85077 11 3.66667V1.66667C11 1.48258 10.8507 1.33334 10.6667 1.33334Z" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M5.33331 8H10.6666" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M5.33331 10.6667H10.6666" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M6.66667 10L8 11.3333L13.3333 6" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M13.3333 8V12C13.3333 12.3536 13.1929 12.6928 12.9428 12.9428C12.6928 13.1929 12.3536 13.3333 12 13.3333H4.00001C3.64638 13.3333 3.30724 13.1929 3.0572 12.9428C2.80715 12.6928 2.66667 12.3536 2.66667 12V4.00001C2.66667 3.64638 2.80715 3.30724 3.0572 3.0572C3.30724 2.80715 3.64638 2.66667 4.00001 2.66667H10" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
     )
