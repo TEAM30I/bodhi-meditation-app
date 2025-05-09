@@ -15,6 +15,8 @@ import {
 } from '@/lib/repository';
 import { TempleStay, Temple, Scripture } from '@/types';
 import Footer from '@/components/Footer';
+import SurveyPopup from '@/components/SurveyPopup';
+
 /**
  * 전역 kakao 객체 타입 선언 (index.html 에 sdk.js?autoload=false 가 로드돼 있어야 함)
  */
@@ -36,6 +38,23 @@ const Main = () => {
   const [temples, setTemples] = useState<Temple[]>([]);
   const [templeStays, setTempleStays] = useState<TempleStay[]>([]);
   const [scriptures, setScriptures] = useState<Scripture[]>([]);
+  const [showSurveyPopup, setShowSurveyPopup] = useState(false);
+
+  /* ------------------------------------------------------------------
+   * 팝업 관련 함수
+   * ------------------------------------------------------------------ */
+  const checkShouldShowPopup = () => {
+    // 쿠키에서 팝업 숨김 상태 확인
+    const cookies = document.cookie.split(';');
+    const hidePopupCookie = cookies.find(cookie => cookie.trim().startsWith('hideSurveyPopup='));
+    
+    // 쿠키가 없으면 팝업 표시
+    return !hidePopupCookie;
+  };
+
+  const handleClosePopup = () => {
+    setShowSurveyPopup(false);
+  };
 
   /* ------------------------------------------------------------------
    * 데이터 패칭
@@ -56,12 +75,17 @@ const Main = () => {
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
+        
+        // 데이터 로딩 후 현재 경로가 '/main'인 경우에만 팝업 표시 여부 확인
+        if (location.pathname === '/main' && checkShouldShowPopup()) {
+          setShowSurveyPopup(true);
+        }
       }
     };
 
     fetchData();
     window.scrollTo(0, 0);
-  }, []);
+  }, [location.pathname]);
 
   /* ------------------------------------------------------------------
    * 카카오맵 초기화 (kakao.js 는 load() 내부에서 자동 로드됨)
@@ -268,6 +292,9 @@ const Main = () => {
       </div>
       <Footer />
       <BottomNav />
+      
+      {/* 설문 팝업 */}
+      {showSurveyPopup && <SurveyPopup onClose={handleClosePopup} />}
     </div>
   );
 };
