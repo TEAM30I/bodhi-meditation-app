@@ -27,49 +27,56 @@ export function formatDistance(distance: number): string {
   return `${distance.toFixed(1)}km`;
 }
 
-// Get current location of the user
-export async function getCurrentLocation(): Promise<{latitude: number, longitude: number}> {
+// 사용자 현재 위치 가져오기
+export const getCurrentLocation = (): Promise<{latitude: number, longitude: number}> => {
   return new Promise((resolve, reject) => {
+    // 브라우저가 위치 정보를 지원하는지 확인
     if (!navigator.geolocation) {
-      console.log('Geolocation이 지원되지 않는 브라우저입니다');
-      return resolve(DEFAULT_LOCATION);
+      console.error('이 브라우저는 위치 정보를 지원하지 않습니다.');
+      // 기본 위치(서울 시청) 반환
+      resolve({ latitude: 37.5665, longitude: 126.9780 });
+      return;
     }
-    
+
+    // 위치 정보 가져오기 옵션
     const options = {
-      enableHighAccuracy: true,  // 높은 정확도 요청
-      timeout: 5000,            // 5초 타임아웃
-      maximumAge: 0             // 캐시된 위치 정보를 사용하지 않음
+      enableHighAccuracy: true,  // 높은 정확도 사용
+      timeout: 10000,            // 10초 타임아웃
+      maximumAge: 0              // 캐시된 위치 정보 사용 안함
     };
-    
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const location = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        };
-        console.log('현재 위치:', location); // 디버깅용
-        resolve(location);
-      },
-      (error) => {
-        console.warn('위치 정보 수신 실패:', error.message);
-        // 에러 종류에 따른 사용자 친화적인 메시지 표시
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            console.log('위치 정보 수집이 거부되었습니다.');
-            break;
-          case error.POSITION_UNAVAILABLE:
-            console.log('위치 정보를 사용할 수 없습니다.');
-            break;
-          case error.TIMEOUT:
-            console.log('위치 정보 요청 시간이 초과되었습니다.');
-            break;
-        }
-        resolve(DEFAULT_LOCATION);
-      },
-      options
-    );
+
+    // 위치 정보 가져오기 성공 시 콜백
+    const success = (position: GeolocationPosition) => {
+      const { latitude, longitude } = position.coords;
+      console.log('위치 정보 수신 성공:', { latitude, longitude });
+      resolve({ latitude, longitude });
+    };
+
+    // 위치 정보 가져오기 실패 시 콜백
+    const error = (err: GeolocationPositionError) => {
+      console.error('위치 정보 수신 실패:', err.message);
+      
+      // 오류 코드에 따른 처리
+      switch(err.code) {
+        case err.PERMISSION_DENIED:
+          console.error('사용자가 위치 정보 접근을 거부했습니다.');
+          break;
+        case err.POSITION_UNAVAILABLE:
+          console.error('위치 정보를 사용할 수 없습니다.');
+          break;
+        case err.TIMEOUT:
+          console.error('위치 정보 요청 시간이 초과되었습니다.');
+          break;
+      }
+      
+      // 기본 위치(서울 시청) 반환
+      resolve({ latitude: 37.5665, longitude: 126.9780 });
+    };
+
+    // 위치 정보 가져오기 요청
+    navigator.geolocation.getCurrentPosition(success, error, options);
   });
-}
+};
 
 // 사용자 위치 기반으로 아이템 정렬하는 함수
 export async function sortByDistance<T extends { latitude?: number, longitude?: number }>(

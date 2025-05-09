@@ -113,6 +113,9 @@ const AuthStateDebugger: React.FC = () => {
   return null; // UI에 아무것도 렌더링하지 않음
 };
 
+// 기존 import 문에 추가
+import TempleMap from './pages/map/TempleMap';
+
 // Create a new QueryClient instance inside the component
 const App: React.FC = () => {
   // Initialize QueryClient inside the component
@@ -249,6 +252,9 @@ const App: React.FC = () => {
             <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/terms-agreement" element={<TermsAgreement />} />
             <Route path="/home" element={<Index />} />
+
+            {/* 라우트 설정에 추가 */}
+            <Route path="/map/temples" element={<TempleMap />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

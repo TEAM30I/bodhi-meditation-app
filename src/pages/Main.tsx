@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '@/components/BottomNav';
-import { Search, Bell, ChevronRight } from 'lucide-react';
+import { Search, Bell, ChevronRight, MapPin } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/context/AuthContext';
 import { ScriptureCalendarPrev } from '@/components/scripture/ScriptureCalendar_prev';
@@ -12,10 +12,13 @@ import {
   searchTempleStays,
   getReadingSchedule,
   getScriptureList,
+  searchNearbyTemples,
 } from '@/lib/repository';
 import { TempleStay, Temple, Scripture } from '@/types';
 import Footer from '@/components/Footer';
 import SurveyPopup from '@/components/SurveyPopup';
+import { getCurrentLocation } from '@/utils/locationUtils';
+import { toast } from 'sonner';
 /**
  * 전역 kakao 객체 타입 선언 (index.html 에 sdk.js?autoload=false 가 로드돼 있어야 함)
  */
@@ -29,12 +32,19 @@ const Main = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const kakaoMapRef = useRef<any>(null);
 
   const [loading, setLoading] = useState(true);
   const [temples, setTemples] = useState<Temple[]>([]);
   const [templeStays, setTempleStays] = useState<TempleStay[]>([]);
   const [scriptures, setScriptures] = useState<Scripture[]>([]);
   const [showSurveyPopup, setShowSurveyPopup] = useState(false);
+  const [nearbyTemples, setNearbyTemples] = useState<Temple[]>([]);
+  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
+  const [centerMarker, setCenterMarker] = useState<any>(null);
 
   /* ------------------------------------------------------------------
    * 팝업 관련 함수
@@ -51,6 +61,222 @@ const Main = () => {
   const handleClosePopup = () => {
     setShowSurveyPopup(false);
   };
+
+  // 카카오맵 초기화 함수 수정
+  const initializeKakaoMap = (lat: number, lng: number) => {
+    console.log('initializeKakaoMap 호출됨:', { lat, lng });
+    
+    if (!window.kakao) {
+      console.error('Kakao SDK not loaded');
+      return;
+    }
+    
+    if (!window.kakao.maps) {
+      console.error('Kakao maps module not loaded');
+      return;
+    }
+    
+    if (!mapRef.current) {
+      console.error('Map container ref not available');
+      return;
+    }
+
+    try {
+      console.log('지도 생성 시도');
+      const options = {
+        center: new window.kakao.maps.LatLng(lat, lng),
+        level: 7  // 지도 확대 레벨 (높을수록 넓은 지역 표시)
+      };
+
+      // 지도 생성 전 컨테이너 확인
+      console.log('지도 컨테이너 크기:', {
+        width: mapRef.current.clientWidth,
+        height: mapRef.current.clientHeight
+      });
+
+      const map = new window.kakao.maps.Map(mapRef.current, options);
+      console.log('지도 생성 성공');
+      kakaoMapRef.current = map;
+      setMapCenter({lat, lng});
+
+      // 지도 중심 마커 추가
+      const centerContent = `<div style="padding:5px; background:#fff; border-radius:50%; border:2px solid #FF3B30; display:flex; justify-content:center; align-items:center; width:24px; height:24px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                            <div style="background:#FF3B30; width:12px; height:12px; border-radius:50%;"></div>
+                          </div>`;
+      
+      const centerOverlay = new window.kakao.maps.CustomOverlay({
+        position: new window.kakao.maps.LatLng(lat, lng),
+        content: centerContent,
+        map: map,
+        zIndex: 10
+      });
+      
+      setCenterMarker(centerOverlay);
+
+      // 지도 이동 이벤트 리스너 추가
+      window.kakao.maps.event.addListener(map, 'dragend', function() {
+        const center = map.getCenter();
+        const newLat = center.getLat();
+        const newLng = center.getLng();
+        
+        // 중심 마커 위치 업데이트
+        centerOverlay.setPosition(new window.kakao.maps.LatLng(newLat, newLng));
+        setMapCenter({lat: newLat, lng: newLng});
+        
+        // 지도 중심 위치 기준으로 주변 사찰 검색
+        searchNearbyTemples(newLat, newLng)
+          .then(nearbyTemplesData => {
+            setNearbyTemples(nearbyTemplesData);
+            // 마커 추가
+            setTimeout(() => {
+              if (kakaoMapRef.current) {
+                addTempleMarkersToMap(kakaoMapRef.current);
+              }
+            }, 100);
+          })
+          .catch(error => {
+            console.error('Error fetching nearby temples:', error);
+          });
+      });
+
+      // 지도 로드 완료 상태 설정
+      setMapLoaded(true);
+      
+      // 지도 크기 재조정 (렌더링 문제 해결을 위해)
+      setTimeout(() => {
+        console.log('지도 크기 재조정');
+        map.relayout();
+      }, 100);
+    } catch (mapError) {
+      console.error('Error initializing map:', mapError);
+      setMapLoaded(false);
+    }
+  };
+
+  // 주변 사찰 마커 추가 함수
+  const addTempleMarkersToMap = (map: any) => {
+    if (!nearbyTemples || nearbyTemples.length === 0) {
+      console.log('No nearby temples to add markers for');
+      return;
+    }
+    
+    console.log(`Adding markers for ${nearbyTemples.length} temples`);
+    
+    // 사찰 마커 추가
+    nearbyTemples.forEach(temple => {
+      if (temple.latitude && temple.longitude) {
+        try {
+          console.log(`Adding temple marker: ${temple.name} at ${temple.latitude}, ${temple.longitude}`);
+          
+          const markerPosition = new window.kakao.maps.LatLng(temple.latitude, temple.longitude);
+          
+          // 사찰 마커 이미지 설정
+          const markerImage = new window.kakao.maps.MarkerImage(
+            'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png',
+            new window.kakao.maps.Size(40, 40),
+            { offset: new window.kakao.maps.Point(20, 40) }
+          );
+          
+          // 마커 생성
+          const marker = new window.kakao.maps.Marker({
+            position: markerPosition,
+            map: map,
+            image: markerImage,
+            title: temple.name
+          });
+          
+          // 마커 클릭 이벤트 리스너 추가
+          window.kakao.maps.event.addListener(marker, 'click', function() {
+            navigate(`/search/temple/detail/${temple.id}`);
+          });
+        } catch (error) {
+          console.error(`Error adding marker for temple ${temple.id}:`, error);
+        }
+      } else {
+        console.warn(`Temple ${temple.id} (${temple.name}) has no coordinates`);
+      }
+    });
+  };
+
+  // 위치 정보 및 주변 사찰 가져오기 함수 수정
+  const fetchUserLocationAndNearbyTemples = async () => {
+    try {
+      setLoading(true);
+      
+      // 위치 정보 가져오기 시도
+      const location = await getCurrentLocation();
+      console.log('위치 정보 수신 성공:', location);
+      setUserLocation(location);
+      
+      // 주변 사찰 검색
+      const nearbyTemplesData = await searchNearbyTemples(location.latitude, location.longitude);
+      setNearbyTemples(nearbyTemplesData);
+      
+      // 카카오맵 초기화
+      if (mapRef.current) {
+        // 카카오맵 SDK가 로드되었는지 확인
+        if (window.kakao && window.kakao.maps) {
+          initializeKakaoMap(location.latitude, location.longitude);
+        } else {
+          // SDK가 로드될 때까지 기다림
+          console.log('카카오맵 SDK 로딩 대기 중...');
+          const waitForKakaoMaps = setInterval(() => {
+            if (window.kakao && window.kakao.maps) {
+              clearInterval(waitForKakaoMaps);
+              console.log('카카오맵 SDK 로드 완료');
+              initializeKakaoMap(location.latitude, location.longitude);
+            }
+          }, 100);
+          
+          // 10초 후에도 로드되지 않으면 인터벌 정리
+          setTimeout(() => {
+            clearInterval(waitForKakaoMaps);
+            console.error('카카오맵 SDK 로드 타임아웃');
+            setLoading(false);
+          }, 10000);
+        }
+      } else {
+        console.error('지도 컨테이너가 준비되지 않았습니다.');
+      }
+    } catch (error) {
+      console.error('Error getting location or nearby temples:', error);
+      toast.error('위치 정보를 가져오는데 실패했습니다.');
+      
+      // 위치 정보를 가져오지 못한 경우 기본 위치(서울 시청)로 지도 초기화
+      const defaultLat = 37.5665;
+      const defaultLng = 126.9780;
+      
+      if (mapRef.current && window.kakao && window.kakao.maps) {
+        initializeKakaoMap(defaultLat, defaultLng);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // useEffect에서 카카오맵 SDK 로드 확인
+  useEffect(() => {
+    // 카카오맵 SDK 로드 확인
+    const script = document.querySelector('script[src*="kakao.maps.sdk"]');
+    if (!script) {
+      console.error('카카오맵 SDK 스크립트를 찾을 수 없습니다.');
+      const kakaoScript = document.createElement('script');
+      kakaoScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAO_MAP_KEY}&autoload=false`;
+      kakaoScript.async = true;
+      document.head.appendChild(kakaoScript);
+      
+      kakaoScript.onload = () => {
+        window.kakao.maps.load(() => {
+          console.log('카카오맵 SDK 로드 완료');
+          if (userLocation) {
+            initializeKakaoMap(userLocation.latitude, userLocation.longitude);
+          }
+        });
+      };
+    }
+    
+    fetchUserLocationAndNearbyTemples();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -77,6 +303,10 @@ const Main = () => {
     };
 
     fetchData();
+    
+    // 위치 정보 및 주변 사찰 가져오기
+    fetchUserLocationAndNearbyTemples();
+    
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
@@ -123,15 +353,62 @@ const Main = () => {
           </div>
         </div>
 
-        {/* 사찰 지도 대신 메시지 */}
+        {/* 사찰 지도 */}
         <div className="py-4 mb-8">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center justify-between gap-2 mb-4">
             <h2 className="font-semibold text-lg">사찰 지도</h2>
+            <button 
+              className="text-sm text-[#DE7834] flex items-center"
+              onClick={() => navigate('/map/temples')}
+            >
+              지도에서 사찰/템플스테이 더보기 <ChevronRight size={16} />
+            </button>
           </div>
-          <p className="text-gray-500 text-sm mb-3 text-center">
-            🚧 지도 기능은 현재 준비중인 기능이에요! 🚧<br />
-            조금만 기다려주세요! 🙏
-          </p>
+          
+          {/* 카카오맵 컨테이너 */}
+          <div 
+            ref={mapRef} 
+            className="w-full h-[200px] rounded-lg shadow-sm overflow-hidden relative bg-gray-100 border border-gray-300"
+            style={{ minHeight: '200px' }}
+          >
+            {!mapLoaded ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#DE7834]"></div>
+              </div>
+            ) : null}
+          </div>
+          
+          {/* 주변 사찰 리스트 */}
+          {nearbyTemples.length > 0 ? (
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+              {nearbyTemples.slice(0, 5).map((temple) => (
+                <div
+                  key={temple.id}
+                  className="min-w-[120px] w-[120px] flex-shrink-0 rounded-lg overflow-hidden bg-white shadow-sm cursor-pointer"
+                  onClick={() => navigate(`/search/temple/detail/${temple.id}`)}
+                >
+                  <div className="h-[80px] overflow-hidden">
+                    <img 
+                      src={temple.imageUrl || temple.image_url || '/placeholder-temple.jpg'} 
+                      alt={temple.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="p-2">
+                    <p className="text-xs font-medium line-clamp-1">{temple.name}</p>
+                    <div className="flex items-center text-gray-500 text-xs mt-1">
+                      <MapPin size={10} className="mr-1" />
+                      <span className="line-clamp-1">{temple.distance || '거리 정보 없음'}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-sm mt-3 text-center">
+              {mapCenter ? '지도 중심 주변에 사찰이 없습니다.' : '주변 사찰을 불러오는 중입니다...'}
+            </p>
+          )}
         </div>
 
         {/* 추천 사찰 */}

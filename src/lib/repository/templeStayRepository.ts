@@ -496,27 +496,27 @@ export async function toggleTempleStayFollow(userId: string, templeStayId: strin
   }
 }
 
-// 템플스테이 팔로우 상태 확인 함수 추가
-export async function isTempleStayFollowed(userId: string, templeStayId: string): Promise<boolean> {
+// 사용자가 템플스테이를 팔로우했는지 확인
+export const isTempleStayFollowed = async (userId: string, templeStayId: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase
       .from('user_follow_temple_stays')
       .select('*')
       .eq('user_id', userId)
       .eq('temple_stay_id', templeStayId)
-      .single();
+      .maybeSingle();
     
-    if (error && error.code !== 'PGRST116') { // PGRST116: 결과가 없음
+    if (error) {
       console.error('Error checking temple stay follow status:', error);
       return false;
     }
     
-    return !!data; // data가 있으면 true, 없으면 false
+    return !!data;
   } catch (error) {
-    console.error('Error in isTempleStayFollowed:', error);
+    console.error('Error checking temple stay follow status:', error);
     return false;
   }
-}
+};
 
 // 특정 좌표 주변의 템플스테이 검색
 export async function searchNearbyTempleStays(
@@ -560,26 +560,38 @@ export async function searchNearbyTempleStays(
       .filter(templeStay => templeStay.distanceValue <= radius)
       .sort((a, b) => a.distanceValue - b.distanceValue)
       .slice(0, limit)
-      .map(templeStay => ({
-        id: templeStay.id,
-        templeName: templeStay.name || templeStay.temple_name,
-        temple_name: templeStay.temple_name,
-        location: templeStay.location || templeStay.temple?.address,
-        price: templeStay.price,
-        imageUrl: templeStay.image_url,
-        likeCount: templeStay.follower_count || 0,
-        distance: templeStay.distance,
-        temple: templeStay.temple ? {
-          id: templeStay.temple.id,
-          name: templeStay.temple.name,
-          region: templeStay.temple.region || '',
-          address: templeStay.temple.address,
-          latitude: templeStay.temple.latitude,
-          longitude: templeStay.temple.longitude
-        } : undefined,
-        direction: templeStay.direction,
-        websiteUrl: templeStay.website_url
-      }));
+      .map(templeStay => {
+        // 가격 정보 처리
+        let price = 0;
+        if (templeStay.cost_adult) {
+          // 문자열에서 숫자만 추출
+          const numericPrice = templeStay.cost_adult.replace(/[^\d]/g, '');
+          if (numericPrice) {
+            price = parseInt(numericPrice);
+          }
+        }
+        
+        return {
+          id: templeStay.id,
+          templeName: templeStay.name || templeStay.temple_name,
+          temple_name: templeStay.temple_name,
+          location: templeStay.location || templeStay.temple?.address,
+          price: price || templeStay.price || 50000, // 기본 가격 설정
+          imageUrl: templeStay.image_url,
+          likeCount: templeStay.follower_count || 0,
+          distance: templeStay.distance,
+          temple: templeStay.temple ? {
+            id: templeStay.temple.id,
+            name: templeStay.temple.name,
+            region: templeStay.temple.region || '',
+            address: templeStay.temple.address,
+            latitude: templeStay.temple.latitude,
+            longitude: templeStay.temple.longitude
+          } : undefined,
+          direction: templeStay.direction,
+          websiteUrl: templeStay.website_url
+        };
+      });
   } catch (error) {
     console.error('Error in searchNearbyTempleStays:', error);
     return [];

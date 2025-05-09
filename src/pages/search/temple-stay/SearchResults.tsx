@@ -10,7 +10,7 @@ import PageLayout from '@/components/PageLayout';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { toggleTempleStayFollow } from '@/lib/repository';
-import { getCurrentLocation, calculateDistance, formatDistance  } from '@/utils/locationUtils';
+import { getCurrentLocation, calculateDistance, formatDistance } from '@/utils/locationUtils';
 
 const SearchResults: React.FC = () => {
   const location = useLocation();
@@ -25,10 +25,10 @@ const SearchResults: React.FC = () => {
   // URL 쿼리 파라미터를 먼저 가져오기
   const queryParams = new URLSearchParams(location.search);
   const query = queryParams.get('query') || '';
-  const nearby = queryParams.get('nearby') === 'true';
+  const nearbyParam = queryParams.get('nearby') === 'true';
   const lat = parseFloat(queryParams.get('lat') || '0');
   const lng = parseFloat(queryParams.get('lng') || '0');
-  const address = queryParams.get('address') || '';
+  const addressParam = queryParams.get('address') || '';
   const sortByParam = queryParams.get('sort') as TempleStaySort || 'popular';
   
   // 현재 활성화된 탭 (temple 또는 temple-stay)
@@ -48,12 +48,19 @@ const SearchResults: React.FC = () => {
   useEffect(() => {
     if (query) {
       setSearchValue(query);
-    } else if (address) {
-      setSearchValue(address); // 주소가 있으면 검색창에 표시
+    } else if (addressParam) {
+      setSearchValue(addressParam); // 주소가 있으면 검색창에 표시
     }
-  }, [query, address]);
+  }, [query, addressParam]);
   
   const [sortBy, setSortBy] = useState<TempleStaySort>(sortByParam);
+  
+  // 주변 검색 관련 상태 변수
+  const [nearby, setNearby] = useState<boolean>(nearbyParam);
+  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(
+    lat && lng ? { latitude: lat, longitude: lng } : null
+  );
+  const [address, setAddress] = useState<string>(addressParam);
   
   // 템플스테이 데이터 로드
   useEffect(() => {
@@ -97,19 +104,19 @@ const SearchResults: React.FC = () => {
           
           // 쿼리가 없을 때 최대 30개로 제한
           if (!query) {
-            data = data.slice(0, 30);
+            data = data.slice(0, 20);
           }
           
           // 모든 정렬 방식에서 거리 정보 추가
           try {
-            const userLocation = await getCurrentLocation();
+            const position = await getCurrentLocation();
+            const { latitude, longitude } = position;
             
             // 각 템플스테이에 거리 정보 추가
             for (const templeStay of data) {
               if (templeStay.temple?.latitude && templeStay.temple?.longitude) {
                 const distance = calculateDistance(
-                  userLocation.latitude,
-                  userLocation.longitude,
+                  latitude, longitude,
                   templeStay.temple.latitude,
                   templeStay.temple.longitude
                 );
@@ -146,10 +153,48 @@ const SearchResults: React.FC = () => {
     setSortBy(newFilter);
     setActiveFilter(newFilter);
     
+    // 현재 목록 내에서 정렬
+    const sortedTempleStays = [...templeStays];
+    
+    switch (newFilter) {
+      case 'popular':
+        sortedTempleStays.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+        break;
+      case 'price_low':
+        sortedTempleStays.sort((a, b) => {
+          const priceA = typeof a.price === 'number' ? a.price : 
+                        (typeof a.price === 'string' ? parseInt(a.price.replace(/[^\d]/g, '') || '0') : 0);
+          const priceB = typeof b.price === 'number' ? b.price : 
+                        (typeof b.price === 'string' ? parseInt(b.price.replace(/[^\d]/g, '') || '0') : 0);
+          return priceA - priceB;
+        });
+        break;
+      case 'price_high':
+        sortedTempleStays.sort((a, b) => {
+          const priceA = typeof a.price === 'number' ? a.price : 
+                        (typeof a.price === 'string' ? parseInt(a.price.replace(/[^\d]/g, '') || '0') : 0);
+          const priceB = typeof b.price === 'number' ? b.price : 
+                        (typeof b.price === 'string' ? parseInt(b.price.replace(/[^\d]/g, '') || '0') : 0);
+          return priceB - priceA;
+        });
+        break;
+      case 'distance':
+        if (nearby) {
+          sortedTempleStays.sort((a, b) => {
+            const distA = parseFloat(a.distance?.replace('km', '').trim() || '0');
+            const distB = parseFloat(b.distance?.replace('km', '').trim() || '0');
+            return distA - distB;
+          });
+        }
+        break;
+    }
+    
+    setTempleStays(sortedTempleStays);
+    
     // URL 파라미터 업데이트
     const params = new URLSearchParams(location.search);
     params.set('sort', newFilter);
-    navigate(`${location.pathname}?${params.toString()}`);
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
   };
   
   const handleSearch = (event: React.FormEvent) => {
@@ -192,17 +237,101 @@ const SearchResults: React.FC = () => {
     }
   };
   
-  // 주변 검색 핸들러
+  // 주변 검색 핸들러 수정
   const handleNearbySearch = async () => {
     try {
-      // 현재 위치 가져오기
-      const userLocation = await getCurrentLocation();
+      setLoading(true);
       
-      // 주변 검색 결과 페이지로 이동
-      navigate(`/search/temple-stay/results?nearby=true&lat=${userLocation.latitude}&lng=${userLocation.longitude}`);
+      // 현재 위치 가져오기
+      const position = await getCurrentLocation();
+      const { latitude, longitude } = position;
+      
+      // 위치 정보가 기본값(서울 시청)인지 확인
+      const isDefaultLocation = 
+        latitude === 37.5665 && longitude === 126.9780;
+      
+      if (isDefaultLocation) {
+        toast.warning('위치 정보를 가져올 수 없어 서울 시청 주변을 검색합니다.');
+      }
+      
+      // 주변 템플스테이 검색 (10km 반경)
+      const nearbyTempleStays = await searchNearbyTempleStays(latitude, longitude, 10);
+      
+      // 거리 계산 및 정렬
+      const templeStaysWithDistance = nearbyTempleStays.map(templeStay => {
+        const distance = calculateDistance(
+          latitude, longitude, 
+          templeStay.temple?.latitude || 0, 
+          templeStay.temple?.longitude || 0
+        );
+        return {
+          ...templeStay,
+          distance: formatDistance(distance)
+        };
+      }).sort((a, b) => {
+        const distA = parseFloat(a.distance?.replace('km', '').trim() || '0');
+        const distB = parseFloat(b.distance?.replace('km', '').trim() || '0');
+        return distA - distB;
+      });
+      
+      // 상위 10개만 선택
+      const top10TempleStays = templeStaysWithDistance.slice(0, 10);
+      
+      // 상태 업데이트
+      setTempleStays(top10TempleStays);
+      setNearby(true);
+      setUserLocation({ latitude, longitude });
+      setSortBy('distance');
+      setActiveFilter('distance');
+      setSearchValue(''); // 검색어 초기화
+      
+      // 주소 정보 가져오기
+      try {
+        const response = await fetch(`https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${longitude}&y=${latitude}`, {
+          headers: {
+            'Authorization': `KakaoAK ${process.env.REACT_APP_KAKAO_REST_API_KEY}`
+          }
+        });
+        
+        const data = await response.json();
+        if (data.documents && data.documents.length > 0) {
+          const addressInfo = data.documents[0].address;
+          const newAddress = `${addressInfo.region_1depth_name} ${addressInfo.region_2depth_name}`;
+          setAddress(newAddress);
+          
+          // URL 파라미터 업데이트 - 기존 쿼리 파라미터 제거하고 새로운 파라미터만 설정
+          const params = new URLSearchParams();
+          params.set('nearby', 'true');
+          params.set('lat', latitude.toString());
+          params.set('lng', longitude.toString());
+          params.set('address', newAddress);
+          params.set('sort', 'distance'); // 주변 검색 시 기본 정렬은 거리순
+          
+          // 현재 경로에 새 파라미터 적용
+          navigate(`${location.pathname.split('?')[0]}?${params.toString()}`, { replace: true });
+        }
+      } catch (error) {
+        console.error('주소 변환 오류:', error);
+      }
+      
+      // 좋아요 상태 확인
+      if (user) {
+        const likedStatus: Record<string, boolean> = {};
+        for (const templeStay of top10TempleStays) {
+          try {
+            likedStatus[templeStay.id] = await isTempleStayFollowed(user.id, templeStay.id);
+          } catch (error) {
+            console.error(`좋아요 상태 확인 오류 (${templeStay.id}):`, error);
+          }
+        }
+        setLikedTempleStays(likedStatus);
+      }
+      
+      setLoading(false);
     } catch (error) {
-      console.error('Error getting location:', error);
-      toast.error('위치 정보를 가져오는데 실패했습니다.');
+      console.error('주변 검색 오류:', error);
+      toast.error('주변 검색에 실패했습니다.');
+      setLoading(false);
     }
   };
   
@@ -271,9 +400,9 @@ const SearchResults: React.FC = () => {
           <Tabs value={activeFilter} onValueChange={handleFilterChange} className="w-full">
             <TabsList className="grid grid-cols-4 h-9">
               <TabsTrigger value="popular">인기순</TabsTrigger>
+              <TabsTrigger value="price_low">가격 낮은순</TabsTrigger>
+              <TabsTrigger value="price_high">가격 높은순</TabsTrigger>
               <TabsTrigger value="distance">거리순</TabsTrigger>
-              <TabsTrigger value="price_low">가격낮은순</TabsTrigger>
-              <TabsTrigger value="price_high">가격높은순</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -286,24 +415,17 @@ const SearchResults: React.FC = () => {
         ) : (
           <div>
             {templeStays.length ? (
-              templeStays.map((ts) => (
+              templeStays.map((templeStay) => (
                 <TempleStayItem
-                  key={ts.id}
+                  key={templeStay.id}
                   templeStay={{
-                    ...ts,
-                    templeName: (ts as any).temple_name || (ts as any).name || ts.templeName,
-                    location: ts.temple?.address || ts.location || '주소 정보 없음',
-                    price: typeof ts.price === 'number' ? ts.price : 
-                           (typeof ts.price === 'string' ? parseInt((ts.price as string).replace(/[^\d]/g, '') || '0') : 0),
-                    likeCount: ts.likeCount || 0,
-                    distance: ts.distance || '거리 정보 없음',
-                    temple: ts.temple,
-                    direction: ts.direction,
-                    websiteUrl: ts.websiteUrl
+                    ...templeStay,
+                    distance: templeStay.distance
                   }}
-                  onClick={() => navigate(`/search/temple-stay/detail/${ts.id}`)}
-                  isLiked={likedTempleStays[ts.id] || false}
-                  onLikeToggle={(e) => handleLikeToggle(e, ts.id)}
+                  onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
+                  isLiked={likedTempleStays[templeStay.id] || false}
+                  onLikeToggle={(e) => handleLikeToggle(e, templeStay.id)}
+                  showLikeCount={true}
                 />
               ))
             ) : (

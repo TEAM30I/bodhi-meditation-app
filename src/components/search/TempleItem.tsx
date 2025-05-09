@@ -10,9 +10,10 @@ interface TempleItemProps {
   onLikeToggle: (e: React.MouseEvent) => void | Promise<void>;
   showLikeCount?: boolean;
   distance?: string;
+  hideDistance?: boolean;
 }
 
-const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick, isLiked, onLikeToggle, showLikeCount = true, distance }) => {
+const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick, isLiked, onLikeToggle, showLikeCount = true, distance, hideDistance }) => {
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onLikeToggle) {
@@ -59,16 +60,16 @@ const TempleItem: React.FC<TempleItemProps> = ({ temple, onClick, isLiked, onLik
           {/* 중간 영역: 위치 */}
           <div className="flex items-center text-gray-600 text-sm mt-2">
             <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-            <span className="line-clamp-1">{temple.address || temple.region || '주소 정보 없음'}</span>
+            <span className="line-clamp-1">{temple.address || temple.region}</span>
           </div>
 
           {/* 하단 영역: 설명과 거리 */}
           <div className="flex justify-between items-end mt-auto pt-2">
-            <div className="text-gray-700 text-sm line-clamp-1 flex-1 mr-4">
+            <div className="text-gray-700 text-sm line-clamp-1 flex-1 mr-2">
               {temple.description}
             </div>
-            {distance && (
-              <div className="flex items-center text-gray-600 text-sm flex-shrink-0">
+            {distance && !hideDistance && (
+              <div className="flex items-center text-gray-600 text-xs flex-shrink-0">
                 <Navigation className="w-3 h-3 mr-1" />
                 <span>{distance}</span>
               </div>

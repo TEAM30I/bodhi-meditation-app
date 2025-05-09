@@ -34,6 +34,9 @@ export interface TempleStay {
     latitude?: number;
     longitude?: number;
   };
+  formattedPrice?: string;
+  image_url?: string;
+  follower_count?: number;
 }
 
 export type TempleStaySort = 'popular' | 'distance' | 'price_low' | 'price_high';

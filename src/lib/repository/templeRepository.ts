@@ -378,26 +378,26 @@ export async function getUserFollowedTemples(userId: string): Promise<Temple[]> 
  * @param templeId 사찰 ID
  * @returns 찜 여부 (true/false)
  */
-export async function isTempleFollowed(userId: string, templeId: string): Promise<boolean> {
+export const isTempleFollowed = async (userId: string, templeId: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase
       .from('user_follow_temples')
       .select('*')
       .eq('user_id', userId)
       .eq('temple_id', templeId)
-      .single();
+      .maybeSingle();
     
-    if (error && error.code !== 'PGRST116') { // PGRST116: 결과가 없음
-      console.error('사찰 찜 상태 확인 중 오류:', error);
+    if (error) {
+      console.error('Error checking temple follow status:', error);
       return false;
     }
     
-    return !!data; // data가 있으면 true, 없으면 false
+    return !!data;
   } catch (error) {
-    console.error('isTempleFollowed 함수 오류:', error);
+    console.error('Error checking temple follow status:', error);
     return false;
   }
-}
+};
 
 // 사찰 찜하기/찜 해제 토글 함수
 export async function toggleTempleFollow(userId: string, templeId: string): Promise<boolean> {

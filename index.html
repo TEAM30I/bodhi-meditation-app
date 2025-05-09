@@ -16,8 +16,8 @@
     <!-- 개발 환경용 넓은 CSP 설정 -->
     <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';">
     
-    <!-- 카카오맵 API 스크립트를 비동기로 로드하지만 defer로 HTML 파싱 후 실행 -->
-    <script defer src="//dapi.kakao.com/v2/maps/sdk.js?appkey=03d6d5879a4ccf404846b3db22c8e0ea&libraries=services"></script>
+    <!-- 카카오맵 API 스크립트 -->
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=03d6d5879a4ccf404846b3db22c8e0ea&libraries=services"></script>
   </head>
   <body>
     <div id="root"></div>

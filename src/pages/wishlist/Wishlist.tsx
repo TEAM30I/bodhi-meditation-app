@@ -132,6 +132,7 @@ const Wishlist = () => {
                     onClick={() => navigate(`/search/temple-stay/detail/${templeStay.id}`)}
                     isLiked={true}
                     onLikeToggle={(e) => handleTempleStayUnfollow(e, templeStay.id)}
+                    showLikeCount={true}
                   />
                 ))}
               </div>

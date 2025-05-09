@@ -9,8 +9,9 @@ interface TempleStayItemProps {
     templeName: string;
     location: string;
     imageUrl: string;
-    price: number;
-    likeCount: number;
+    price: number | string;
+    likeCount?: number;
+    follower_count?: number;
     distance?: string;
     temple?: {
       id: string;
@@ -27,9 +28,12 @@ interface TempleStayItemProps {
   onClick?: () => void;
   isLiked?: boolean;
   onLikeToggle?: (e: React.MouseEvent) => void;
+  showLikeCount?: boolean;
+  formattedPrice?: string;
+  hideDistance?: boolean;
 }
 
-const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick, isLiked, onLikeToggle }) => {
+const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick, isLiked, onLikeToggle, showLikeCount, formattedPrice, hideDistance }) => {
   // 좋아요 버튼 클릭 핸들러
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -77,7 +81,7 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick, is
               <Heart 
                 className={`w-5 h-5 ${isLiked ? 'fill-[#ff7730] stroke-[#ff7730]' : 'stroke-gray-600'}`} 
               />
-              <span className="text-xs mt-0.5">{templeStay.likeCount || 0}</span>
+              {showLikeCount && <span className="text-xs mt-0.5">{templeStay.likeCount || 0}</span>}
             </button>
           </div>
 
@@ -90,9 +94,9 @@ const TempleStayItem: React.FC<TempleStayItemProps> = ({ templeStay, onClick, is
           {/* 하단 영역: 가격과 거리 */}
           <div className="flex justify-between items-end mt-auto pt-2">
             <div className="text-gray-700 text-sm">
-              {templeStay.price.toLocaleString()}원 / 1인
+              {formattedPrice || `${templeStay.price.toLocaleString()}원 / 1인`}
             </div>
-            {templeStay.distance && (
+            {templeStay.distance && !hideDistance && (
               <div className="flex items-center text-gray-600 text-sm">
                 <Navigation className="w-3 h-3 mr-1" />
                 <span>{templeStay.distance}</span>
