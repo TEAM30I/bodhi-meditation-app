@@ -15,6 +15,7 @@ import {
 } from '@/lib/repository';
 import { TempleStay, Temple, Scripture } from '@/types';
 import Footer from '@/components/Footer';
+import SurveyPopup from '@/components/SurveyPopup';
 /**
  * 전역 kakao 객체 타입 선언 (index.html 에 sdk.js?autoload=false 가 로드돼 있어야 함)
  */
