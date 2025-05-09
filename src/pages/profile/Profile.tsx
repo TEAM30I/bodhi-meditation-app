@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/PageLayout";
 import { supabase } from "@/lib/supabase";
@@ -23,6 +23,10 @@ export default function Profile(): JSX.Element {
   });
   const [followedItems, setFollowedItems] = useState<FollowedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showInquiryPopup, setShowInquiryPopup] = useState(false);
+  const [inquiryText, setInquiryText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState<{success: boolean; message: string} | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -176,6 +180,67 @@ export default function Profile(): JSX.Element {
     }
   };
 
+  const openInquiryPopup = () => {
+    setShowInquiryPopup(true);
+    setInquiryText("");
+    setSendResult(null);
+  };
+
+  const closeInquiryPopup = () => {
+    setShowInquiryPopup(false);
+    setInquiryText("");
+    setSendResult(null);
+  };
+
+  const handleSendInquiry = async () => {
+    if (!inquiryText.trim()) {
+      setSendResult({
+        success: false,
+        message: "문의 내용을 입력해주세요."
+      });
+      return;
+    }
+    
+    try {
+      setSending(true);
+      
+      // inquiry 테이블에 데이터 저장
+      // user_id도 함께 저장 (사용자 식별 및 RLS 정책을 위함)
+      const { data, error } = await supabase
+        .from('inquiry')
+        .insert([
+          { 
+            inquiry: inquiryText,
+            user_id: user.id // 현재 인증된 사용자 ID도 함께 저장
+            // created_at 필드는 Supabase가 자동으로 처리
+          }
+        ]);
+      
+      if (error) {
+        console.error('Supabase error details:', error);
+        throw error;
+      }
+      
+      setSendResult({
+        success: true,
+        message: "문의가 성공적으로 저장되었습니다."
+      });
+      
+      // 3초 후 팝업 닫기
+      setTimeout(() => {
+        closeInquiryPopup();
+      }, 3000);
+    } catch (error) {
+      console.error('Error saving inquiry:', error);
+      setSendResult({
+        success: false,
+        message: "문의 저장에 실패했습니다. 다시 시도해주세요."
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <PageLayout title="마이페이지" showBackButton={true}>
       <div className="w-full max-w-[480px] mx-auto flex flex-col">
@@ -236,9 +301,9 @@ export default function Profile(): JSX.Element {
         <div className="px-5 mt-6 space-y-4 mb-20">
           <div 
             className="flex justify-between items-center py-3 border-t border-gray-100 cursor-pointer"
-            onClick={() => navigate('/reviews/write')}
+            onClick={openInquiryPopup}
           >
-            <span className="text-gray-700">리뷰 작성하기</span>
+            <div className="text-gray-700">문의하기</div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
           <div 
@@ -253,6 +318,51 @@ export default function Profile(): JSX.Element {
           </div>
         </div>
       </div>
+
+      {/* 문의하기 팝업 */}
+      {showInquiryPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md p-5">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-lg">문의하기</h3>
+              <button 
+                onClick={closeInquiryPopup}
+                className="text-gray-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-gray-600 mb-3">
+              아래에 문의 내용을 작성해주세요. 입력하신 내용은 저장되어 관리자에게 전달됩니다.
+            </p>
+            
+            <textarea
+              className="w-full border border-gray-300 rounded-lg p-3 h-32 resize-none mb-4"
+              placeholder="문의 내용을 입력해주세요..."
+              value={inquiryText}
+              onChange={(e) => setInquiryText(e.target.value)}
+              disabled={sending}
+            />
+            
+            {sendResult && (
+              <div className={`p-3 mb-4 rounded-lg text-sm ${
+                sendResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {sendResult.message}
+              </div>
+            )}
+            
+            <button
+              className="w-full py-3 bg-blue-500 text-white rounded-lg font-medium disabled:bg-gray-300"
+              onClick={handleSendInquiry}
+              disabled={sending}
+            >
+              {sending ? '전송 중...' : '전송하기'}
+            </button>
+          </div>
+        </div>
+      )}
     </PageLayout>
   );
 }
