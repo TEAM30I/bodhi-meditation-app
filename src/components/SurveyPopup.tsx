@@ -18,7 +18,7 @@ const SurveyPopup: React.FC<SurveyPopupProps> = ({ onClose }) => {
   };
 
   const handleSurveyClick = () => {
-    window.open('https://docs.google.com/forms/d/1ujETkO5Fs4MCks1k8PWmfl3WiO8Sl7Ve-hHDbNfQ96M', '_blank');
+    window.open('https://docs.google.com/forms/d/e/1FAIpQLScUvRYQMITVnBNHGzU2ilHwDmnBdH3eORpEEPiGH4U71EtLrA/viewform?usp=header', '_blank');
     handleClose();
   };
 

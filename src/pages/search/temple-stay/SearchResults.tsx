@@ -56,7 +56,11 @@ const SearchResults: React.FC = () => {
     const loadTempleStays = async () => {
       setLoading(true);
       try {
-        const data = await searchTempleStays(query, sortByParam);
+        // 검색 결과 가져오기
+        let data = await searchTempleStays(query, sortByParam);
+        
+        // 최대 30개로 제한
+        data = data.slice(0, 30);
         
         // 위치 정보가 있는 경우 현재 위치와의 거리 계산
         const templeStaysWithDistance = await Promise.all(
@@ -70,7 +74,11 @@ const SearchResults: React.FC = () => {
                   ts.temple.latitude,
                   ts.temple.longitude
                 );
-                return { ...ts, distance: formatDistance(distance) };
+                return { 
+                  ...ts, 
+                  distance: formatDistance(distance),
+                  distanceValue: distance // 정렬용 숫자값 추가 (타입에 없지만 내부 로직용)
+                };
               } catch (error) {
                 console.error('Error calculating distance:', error);
               }
@@ -79,12 +87,37 @@ const SearchResults: React.FC = () => {
           })
         );
         
-        setTempleStays(templeStaysWithDistance);
+        // 정렬 방식에 따라 정렬
+        let sortedData = [...templeStaysWithDistance];
+        
+        if (sortByParam === 'distance') {
+          sortedData.sort((a, b) => {
+            const distA = (a as any).distanceValue || Infinity;
+            const distB = (b as any).distanceValue || Infinity;
+            return distA - distB;
+          });
+        } else if (sortByParam === 'popular') {
+          sortedData.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+        } else if (sortByParam === 'price_low') {
+          sortedData.sort((a, b) => {
+            const priceA = typeof a.price === 'number' ? a.price : parseInt((a.price as string).replace(/[^\d]/g, '') || '0');
+            const priceB = typeof b.price === 'number' ? b.price : parseInt((b.price as string).replace(/[^\d]/g, '') || '0');
+            return priceA - priceB;
+          });
+        } else if (sortByParam === 'price_high') {
+          sortedData.sort((a, b) => {
+            const priceA = typeof a.price === 'number' ? a.price : parseInt((a.price as string).replace(/[^\d]/g, '') || '0');
+            const priceB = typeof b.price === 'number' ? b.price : parseInt((b.price as string).replace(/[^\d]/g, '') || '0');
+            return priceB - priceA;
+          });
+        }
+        
+        setTempleStays(sortedData);
         
         // 사용자가 로그인한 경우 좋아요 상태 확인
         if (user) {
           const likedStatus: Record<string, boolean> = {};
-          for (const templeStay of templeStaysWithDistance) {
+          for (const templeStay of sortedData) {
             likedStatus[templeStay.id] = await isTempleStayFollowed(user.id, templeStay.id);
           }
           setLikedTempleStays(likedStatus);
@@ -102,6 +135,35 @@ const SearchResults: React.FC = () => {
   const handleFilterChange = (value: string) => {
     const newFilter = value as TempleStaySort;
     setActiveFilter(newFilter);
+    
+    // 현재 목록 내에서 정렬
+    if (templeStays.length > 0) {
+      const sortedTempleStays = [...templeStays];
+      
+      if (newFilter === 'distance') {
+        sortedTempleStays.sort((a, b) => {
+          const distA = (a as any).distanceValue || Infinity;
+          const distB = (b as any).distanceValue || Infinity;
+          return distA - distB;
+        });
+      } else if (newFilter === 'popular') {
+        sortedTempleStays.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+      } else if (newFilter === 'price_low') {
+        sortedTempleStays.sort((a, b) => {
+          const priceA = typeof a.price === 'number' ? a.price : parseInt((a.price as string).replace(/[^\d]/g, '') || '0');
+          const priceB = typeof b.price === 'number' ? b.price : parseInt((b.price as string).replace(/[^\d]/g, '') || '0');
+          return priceA - priceB;
+        });
+      } else if (newFilter === 'price_high') {
+        sortedTempleStays.sort((a, b) => {
+          const priceA = typeof a.price === 'number' ? a.price : parseInt((a.price as string).replace(/[^\d]/g, '') || '0');
+          const priceB = typeof b.price === 'number' ? b.price : parseInt((b.price as string).replace(/[^\d]/g, '') || '0');
+          return priceB - priceA;
+        });
+      }
+      
+      setTempleStays(sortedTempleStays);
+    }
     
     // URL 파라미터 업데이트
     const params = new URLSearchParams(location.search);

@@ -53,12 +53,15 @@ const SearchResults: React.FC = () => {
     const loadTemples = async () => {
       setLoading(true);
       try {
-        const data = await searchTemples(query, sortByParam);
+        // 검색 결과 가져오기
+        let data = await searchTemples(query, sortByParam);
+        
+        // 최대 30개로 제한
+        data = data.slice(0, 30);
         
         // 거리 정보 표시를 위한 처리
         if (sortByParam === 'distance') {
           // 거리 정보가 이미 repository에서 계산되어 있으므로 추가 처리 필요 없음
-          // 단, 거리 표시를 위한 UI 업데이트는 필요할 수 있음
         } else if (data.length > 0) {
           // 거리순 정렬이 아니더라도 위치 정보가 있는 경우 거리 계산
           try {
@@ -74,6 +77,8 @@ const SearchResults: React.FC = () => {
                   temple.longitude
                 );
                 temple.distance = formatDistance(distance);
+                // 정렬용 숫자값 추가 (타입에 없지만 내부 로직용)
+                (temple as any).distanceValue = distance;
               }
             }
           } catch (error) {
@@ -104,6 +109,23 @@ const SearchResults: React.FC = () => {
   const handleSortChange = (value: string) => {
     const newSortBy = value as TempleSort;
     setSortBy(newSortBy);
+    
+    // 현재 목록 내에서 정렬
+    if (temples.length > 0) {
+      const sortedTemples = [...temples];
+      
+      if (newSortBy === 'distance') {
+        sortedTemples.sort((a, b) => {
+          const distA = (a as any).distanceValue || Infinity;
+          const distB = (b as any).distanceValue || Infinity;
+          return distA - distB;
+        });
+      } else if (newSortBy === 'popular') {
+        sortedTemples.sort((a, b) => (b.follower_count || b.likeCount || 0) - (a.follower_count || a.likeCount || 0));
+      }
+      
+      setTemples(sortedTemples);
+    }
     
     // URL 파라미터 업데이트
     const params = new URLSearchParams(location.search);
