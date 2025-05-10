@@ -16,7 +16,6 @@ import {
 import { TempleStay, Temple, Scripture } from '@/types';
 import Footer from '@/components/Footer';
 import SurveyPopup from '@/components/SurveyPopup';
-import { toast } from '@/components/ui/use-toast';
 /**
  * 전역 kakao 객체 타입 선언 (index.html 에 sdk.js?autoload=false 가 로드돼 있어야 함)
  */
@@ -59,14 +58,12 @@ const Main = () => {
         const [templesData, templeStaysData, scripturesData] = await Promise.all([
           searchTemples('', 'popular'),
           searchTempleStays('', 'popular'),
-          user ? getScriptureList() : Promise.resolve([]),
+          getScriptureList(),
         ]);
 
         setTemples(templesData);
         setTempleStays(templeStaysData);
-        if (user) {
-          setScriptures(scripturesData);
-        }
+        setScriptures(scripturesData);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -81,7 +78,7 @@ const Main = () => {
 
     fetchData();
     window.scrollTo(0, 0);
-  }, [location.pathname, user]);
+  }, [location.pathname]);
 
   if (loading) {
     return (
@@ -106,53 +103,25 @@ const Main = () => {
           <div className="flex-1 mx-2">
             {/* 검색바 주석 처리 */}
           </div>
-          {user ? (
-            <button className="relative" onClick={() => navigate('/notifications')}>
-              <Bell className="w-6 h-6" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            </button>
-          ) : (
-            <button 
-              className="text-sm font-medium text-[#DE7834]" 
-              onClick={() => {
-                toast({
-                  title: "로그인 기능 비활성화",
-                  description: "현재 로그인 없이 서비스를 이용할 수 있습니다.",
-                });
-              }}
-            >
-              로그인
-            </button>
-          )}
+          <button className="relative" onClick={() => navigate('/notifications')}>
+            <Bell className="w-6 h-6" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+          </button>
         </div>
       </div>
 
       {/* 본문 */}
       <div className="w-full max-w-[480px] mx-auto pb-20 py-4 px-5">
-        {user && (
-          <div className="mb-8 cursor-pointer" onClick={handleNavigateToCalendar}>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold">경전 캘린더</h2>
-              <ChevronRight size={18} className="text-gray-400" />
-            </div>
-            <div className="w-full flex justify-center">
-              <ScriptureCalendarPrev />
-            </div>
+        {/* 경전 캘린더 */}
+        <div className="mb-8 cursor-pointer" onClick={handleNavigateToCalendar}>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-bold">경전 캘린더</h2>
+            <ChevronRight size={18} className="text-gray-400" />
           </div>
-        )}
-
-        {!user && (
-          <div className="mb-8 p-4 bg-white rounded-lg shadow-sm">
-            <h2 className="text-lg font-bold mb-2">보디에 오신 것을 환영합니다</h2>
-            <p className="text-gray-600 mb-4">로그인하시면 더 많은 기능을 이용하실 수 있습니다.</p>
-            <button 
-              className="w-full py-2 bg-[#DE7834] text-white rounded-md"
-              onClick={() => navigate('/login')}
-            >
-              로그인 / 회원가입
-            </button>
+          <div className="w-full flex justify-center">
+            <ScriptureCalendarPrev />
           </div>
-        )}
+        </div>
 
         {/* 사찰 지도 대신 메시지 */}
         <div className="py-4 mb-8">
@@ -251,7 +220,7 @@ const Main = () => {
         </div>
       </div>
       <Footer />
-      {user && <BottomNav />}
+      <BottomNav />
       
       {/* 설문 팝업 */}
       {showSurveyPopup && <SurveyPopup onClose={handleClosePopup} />}
