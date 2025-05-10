@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   return <>{children}</>;
 };
 
-// 루트 경로를 처리하는 컴포넌트 수정
+// 루트 경로를 처리하는 컴포넌트 추가
 const RootRedirect: React.FC = () => {
   const { user, loading } = useAuth();
   
@@ -47,8 +47,12 @@ const RootRedirect: React.FC = () => {
     );
   }
   
-  // 로그인 여부와 상관없이 항상 /main으로 리다이렉트
-  return <Navigate to="/main" replace />;
+  // 로그인 상태면 /main으로, 아니면 Onboarding1으로 리다이렉트
+  if (user) {
+    return <Navigate to="/main" replace />;
+  } else {
+    return <Onboarding1 />;
+  }
 };
 
 // Pages (기존 import 유지)
@@ -126,73 +130,104 @@ const App: React.FC = () => {
             <Route path="/" element={<RootRedirect />} />
             <Route path="/index" element={<Index />} />
             
-      
+            {/* 보호된 라우트 시작 */}
             <Route path="/main" element={
+              <ProtectedRoute>
                 <Main />
-            
+              </ProtectedRoute>
             } />
-            {/* Main route - 로그인 없이도 접근 가능하도록 변경 */}
-            <Route path="/main" element={<Main />} />
             
             {/* Scripture routes */}
             <Route path="/scripture" element={
+              <ProtectedRoute>
                 <Scripture />
+              </ProtectedRoute>
             } />
             <Route path="/scripture/:id" element={
+              <ProtectedRoute>
                 <ScriptureReader />
+              </ProtectedRoute>
             } />
             <Route path="/scripture/calendar" element={
+              <ProtectedRoute>
                 <ScriptureCalendarPage />
+              </ProtectedRoute>
             } />
             <Route path="/scripture/bookmarks" element={
+              <ProtectedRoute>
                 <ScriptureBookmarkPage />
+              </ProtectedRoute>
             } />
             
             {/* Wishlist routes */}
             <Route path="/wishlist" element={
+              <ProtectedRoute>
                 <Wishlist />
+              </ProtectedRoute>
             } />
             
             {/* Profile routes */}
             <Route path="/profile" element={
+              <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
             } />
             <Route path="/profile/manage" element={
+              <ProtectedRoute>
                 <ProfileManage />
+              </ProtectedRoute>
             } />
             
             <Route path="/fortune" element={
+              <ProtectedRoute>
                 <Fortune />
+              </ProtectedRoute>
             } />
             <Route path="/notifications" element={
+              <ProtectedRoute>
                 <Notifications />
+              </ProtectedRoute>
             } />
             
             {/* Search Module Routes */}
             <Route path="/search" element={
+              <ProtectedRoute>
                 <Navigate to="/search/temple" replace />
+              </ProtectedRoute>
             } />
             
             {/* Temple Search Routes */}
             <Route path="/search/temple/results" element={
+              <ProtectedRoute>
                 <TempleSearchResults />
+              </ProtectedRoute>
             } />
             <Route path="/search/temple/detail/:id" element={
+              <ProtectedRoute>
                 <TempleDetail />
+              </ProtectedRoute>
             } />
             <Route path="/search/temple" element={
+              <ProtectedRoute>
                 <FindTemple />
+              </ProtectedRoute>
             } />
             
             {/* Temple Stay Search Routes */}
             <Route path="/search/temple-stay/results" element={
+              <ProtectedRoute>
                 <TempleStaySearchResults />
+              </ProtectedRoute>
             } />
             <Route path="/search/temple-stay/detail/:id" element={
+              <ProtectedRoute>
                 <TempleStayDetail />
+              </ProtectedRoute>
             } />
             <Route path="/search/temple-stay" element={
+              <ProtectedRoute>
                 <FindTempleStay />
+              </ProtectedRoute>
             } />
             {/* 보호된 라우트 끝 */}
             
