@@ -147,7 +147,7 @@ export default function Profile(): JSX.Element {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      navigate('/login');
+      navigate('/main');
     } catch (error) {
       console.error('Error signing out:', error);
     }

@@ -56,17 +56,15 @@ const Main = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [templesData, templeStaysData, scripturesData] = await Promise.all([
-          searchTemples('', 'popular'),
-          searchTempleStays('', 'popular'),
-          user ? getScriptureList() : Promise.resolve([]),
-        ]);
+          const [templesData, templeStaysData, scripturesData] = await Promise.all([
+            searchTemples('', 'popular'),
+            searchTempleStays('', 'popular'),
+            getScriptureList(),
+          ]);
 
-        setTemples(templesData);
-        setTempleStays(templeStaysData);
-        if (user) {
+          setTemples(templesData);
+          setTempleStays(templeStaysData);
           setScriptures(scripturesData);
-        }
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -104,26 +102,13 @@ const Main = () => {
         <div className="flex justify-between items-center px-5 py-3 max-w-[480px] mx-auto">
           <div className="text-[#DE7834] text-xl font-rubik font-bold">BODHI</div>
           <div className="flex-1 mx-2">
-            {/* 검색바 주석 처리 */}
           </div>
-          {user ? (
+          {
             <button className="relative" onClick={() => navigate('/notifications')}>
               <Bell className="w-6 h-6" />
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
             </button>
-          ) : (
-            <button 
-              className="text-sm font-medium text-[#DE7834]" 
-              onClick={() => {
-                toast({
-                  title: "로그인 기능 비활성화",
-                  description: "현재 로그인 없이 서비스를 이용할 수 있습니다.",
-                });
-              }}
-            >
-              로그인
-            </button>
-          )}
+         }
         </div>
       </div>
 
@@ -147,7 +132,7 @@ const Main = () => {
             <p className="text-gray-600 mb-4">로그인하시면 더 많은 기능을 이용하실 수 있습니다.</p>
             <button 
               className="w-full py-2 bg-[#DE7834] text-white rounded-md"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/onboarding1')}
             >
               로그인 / 회원가입
             </button>
@@ -227,31 +212,34 @@ const Main = () => {
         </div>
 
         {/* 경전 진행 리스트 */}
-        <div className="mb-8 relative">
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px] z-10 flex items-center justify-center">
-            <div className="bg-white/90 px-6 py-4 rounded-lg shadow-sm">
-              <p className="text-gray-700 font-medium text-center">
-                곧 새로운 내용으로
-                <br />업데이트될 예정입니다.
-              </p>
+        {(
+          <div className="mb-8 relative">
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px] z-10 flex items-center justify-center">
+              <div className="bg-white/90 px-6 py-4 rounded-lg shadow-sm">
+                <p className="text-gray-700 font-medium text-center">
+                  곧 새로운 내용으로
+                  <br />업데이트될 예정입니다.
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => navigate('/scripture')}>
-            <h2 className="font-semibold text-lg">경전과 함께하는 하루</h2>
-            <ChevronRight className="w-5 h-5 text-gray-600" />
-          </div>
+            <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => navigate('/scripture')}>
+              <h2 className="font-semibold text-lg">경전과 함께하는 하루</h2>
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </div>
 
-          <ScriptureProgressList
-            scriptures={Object.values(typedScriptures)}
-            onScriptureClick={(scriptureId, lastPage) => {
-              navigate(`/scripture/${scriptureId}${lastPage ? `?page=${lastPage}` : ''}`);
-            }}
-          />
-        </div>
+            <ScriptureProgressList
+              scriptures={Object.values(typedScriptures)}
+              onScriptureClick={(scriptureId, lastPage) => {
+                navigate(`/scripture/${scriptureId}${lastPage ? `?page=${lastPage}` : ''}`);
+              }}
+            />
+          </div>
+        )}
+        
       </div>
       <Footer />
-      {user && <BottomNav />}
+      {<BottomNav />}
       
       {/* 설문 팝업 */}
       {showSurveyPopup && <SurveyPopup onClose={handleClosePopup} />}

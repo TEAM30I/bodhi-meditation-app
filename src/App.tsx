@@ -133,54 +133,36 @@ const App: React.FC = () => {
             
             {/* Scripture routes */}
             <Route path="/scripture" element={
-              <ProtectedRoute>
                 <Scripture />
-              </ProtectedRoute>
             } />
             <Route path="/scripture/:id" element={
-              <ProtectedRoute>
                 <ScriptureReader />
-              </ProtectedRoute>
             } />
             <Route path="/scripture/calendar" element={
-              <ProtectedRoute>
                 <ScriptureCalendarPage />
-              </ProtectedRoute>
             } />
             <Route path="/scripture/bookmarks" element={
-              <ProtectedRoute>
                 <ScriptureBookmarkPage />
-              </ProtectedRoute>
             } />
             
             {/* Wishlist routes */}
             <Route path="/wishlist" element={
-              <ProtectedRoute>
                 <Wishlist />
-              </ProtectedRoute>
             } />
             
             {/* Profile routes */}
             <Route path="/profile" element={
-              <ProtectedRoute>
                 <Profile />
-              </ProtectedRoute>
             } />
             <Route path="/profile/manage" element={
-              <ProtectedRoute>
                 <ProfileManage />
-              </ProtectedRoute>
             } />
             
             <Route path="/fortune" element={
-              <ProtectedRoute>
                 <Fortune />
-              </ProtectedRoute>
             } />
             <Route path="/notifications" element={
-              <ProtectedRoute>
                 <Notifications />
-              </ProtectedRoute>
             } />
             
             {/* Search Module Routes */}
@@ -204,16 +186,17 @@ const App: React.FC = () => {
             <Route path="/temple-stay" element={<Navigate to="/search/temple-stay" />} />
             <Route path="/temple-stay/:id" element={<Navigate to="/search/temple-stay/detail/:id" replace />} />
 
-            {/* Signup and Login - 로그인 관련 페이지도 메인으로 리디렉션 */}
-            <Route path="/onboarding2" element={<Navigate to="/main" replace />} />
-            <Route path="/auth-choice" element={<Navigate to="/main" replace />} />
-            <Route path="/login" element={<Navigate to="/main" replace />} />
-            <Route path="/signup" element={<Navigate to="/main" replace />} />
-            <Route path="/find-credentials-choice" element={<Navigate to="/main" replace />} />
-            <Route path="/find-id" element={<Navigate to="/main" replace />} />
-            <Route path="/find-password" element={<Navigate to="/main" replace />} />
-            <Route path="/profile-setup" element={<Navigate to="/main" replace />} />
-            <Route path="/terms-agreement" element={<Navigate to="/main" replace />} />
+            {/* 온보딩 및 로그인 관련 페이지 - 메인으로 리디렉션하지 않고 실제 페이지 표시 */}
+            <Route path="/onboarding1" element={<Onboarding1 />} />
+            <Route path="/onboarding2" element={<Onboarding2 />} />
+            <Route path="/auth-choice" element={<AuthChoice />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/find-credentials-choice" element={<FindCredentialsChoice />} />
+            <Route path="/find-id" element={<FindId />} />
+            <Route path="/find-password" element={<FindPassword />} />
+            <Route path="/profile-setup" element={<ProfileSetup />} />
+            <Route path="/terms-agreement" element={<TermsAgreement />} />
             <Route path="/home" element={<Index />} />
 
             <Route path="*" element={<NotFound />} />
